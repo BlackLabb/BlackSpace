@@ -5878,7 +5878,7 @@ import {
     const se=document.getElementById("bsi-portfolioSummary");
     if(se){
       const best=entries.reduce((b,[s,h])=>{const r=h.avgCost?((BSI.quotes[s]?.c||h.avgCost)-h.avgCost)/h.avgCost*100:-999;return r>b.r?{sym:s,r}:b;},{sym:"-",r:-999});
-      const worst=entries.reduce((w,[s,h])=>{const r=h.avgCost?((BSI.quotes[s]?.c||h.avgCost)-h.avgCost)/h.avgCost*100:999;return r<w.r?{sym:s,r: -r }:w;},{sym:"-",r:999});
+      const worst=entries.reduce((w,[s,h])=>{const r=h.avgCost?((BSI.quotes[s]?.c||h.avgCost)-h.avgCost)/h.avgCost*100:999;return r<w.r?{sym:s,r}:w;},{sym:"-",r:999});
       const iZhP=typeof curLang!=='undefined'&&curLang==='zh';
       const mkRow=(l,v,c)=>`<div class="bsi-sum-row"><span style="color:var(--muted);font-size:12px;">${l}</span><span style="font-size:13px;font-weight:700;${c?"color:"+c:""}">${v}</span></div>`;
       se.innerHTML=mkRow(iZhP?"總回報":"Total Return",bsiSignedMoney(bsiTotalRet())+" ("+bsiPct(bsiTotalRetPct())+")",bsiColorFor(bsiTotalRet()))+(entries.length?mkRow(iZhP?"最佳":"Best",best.r>-999?best.sym+" "+bsiPct(best.r):"-","var(--success)")+mkRow(iZhP?"最差":"Worst",worst.r<999?worst.sym+" "+bsiPct(worst.r):"-","var(--error)"):"");
