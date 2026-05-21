@@ -168,12 +168,13 @@
 /* Trader: landing page stays light (don't override the marketing site) */
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation;height:100%;background:var(--bg)}
-body{height:100dvh;font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:var(--text);background:var(--bg);display:flex;overflow:hidden;letter-spacing:-.01em;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-#app-wrapper{background:var(--bg)}
+:root{--app-height:100dvh;--keyboard-safe-bottom:0px}
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation;height:100%;min-height:100%;background:var(--bg)}
+body{height:var(--app-height);min-height:var(--app-height);font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:var(--text);background:var(--bg);display:flex;overflow:hidden;letter-spacing:-.01em;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#app-wrapper{height:var(--app-height);min-height:var(--app-height);background:var(--bg)}
 body::before,body::after{content:'';position:fixed;left:0;right:0;background:var(--bg);pointer-events:none;z-index:45}
 body::before{top:0;height:env(safe-area-inset-top);height:constant(safe-area-inset-top)}
-body::after{bottom:0;height:env(safe-area-inset-bottom);height:constant(safe-area-inset-bottom)}
+body::after{bottom:0;height:calc(env(safe-area-inset-bottom) + var(--keyboard-safe-bottom));height:calc(constant(safe-area-inset-bottom) + var(--keyboard-safe-bottom))}
 button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
 input,select{font:inherit;color:inherit}
 table{border-collapse:collapse;width:100%}
@@ -530,8 +531,8 @@ table{border-collapse:collapse;width:100%}
 
 @media (max-width: 768px) {
   .sidebar { display: none !important; }
-  body { overflow: hidden; height: 100dvh; }
-  #app-wrapper { flex-direction: column; }
+  body { overflow: hidden; height: var(--app-height); min-height: var(--app-height); }
+  #app-wrapper { flex-direction: column; height: var(--app-height); min-height: var(--app-height); }
   .main { width: 100%; }
   .topbar { padding: calc(10px + env(safe-area-inset-top)) 16px 10px; padding-top: calc(10px + constant(safe-area-inset-top)); }
   /* Prevent iOS from auto-zooming when focusing small-text inputs */
@@ -5135,6 +5136,37 @@ renderGoals = function() {
 
 // ── FIXED: Blue theme + Donut chart + AI insights always on ──────
 // No Tweaks panel needed — settings are locked in.
+
+// Keep iOS PWA viewport height in sync after keyboard open/close.
+// Without this, Safari can leave a white strip below the app until restart.
+(function syncAppViewport(){
+  const root = document.documentElement;
+  let timer = null;
+
+  function applyViewportVars(){
+    const vv = window.visualViewport;
+    const height = vv ? vv.height : window.innerHeight;
+    const gap = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+    root.style.setProperty('--app-height', `${Math.round(height)}px`);
+    root.style.setProperty('--keyboard-safe-bottom', gap > 80 ? `${Math.round(gap)}px` : '0px');
+  }
+
+  function scheduleViewportSync(){
+    applyViewportVars();
+    clearTimeout(timer);
+    timer = setTimeout(applyViewportVars, 260);
+  }
+
+  applyViewportVars();
+  window.addEventListener('resize', scheduleViewportSync);
+  window.addEventListener('orientationchange', scheduleViewportSync);
+  window.addEventListener('focusin', scheduleViewportSync);
+  window.addEventListener('focusout', scheduleViewportSync);
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', scheduleViewportSync);
+    window.visualViewport.addEventListener('scroll', scheduleViewportSync);
+  }
+})();
 
 // Re-render line chart on resize
 window.addEventListener('resize', () => {
