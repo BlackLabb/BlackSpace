@@ -4398,6 +4398,8 @@ const NEWS_ALIASES = {
 const NEWS_API = 'https://blackspace.markchanchun.workers.dev/news';
 let newsRenderToken = 0;
 let newsLastError = '';
+const newsClientCache = new Map();
+const NEWS_CLIENT_CACHE_TTL = 10 * 60 * 1000;
 function newsEsc(value){return String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));}
 function newsRequestedTickers(){return ($('news-ticker-input')?.value||'').split(',').map(v=>v.trim().toUpperCase()).filter(Boolean);}
 function newsFocused(item,symbol){
@@ -4413,6 +4415,9 @@ function parseNewsTime(value){
   return Number.isNaN(date.getTime()) ? new Date(0) : date;
 }
 async function fetchNewsFeed(symbols, mode){
+  const cacheKey = `${symbols.join(',')}:${mode}`;
+  const cached = newsClientCache.get(cacheKey);
+  if(cached && Date.now() - cached.ts < NEWS_CLIENT_CACHE_TTL) return cached.feed;
   const url = new URL(NEWS_API);
   url.searchParams.set('tickers', symbols.join(','));
   url.searchParams.set('sort', mode);
@@ -4421,7 +4426,7 @@ async function fetchNewsFeed(symbols, mode){
   const data = await res.json().catch(()=>({}));
   if(!res.ok) throw new Error(data.code || data.message || data.error || `News API ${res.status}`);
   if(!Array.isArray(data.feed)) throw new Error('Invalid news response');
-  return data.feed.map(item=>({
+  const feed = data.feed.map(item=>({
     title:item.title || '',
     source:item.source || 'Alpha Vantage',
     time:item.time || item.time_published || '',
@@ -4431,6 +4436,8 @@ async function fetchNewsFeed(symbols, mode){
     summary:item.summary || '',
     url:item.url || '#'
   }));
+  newsClientCache.set(cacheKey, { ts: Date.now(), feed });
+  return feed;
 }
 function sortNewsFeed(feed, mode){
   if(mode==='sentiment') feed.sort((a,b)=>b.sentiment-a.sentiment);
@@ -4489,7 +4496,13 @@ document.addEventListener('click', e=>{
   $('news-ticker-input').value = chip.textContent.trim();
   renderNews();
 });
-document.addEventListener('input', e=>{ if(e.target && e.target.id==='news-ticker-input') renderNews(); });
+let newsInputTimer = null;
+document.addEventListener('input', e=>{
+  if(e.target && e.target.id==='news-ticker-input'){
+    clearTimeout(newsInputTimer);
+    newsInputTimer = setTimeout(renderNews, 500);
+  }
+});
 document.addEventListener('change', e=>{ if(e.target && e.target.id==='news-sort-select') renderNews(); });
 document.addEventListener('click', e=>{ if(e.target && e.target.id==='news-refresh-btn') renderNews(); });
 
