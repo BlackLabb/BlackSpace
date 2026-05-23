@@ -1810,6 +1810,7 @@ table{border-collapse:collapse;width:100%}
               <h3 style="margin:0 0 12px;font-size:15px" data-i18n="news-rules">Matching Rules</h3>
               <div class="news-rule-row" data-i18n="news-rule-1">BlackSpace filters provider output so broad market stories do not crowd out ticker-specific news.</div>
               <div class="news-rule-row" data-i18n="news-rule-2">Strict matching checks headline against ticker and company names.</div>
+			<div class="news-rule-row" data-i18n="news-rule-4">Sentiment score ranges from -1 to 1; higher is more positive.</div>		
               <div class="news-rule-row" data-i18n="news-rule-3">The information may contain errors. Please verify the content if necessary.</div>
             </div>
           </aside>
@@ -3268,7 +3269,7 @@ const I18N = {
     'sub-inv-cost':'已投入金額','sub-inv-mktval':'當前市值','sub-inv-overall':'整體','sub-live':'即時報價',
     'sub-capital':'總分配資金','sub-cash-rem-pos':'可用於投資','sub-cash-rem-neg':'超額分配',
     'sub-total-acct':'(市值 + 剩餘現金) − 資本',
-    'news-tickers':'股票代號','news-sort':'排序','news-sort-latest':'最新','news-sort-sentiment':'情緒','news-sort-relevance':'相關度','news-articles':'文章','news-company-results':'公司相關結果','news-positive':'正面情緒','news-feed-tone':'已過濾新聞情緒','news-updated':'最後更新','news-local-time':'本地時間','news-feed':'新聞','news-rules':'篩選規則','news-rule-1':'BlackSpace 會過濾新聞供應商的結果，避免廣泛市場新聞蓋過個別股票相關新聞。','news-rule-2':'嚴格匹配會檢查標題是否包含股票代號和公司名稱。','news-rule-3':'資訊可能包含錯誤；如有需要，請自行核實內容。','news-status-ok':'正常','news-status-error':'錯誤','news-open':'打開','news-sentiment-positive':'正面','news-sentiment-negative':'負面','news-sentiment-neutral':'中性',
+    'news-tickers':'股票代號','news-sort':'排序','news-sort-latest':'最新','news-sort-sentiment':'情緒','news-sort-relevance':'相關度','news-articles':'文章','news-company-results':'公司相關結果','news-positive':'正面情緒','news-feed-tone':'已過濾新聞情緒','news-updated':'最後更新','news-local-time':'本地時間','news-feed':'新聞','news-rules':'篩選規則','news-rule-1':'BlackSpace 會過濾新聞供應商的結果，避免廣泛市場新聞蓋過個別股票相關新聞。','news-rule-2':'嚴格匹配會檢查標題是否包含股票代號和公司名稱。','news-rule-4':'情緒分數範圍為 -1 至 1；分數越高代表越正面。','news-rule-3':'資訊可能包含錯誤；如有需要，請自行核實內容。','news-status-ok':'正常','news-status-error':'錯誤','news-open':'打開','news-sentiment-positive':'正面','news-sentiment-negative':'負面','news-sentiment-neutral':'中性',
     // Holdings table
     'th-symbol':'代號','th-qty':'數量','th-avgcost':'平均成本','th-price':'現價','th-pnl':'盈虧','th-return':'回報率',
     // Transaction table headers
@@ -3371,7 +3372,7 @@ const I18N = {
     'sub-inv-cost':'Amount invested','sub-inv-mktval':'Current value','sub-inv-overall':'Overall','sub-live':'Live prices',
     'sub-capital':'Total funds allocated','sub-cash-rem-pos':'Available to invest','sub-cash-rem-neg':'Over-allocated',
     'sub-total-acct':'(Market Value + Cash Remaining) − Capital',
-    'news-tickers':'Tickers','news-sort':'Sort','news-sort-latest':'Latest','news-sort-sentiment':'Sentiment','news-sort-relevance':'Relevance','news-articles':'Articles','news-company-results':'Company-matched results','news-positive':'Positive Sentiment','news-feed-tone':'Filtered feed tone','news-updated':'Last Updated','news-local-time':'Local browser time','news-feed':'News Feed','news-rules':'Matching Rules','news-rule-1':'BlackSpace filters provider output so broad market stories do not crowd out ticker-specific news.','news-rule-2':'Strict matching checks headline against ticker and company names.','news-rule-3':'The information may contain errors. Please verify the content if necessary.','news-status-ok':'OK','news-status-error':'Error','news-open':'Open','news-sentiment-positive':'Positive','news-sentiment-negative':'Negative','news-sentiment-neutral':'Neutral',
+    'news-tickers':'Tickers','news-sort':'Sort','news-sort-latest':'Latest','news-sort-sentiment':'Sentiment','news-sort-relevance':'Relevance','news-articles':'Articles','news-company-results':'Company-matched results','news-positive':'Positive Sentiment','news-feed-tone':'Filtered feed tone','news-updated':'Last Updated','news-local-time':'Local browser time','news-feed':'News Feed','news-rules':'Matching Rules','news-rule-1':'BlackSpace filters provider output so broad market stories do not crowd out ticker-specific news.','news-rule-2':'Strict matching checks headline against ticker and company names.','news-rule-4':'Sentiment score ranges from -1 to 1; higher is more positive.','news-rule-3':'The information may contain errors. Please verify the content if necessary.','news-status-ok':'OK','news-status-error':'Error','news-open':'Open','news-sentiment-positive':'Positive','news-sentiment-negative':'Negative','news-sentiment-neutral':'Neutral',
     'th-symbol':'Symbol','th-qty':'Qty','th-avgcost':'Avg Cost','th-price':'Current Price','th-pnl':'P&L','th-return':'Return',
     'th-date':'Date','th-merchant':'Merchant','th-category':'Category','th-amount':'Amount',
     'card-all':'All',
