@@ -27,7 +27,6 @@ BlackSpace 是 BlackLab 旗下的個人財務管理 Web App，核心目標是把
 - **Investments 投資組合**
   - 可新增、編輯、刪除持倉。
   - 支援 USD、HKD、EUR、GBP、JPY。
-  - 透過 Cloudflare Worker 取得即時或近即時報價。
   - 顯示 Total Cost、Market Value、Total P&L、Return、Capital、Cash Remaining 和 Account Value。
   - 顯示 Portfolio Allocation，包含股票、ETF、Crypto、Bond、Cash 等分類。
 
