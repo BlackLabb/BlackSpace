@@ -32,30 +32,24 @@ BlackSpace 是 BlackLab 旗下的個人財務管理 Web App，核心目標是把
   - 顯示 Portfolio Allocation，包含股票、ETF、Crypto、Bond、Cash 等分類。
 
 - **Investment News 投資新聞**
-  - 內建投資新聞頁面與獨立 `news.html` 測試頁。
-  - 透過 Cloudflare Worker `/news` endpoint 讀取公司相關新聞。
+  - 內建投資新聞頁面
   - 支援 ticker 搜尋、watchlist chip、排序、情緒分數和公司相關性過濾。
-  - Worker 可使用 Finnhub 取得公司新聞，並可接入 DeepSeek 做情緒 / 股價影響分析。
 
 - **Sim Trading / BlackInvest 模擬交易**
   - 程式內包含模擬交易模組。
   - 支援 watchlist、持倉、訂單、限價單、市價買賣、買賣記錄和起始資金設定。
-  - 目前入口在部分 UI 中屬於隱藏 / 實驗狀態。
 
 - **登入與同步**
-  - 使用 Firebase Authentication。
-  - 使用 Firestore 儲存用戶資料。
+
   - 支援註冊、登入、登出、修改密碼。
   - 登入失敗過多會有短暫 lockout 保護。
 
 - **PWA / iOS Web App 支援**
-  - 支援 `viewport-fit=cover`。
-  - 已處理 iOS PWA status bar / bottom safe area / keyboard 後白邊問題。
   - 可加入主畫面作為類 App 使用。
 
 
 ## 備份與資料
-App 內有 JSON 匯出 / 匯入功能，可用於手動備份資料。登入後資料會以 Firebase Firestore 作主要同步來源。
+App 內有 JSON 匯出 / 匯入功能，可用於手動備份資料。
 
 ## 免責聲明
 BlackSpace 的投資、新聞和模擬交易功能只供學習、記錄和分析用途，不構成任何投資建議。所有市場資料、新聞內容和情緒分析都可能延遲或出錯，使用者應自行核實資料。投資涉及風險，包括可能損失本金。BlackSpace 並非持牌證券交易商。
