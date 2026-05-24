@@ -619,13 +619,22 @@ table{border-collapse:collapse;width:100%}
 .news-metric:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--primary)}
 .news-metric strong{display:block;font-size:27px;line-height:1;margin-top:8px}
 .news-metric span{display:block;margin-top:7px;color:var(--muted);font-size:12px}
-.news-sentiment-value.is-positive{color:var(--positive)}
-.news-sentiment-value.is-negative{color:var(--negative)}
+.news-sentiment-value.is-positive{color:var(--success)}
+.news-sentiment-value.is-negative{color:var(--error)}
 .news-sentiment-value.is-neutral{color:var(--text)}
 .news-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
 .news-feed-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:12px}
 .news-feed-head h2{margin:0;font-size:18px}
 .news-list{display:flex;flex-direction:column;gap:12px}
+.news-ai-card{margin-top:12px;padding:16px}
+.news-ai-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.news-ai-title{font-size:16px;font-weight:850;color:var(--text)}
+.news-ai-pill{height:24px;padding:0 9px;border-radius:999px;background:var(--primaryHL);color:var(--primary);font-size:11px;font-weight:850;display:inline-flex;align-items:center;white-space:nowrap}
+.news-ai-body{display:grid;gap:12px}
+.news-ai-section strong{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px}
+.news-ai-section p{margin:0;color:var(--text);opacity:.86;font-size:13px;line-height:1.55}
+.news-ai-points{margin:0;padding-left:18px;color:var(--text);opacity:.86;font-size:13px;line-height:1.55}
+.news-ai-points li{margin-bottom:5px}
 .news-card{overflow:hidden}
 .news-inner{display:grid;grid-template-columns:5px 1fr}
 .news-rail.pos{background:var(--green)}.news-rail.neg{background:var(--red)}.news-rail.neu{background:var(--muted)}
@@ -1815,6 +1824,7 @@ table{border-collapse:collapse;width:100%}
           <div>
             <div class="news-feed-head"><h2 data-i18n="news-feed">News Feed</h2></div>
             <div class="news-list" id="news-list"></div>
+            <div id="news-ai-analysis"></div>
           </div>
           <aside class="news-side">
             <div class="card" style="padding:16px">
@@ -3282,7 +3292,7 @@ const I18N = {
     'sub-inv-cost':'已投入金額','sub-inv-mktval':'當前市值','sub-inv-overall':'整體','sub-live':'即時報價',
     'sub-capital':'總分配資金','sub-cash-rem-pos':'可用於投資','sub-cash-rem-neg':'超額分配',
     'sub-total-acct':'(市值 + 剩餘現金) − 資本',
-    'news-tickers':'股票代號','news-sort':'排序','news-sort-latest':'最新','news-sort-sentiment':'情緒','news-sort-relevance':'相關度','news-articles':'文章','news-company-results':'公司相關結果','news-positive':'正面情緒','news-feed-tone':'已過濾新聞情緒','news-updated':'最後更新','news-local-time':'本地時間','news-feed':'新聞','news-rules':'篩選規則','news-rule-1':'BlackSpace 會過濾新聞供應商的結果，避免廣泛市場新聞蓋過個別股票相關新聞。','news-rule-2':'嚴格匹配會檢查標題是否包含股票代號和公司名稱。','news-rule-4':'情緒分數範圍為 -1 至 1；分數越高代表越正面。','news-rule-3':'資訊可能包含錯誤；如有需要，請自行核實內容。','news-status-ok':'正常','news-status-error':'錯誤','news-open':'打開','news-sentiment-positive':'正面','news-sentiment-negative':'負面','news-sentiment-neutral':'中性',
+    'news-tickers':'股票代號','news-sort':'排序','news-sort-latest':'最新','news-sort-sentiment':'情緒','news-sort-relevance':'相關度','news-articles':'文章','news-company-results':'公司相關結果','news-positive':'正面情緒','news-feed-tone':'已過濾新聞情緒','news-updated':'最後更新','news-local-time':'本地時間','news-feed':'新聞','news-rules':'篩選規則','news-ai':'AI 分析','news-ai-pill':'前 10 篇內文','news-ai-overall':'整體判斷','news-ai-points':'新聞重點','news-ai-impact':'股價影響','news-ai-risk':'風險提示','news-rule-1':'BlackSpace 會過濾新聞供應商的結果，避免廣泛市場新聞蓋過個別股票相關新聞。','news-rule-2':'嚴格匹配會檢查標題是否包含股票代號和公司名稱。','news-rule-4':'情緒分數範圍為 -1 至 1；分數越高代表越正面。','news-rule-3':'資訊可能包含錯誤；如有需要，請自行核實內容。','news-status-ok':'正常','news-status-error':'錯誤','news-open':'打開','news-sentiment-positive':'正面','news-sentiment-negative':'負面','news-sentiment-neutral':'中性',
     // Holdings table
     'th-symbol':'代號','th-qty':'數量','th-avgcost':'平均成本','th-price':'現價','th-pnl':'盈虧','th-return':'回報率',
     // Transaction table headers
@@ -3385,7 +3395,7 @@ const I18N = {
     'sub-inv-cost':'Amount invested','sub-inv-mktval':'Current value','sub-inv-overall':'Overall','sub-live':'Live prices',
     'sub-capital':'Total funds allocated','sub-cash-rem-pos':'Available to invest','sub-cash-rem-neg':'Over-allocated',
     'sub-total-acct':'(Market Value + Cash Remaining) − Capital',
-    'news-tickers':'Tickers','news-sort':'Sort','news-sort-latest':'Latest','news-sort-sentiment':'Sentiment','news-sort-relevance':'Relevance','news-articles':'Articles','news-company-results':'Company-matched results','news-positive':'Positive Sentiment','news-feed-tone':'Filtered feed tone','news-updated':'Last Updated','news-local-time':'Local browser time','news-feed':'News Feed','news-rules':'Matching Rules','news-rule-1':'BlackSpace filters provider output so broad market stories do not crowd out ticker-specific news.','news-rule-2':'Strict matching checks headline against ticker and company names.','news-rule-4':'Sentiment score ranges from -1 to 1; higher is more positive.','news-rule-3':'The information may contain errors. Please verify the content if necessary.','news-status-ok':'OK','news-status-error':'Error','news-open':'Open','news-sentiment-positive':'Positive','news-sentiment-negative':'Negative','news-sentiment-neutral':'Neutral',
+    'news-tickers':'Tickers','news-sort':'Sort','news-sort-latest':'Latest','news-sort-sentiment':'Sentiment','news-sort-relevance':'Relevance','news-articles':'Articles','news-company-results':'Company-matched results','news-positive':'Positive Sentiment','news-feed-tone':'Filtered feed tone','news-updated':'Last Updated','news-local-time':'Local browser time','news-feed':'News Feed','news-rules':'Matching Rules','news-ai':'AI Analysis','news-ai-pill':'First 10 articles','news-ai-overall':'Overall View','news-ai-points':'Key Points','news-ai-impact':'Stock Impact','news-ai-risk':'Risk Note','news-rule-1':'BlackSpace filters provider output so broad market stories do not crowd out ticker-specific news.','news-rule-2':'Strict matching checks headline against ticker and company names.','news-rule-4':'Sentiment score ranges from -1 to 1; higher is more positive.','news-rule-3':'The information may contain errors. Please verify the content if necessary.','news-status-ok':'OK','news-status-error':'Error','news-open':'Open','news-sentiment-positive':'Positive','news-sentiment-negative':'Negative','news-sentiment-neutral':'Neutral',
     'th-symbol':'Symbol','th-qty':'Qty','th-avgcost':'Avg Cost','th-price':'Current Price','th-pnl':'P&L','th-return':'Return',
     'th-date':'Date','th-merchant':'Merchant','th-category':'Category','th-amount':'Amount',
     'card-all':'All',
@@ -4431,12 +4441,13 @@ function parseNewsTime(value){
 async function fetchNewsFeed(symbols, mode, force=false){
   const cacheKey = `${symbols.join(',')}:${mode}`;
   const cached = newsClientCache.get(cacheKey);
-  if(!force && cached && Date.now() - cached.ts < NEWS_CLIENT_CACHE_TTL) return cached.feed;
+  if(!force && cached && Date.now() - cached.ts < NEWS_CLIENT_CACHE_TTL) return cached.data;
   const url = new URL(NEWS_API);
   url.searchParams.set('tickers', symbols.join(','));
   url.searchParams.set('sort', mode);
   url.searchParams.set('limit', '20');
   url.searchParams.set('fulltext', '1');
+  url.searchParams.set('ai', '1');
   if(force) url.searchParams.set('refresh', '1');
   const res = await fetch(url.toString(), { signal: AbortSignal.timeout(30000) });
   const data = await res.json().catch(()=>({}));
@@ -4452,8 +4463,9 @@ async function fetchNewsFeed(symbols, mode, force=false){
     summary:item.summary || '',
     url:item.url || '#'
   }));
-  newsClientCache.set(cacheKey, { ts: Date.now(), feed });
-  return feed;
+  const newsData = { feed, aiAnalysis: data.aiAnalysis || null };
+  newsClientCache.set(cacheKey, { ts: Date.now(), data: newsData });
+  return newsData;
 }
 function sortNewsFeed(feed, mode){
   if(mode==='sentiment') feed.sort((a,b)=>b.sentiment-a.sentiment);
@@ -4473,6 +4485,24 @@ function setNewsPositiveValue(value){
   el.classList.toggle('is-negative', value < 49);
   el.classList.toggle('is-neutral', value >= 49 && value <= 51);
 }
+function renderNewsAIAnalysis(analysis){
+  const host = $('news-ai-analysis');
+  if(!host) return;
+  if(!analysis){
+    host.innerHTML = '';
+    return;
+  }
+  const points = Array.isArray(analysis.keyPoints) ? analysis.keyPoints.filter(Boolean) : [];
+  host.innerHTML = `<div class="card news-ai-card">
+    <div class="news-ai-head"><div class="news-ai-title">${newsEsc(analysis.title || t('news-ai'))}</div><span class="news-ai-pill">${t('news-ai-pill')}</span></div>
+    <div class="news-ai-body">
+      ${analysis.overall ? `<div class="news-ai-section"><strong>${t('news-ai-overall')}</strong><p>${newsEsc(analysis.overall)}</p></div>` : ''}
+      ${points.length ? `<div class="news-ai-section"><strong>${t('news-ai-points')}</strong><ul class="news-ai-points">${points.map(point=>`<li>${newsEsc(point)}</li>`).join('')}</ul></div>` : ''}
+      ${analysis.stockImpact ? `<div class="news-ai-section"><strong>${t('news-ai-impact')}</strong><p>${newsEsc(analysis.stockImpact)}</p></div>` : ''}
+      ${analysis.risks ? `<div class="news-ai-section"><strong>${t('news-ai-risk')}</strong><p>${newsEsc(analysis.risks)}</p></div>` : ''}
+    </div>
+  </div>`;
+}
 async function renderNews(force=false){
   if(!$('news-list')) return;
   const token = ++newsRenderToken;
@@ -4480,14 +4510,18 @@ async function renderNews(force=false){
   const mode = $('news-sort-select')?.value || 'latest';
   if(!symbols.length){
     $('news-list').innerHTML = `<div class="card" style="padding:16px">${curLang==='zh'?'請先輸入股票代號。':'Enter at least one ticker.'}</div>`;
+    renderNewsAIAnalysis(null);
     $('news-articles').textContent = '0';
     setNewsPositiveValue(0);
     return;
   }
   $('news-list').innerHTML = `<div class="card" style="padding:16px">${curLang==='zh'?'正在載入新聞...':'Loading news...'}</div>`;
+  renderNewsAIAnalysis(null);
+  let newsData;
   let feed;
   try{
-    feed = await fetchNewsFeed(symbols, mode, force);
+    newsData = await fetchNewsFeed(symbols, mode, force);
+    feed = newsData.feed;
     newsLastError = '';
   } catch(e){
     console.warn('News API error', e);
@@ -4497,6 +4531,7 @@ async function renderNews(force=false){
   if(token !== newsRenderToken) return;
   feed = sortNewsFeed(feed.filter(item => !symbols.length || symbols.some(symbol => newsFocused(item,symbol) || (item.tickers||[]).includes(symbol))), mode);
   $('news-list').innerHTML = feed.length ? feed.map(renderNewsCard).join('') : `<div class="card" style="padding:16px">${newsLastError ? newsErrorText() : (curLang==='zh'?'沒有符合所選代號的公司相關新聞。':'No company-specific news matched the selected tickers.')}</div>`;
+  renderNewsAIAnalysis(feed.length ? newsData?.aiAnalysis : null);
   const positive = feed.length ? Math.round(feed.filter(i=>i.sentiment>.12).length/feed.length*100) : 0;
   $('news-articles').textContent = feed.length;
   setNewsPositiveValue(positive);
