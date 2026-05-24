@@ -588,14 +588,15 @@ table{border-collapse:collapse;width:100%}
   .overlay { align-items: flex-end; padding: 0; }
   .modal { border-radius: var(--rXl) var(--rXl) 0 0; max-width: 100% !important; width: 100%; padding: 24px 20px 36px; max-height: 90dvh; overflow-y: auto; }
   .auth-box { padding: 32px 24px; }
-  .bottom-nav { display: flex !important; position: fixed; bottom: max(8px, calc(env(safe-area-inset-bottom) - 22px)); bottom: max(8px, calc(constant(safe-area-inset-bottom) - 22px)); left: 16px; right: 16px; height: 60px; background: rgba(255,255,255,.65); backdrop-filter: saturate(200%) blur(28px); -webkit-backdrop-filter: saturate(200%) blur(28px); border: 1px solid rgba(255,255,255,.55); border-radius: 22px; z-index: 50; align-items: stretch; box-shadow: 0 8px 32px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06), 0 0 0 0.5px rgba(255,255,255,.4) inset; padding: 0 4px; }
+  :root { --mobile-nav-bottom: max(8px, calc(env(safe-area-inset-bottom) - 18px)); }
+  .bottom-nav { display: flex !important; position: fixed; bottom: var(--mobile-nav-bottom); left: 16px; right: 16px; height: 60px; background: rgba(255,255,255,.65); backdrop-filter: saturate(200%) blur(28px); -webkit-backdrop-filter: saturate(200%) blur(28px); border: 1px solid rgba(255,255,255,.55); border-radius: 22px; z-index: 50; align-items: stretch; box-shadow: 0 8px 32px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06), 0 0 0 0.5px rgba(255,255,255,.4) inset; padding: 0 4px; }
   [data-theme="dark"] .bottom-nav { background: rgba(20,20,22,.6); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 8px 32px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.3), 0 0 0 0.5px rgba(255,255,255,.06) inset; }
   [data-theme="trader"] .bottom-nav { background: rgba(10,10,10,.7) !important; border: 1px solid rgba(255,255,255,.07) !important; box-shadow: 0 8px 32px rgba(0,0,0,.6), 0 0 0 0.5px rgba(255,255,255,.04) inset !important; }
   .bottom-nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 500; color: var(--muted); border: none; background: none; cursor: pointer; transition: color var(--trans), transform .15s; padding: 0; border-radius: 18px; }
   .bottom-nav-btn:active { transform: scale(.9); }
   .bottom-nav-btn.active { color: var(--primary); }
   .bottom-nav-btn svg { width: 20px; height: 20px; }
-  .mini-apps-menu{left:auto;right:16px;bottom:54px;min-width:240px}
+  .mini-apps-menu{left:auto;right:16px;bottom:calc(var(--mobile-nav-bottom) + 68px);min-width:240px}
   .mini-apps-menu.open{transform:translateY(0) scale(1)}
 }
 
@@ -3127,7 +3128,7 @@ function setView(v){
   $('view-'+v).classList.add('active');
   const activeNav = document.querySelector(`.nav-btn[data-view="${v}"]`);
   if(activeNav) activeNav.classList.add('active');
-  document.querySelectorAll('.mini-apps-trigger').forEach(el=>el.classList.toggle('active', v==='news' || v==='blackinvest'));
+  document.querySelectorAll('.mini-apps-trigger').forEach(el=>el.classList.remove('active'));
   const vk = VIEW_KEYS[v];
   $('view-title').textContent = vk ? t(vk.title) : v;
   if(v==='monthly'){
@@ -3143,7 +3144,7 @@ function setView(v){
   if(v==='investments'){ renderInvestments(); fetchAllPrices(); }
   if(v==='news') renderNews();
   document.querySelectorAll('.bottom-nav-btn').forEach(b=>{
-    b.classList.toggle('active', b.dataset.view===v || (b.dataset.appsTrigger && (v==='news' || v==='blackinvest')));
+    b.classList.toggle('active', b.dataset.view===v);
   });
 }
 $('nav').addEventListener('click', e=>{
@@ -3160,6 +3161,7 @@ function closeMiniAppsMenu(){
     menu.setAttribute('aria-hidden','true');
   }
   if(trigger) trigger.setAttribute('aria-expanded','false');
+  document.querySelectorAll('[data-apps-trigger]').forEach(el=>el.classList.remove('active'));
 }
 function toggleMiniAppsMenu(anchor){
   const menu = $('mini-apps-menu');
@@ -3180,6 +3182,7 @@ function toggleMiniAppsMenu(anchor){
   menu.setAttribute('aria-hidden', open ? 'false' : 'true');
   const trigger = $('mini-apps-btn');
   if(trigger) trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  document.querySelectorAll('[data-apps-trigger]').forEach(el=>el.classList.toggle('active', open));
 }
 document.addEventListener('click', e=>{
   const trigger = e.target.closest('.mini-apps-trigger');
