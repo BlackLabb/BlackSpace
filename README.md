@@ -1,4 +1,4 @@
-# BlackSpace <img src="./BlackSpace.png" alt="BlackSpace logo" width="50">
+# BlackSpace <img src="./BlackSpace.mp4" alt="BlackSpace logo" width="50">
 
 BlackSpace 是 BlackLab 旗下的個人財富管理工具，將日常記帳、投資組合、股票資訊、投資新聞、預算管理和模擬交易集中在同一個 Web App 內。目標是讓用戶可以用一個介面管理現金流、了解資產狀況，並輔助日常投資觀察。
 
