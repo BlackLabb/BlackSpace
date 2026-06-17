@@ -1,0 +1,3593 @@
+<!DOCTYPE html><html lang="zh-HK"><head>
+	<script>
+// ── CATEGORY MODAL ────────────────────────────────────────
+let selectedColor = PALETTE[0];
+
+function buildColorPicker(){
+  selectedColor = PALETTE[0];
+  $('c-color').value = selectedColor;
+  $('color-picker').innerHTML = PALETTE.map(col=>
+    `<div class="color-swatch-opt${col===selectedColor?' selected':''}" style="background:${col}" data-col="${col}" title="${col}"></div>`
+  ).join('');
+  $('color-picker').querySelectorAll('.color-swatch-opt').forEach(sw=>{
+    sw.addEventListener('click',()=>{
+      selectedColor = sw.dataset.col;
+      $('c-color').value = selectedColor;
+      $('color-picker').querySelectorAll('.color-swatch-opt').forEach(s=>s.classList.toggle('selected',s===sw));
+    });
+  });
+}
+
+function openCatModal(){
+  $('c-name').value='';
+  $('c-budget').value='';
+  buildColorPicker();
+  $('cat-overlay').classList.add('open');
+  $('c-name').focus();
+}
+function closeCatModal(){ $('cat-overlay').classList.remove('open'); }
+
+$('add-cat-btn').addEventListener('click',openCatModal);
+$('cat-close').addEventListener('click',closeCatModal);
+$('cat-cancel').addEventListener('click',closeCatModal);
+$('cat-overlay').addEventListener('click',e=>{ if(e.target===$('cat-overlay')) closeCatModal(); });
+
+$('cat-submit').addEventListener('click',()=>{
+  const name=$('c-name').value.trim();
+  const budget=parseFloat($('c-budget').value)||0;
+  const col=$('c-color').value||PALETTE[0];
+  if(!name){ $('c-name').focus(); return; }
+  if(CATS.find(c=>c.name.toLowerCase()===name.toLowerCase())){
+    $('c-name').style.borderColor='var(--error)';
+    setTimeout(()=>$('c-name').style.borderColor='',1500);
+    return;
+  }
+  CATS.push({name,col,budget});
+  saveUserData();
+  closeCatModal();
+  renderCategories();
+});
+
+// ── SEARCH ────────────────────────────────────────────────
+$('m-search').addEventListener('input',function(){
+  const {y,m}=ALL_MONTHS[curMonthIdx];
+  const base=txForMonth(y,m);
+  const q=this.value.toLowerCase();
+  const filtered=q?base.filter(t=>t.merchant.toLowerCase().includes(q)||t.category.toLowerCase().includes(q)):base;
+  renderTxRows(filtered,'m-tbody');
+  $('m-badge').textContent=filtered.length;
+});
+$('a-search').addEventListener('input',function(){ renderAllTx(this.value); });
+
+// ── INIT ──────────────────────────────────────────────────
+buildTabs();
+renderProfile();
+renderMonthly();
+
+// ── AUTH ──────────────────────────────────────────────────
+// ── FIREBASE AUTH BRIDGE ──────────────────────────────────────────────────────
+// Thin wrappers so the rest of the app calls window._fb* functions (set by the
+// Firebase module above). Falls back gracefully if Firebase hasn't loaded yet.
+function saveUserData(){ if(window._fbSaveUserData) window._fbSaveUserData(); }
+
+// ── PER-USER DATA (Firebase-backed) ───────────────────────────────────────────
+let currentUser = '';
+
+function clearUserMemory(){
+  transactions = [];
+  CATS.length = 0;
+  goals = [];
+  investments = [];
+  invActualCash = 0;
+  privacyMode = false;
+  Object.keys(incomeMap).forEach(k => delete incomeMap[k]);
+  Object.assign(profile, {name:'Your Name', role:'Your subtitle', avatar:'YN'});
+  rangeStartYear=new Date().getFullYear(); rangeStartMonth=0;
+  rangeEndYear=new Date().getFullYear();   rangeEndMonth=11;
+}
+
+function onUserReady(){
+  ALL_MONTHS.length=0; buildAllMonths().forEach(m=>ALL_MONTHS.push(m));
+  curMonthIdx=ALL_MONTHS.findIndex(x=>x.y===new Date().getFullYear()&&x.m===new Date().getMonth());
+  if(curMonthIdx<0) curMonthIdx=Math.max(0,ALL_MONTHS.length-1);
+  renderProfile();
+  const aw=document.getElementById('app-wrapper');
+  document.getElementById('auth-screen').style.display='none';
+  aw.style.display='flex';
+  buildTabs(); applyRecurringTransactions(); setView('dashboard');
+  // Attach DD/MM/YYYY auto-format to date inputs
+  attachDateAutoFormat('f-date');
+  attachDateAutoFormat('et-date');
+  // Attach merchant → category auto-suggest
+  attachMerchantAutoSuggest('f-merchant', 'f-category');
+  attachMerchantAutoSuggest('et-merchant', 'et-category');
+  setTimeout(()=>{ applyLang(); syncPrivacySetting(); }, 0);
+}
+
+// Expose app data + callbacks for Firebase module
+window._appData = {
+  get transactions(){ return transactions; },
+  set transactions(v){ transactions=v; },
+  get CATS(){ return CATS; },
+  get goals(){ return goals; },
+  set goals(v){ goals=v; },
+  get investments(){ return investments; },
+  set investments(v){ investments=v; },
+  get invCapital(){ return invCapital; },
+  set invCapital(v){ invCapital=v; },
+  get invActualCash(){ return invActualCash; },
+  set invActualCash(v){ invActualCash=v; },
+  get dashBank(){ return dashBank; },
+  set dashBank(v){ dashBank=v; },
+  get privacyMode(){ return privacyMode; },
+  set privacyMode(v){ privacyMode=!!v; },
+  get incomeMap(){ return incomeMap; },
+  get profile(){ return profile; },
+  get rangeStartYear(){ return rangeStartYear; },
+  set rangeStartYear(v){ rangeStartYear=v; },
+  get rangeStartMonth(){ return rangeStartMonth; },
+  set rangeStartMonth(v){ rangeStartMonth=v; },
+  get rangeEndYear(){ return rangeEndYear; },
+  set rangeEndYear(v){ rangeEndYear=v; },
+  get rangeEndMonth(){ return rangeEndMonth; },
+  set rangeEndMonth(v){ rangeEndMonth=v; },
+  clearUserMemory,
+  onUserReady
+};
+
+
+function showApp(){
+  $('auth-screen').style.display='none';
+  document.documentElement.classList.remove('landing-visible');
+  const aw=$('app-wrapper');
+  aw.style.removeProperty('display');
+  aw.style.display='flex';
+}
+function showAuth(){
+  $('auth-screen').style.display='flex';
+  document.documentElement.classList.remove('landing-visible');
+  $('app-wrapper').style.display='none';
+}
+
+function showLocalNewsPreview(){
+  if(!window.BS_LOCAL_PREVIEW) return false;
+  window._bsLocalNewsPreviewActive = true;
+  const lp = document.getElementById('landing-page');
+  const auth = document.getElementById('auth-screen');
+  const app = document.getElementById('app-wrapper');
+  if(lp) lp.style.display = 'none';
+  if(auth) auth.style.display = 'none';
+  document.documentElement.classList.remove('landing-visible');
+  if(app){
+    app.style.removeProperty('display');
+    app.style.display = 'flex';
+  }
+  if(typeof hideLoading === 'function') hideLoading();
+  if(typeof buildTabs === 'function') buildTabs();
+  if(typeof applyRecurringTransactions === 'function') applyRecurringTransactions();
+  if(typeof setView === 'function') setView('news');
+  if(typeof applyLang === 'function') applyLang();
+  return true;
+}
+window.bsShowLocalNewsPreview = showLocalNewsPreview;
+if(window.BS_LOCAL_PREVIEW){
+  const startLocalNewsPreview = () => {
+    showLocalNewsPreview();
+    setTimeout(showLocalNewsPreview, 300);
+    setTimeout(showLocalNewsPreview, 1200);
+  };
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startLocalNewsPreview);
+  else startLocalNewsPreview();
+}
+
+$('go-register').addEventListener('click',()=>{
+  $('auth-login-panel').style.display='none';
+  $('auth-register-panel').style.display='block';
+  setTimeout(()=>$('reg-user').focus(),50);
+});
+$('go-login').addEventListener('click',()=>{
+  $('auth-register-panel').style.display='none';
+  $('auth-login-panel').style.display='block';
+  setTimeout(()=>$('login-user').focus(),50);
+});
+
+function doRegister(){ if(window._fbRegister) window._fbRegister(); }
+$('reg-submit-btn').addEventListener('click', doRegister);
+['reg-user','reg-pass','reg-pass2'].forEach(id=>{
+  $(id).addEventListener('keydown',e=>{ if(e.key==='Enter') doRegister(); });
+});
+
+function doLogin(){ if(window._fbLogin) window._fbLogin(); }
+$('login-submit-btn').addEventListener('click', doLogin);
+['login-user','login-pass'].forEach(id=>{
+  $(id).addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+});
+
+$('logout-btn').addEventListener('click',()=>{
+  if(window._fbLogout) window._fbLogout();
+});
+
+// Auth state is managed by Firebase onAuthStateChanged in the module above
+
+
+// ── EXPORT / IMPORT ────────────────────────────────────────────────────────────
+function exportData(){
+  const payload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    transactions,
+    cats: CATS,
+    goals,
+    privacyMode,
+    incomeMap,
+    profile,
+    rangeStartYear, rangeStartMonth, rangeEndYear, rangeEndMonth
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'BlackSpace-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if(!d.version || !Array.isArray(d.transactions)){
+        alert('⚠️ Invalid BlackSpace backup file.');
+        return;
+      }
+      if(!confirm('Import will REPLACE all current data. Continue?')) return;
+
+      // Restore data
+      transactions = d.transactions || [];
+      CATS.length = 0;
+      (d.cats||[]).forEach(c => CATS.push(c));
+      goals = d.goals || [];
+      privacyMode = !!d.privacyMode;
+      syncPrivacySetting();
+      Object.keys(incomeMap).forEach(k => delete incomeMap[k]);
+      Object.assign(incomeMap, d.incomeMap||{});
+
+      if(d.profile){
+        Object.assign(profile, d.profile);
+        renderProfile();
+      }
+      if(d.rangeStartYear !== undefined){
+        rangeStartYear  = d.rangeStartYear;
+        rangeStartMonth = d.rangeStartMonth;
+        rangeEndYear    = d.rangeEndYear;
+        rangeEndMonth   = d.rangeEndMonth;
+        ALL_MONTHS.length = 0;
+        buildAllMonths().forEach(m => ALL_MONTHS.push(m));
+        curMonthIdx = ALL_MONTHS.findIndex(x=>x.y===new Date().getFullYear()&&x.m===new Date().getMonth());
+        if(curMonthIdx<0) curMonthIdx = Math.max(0, ALL_MONTHS.length - 1);
+      }
+
+      buildTabs();
+      setView(curView);
+      saveUserData();
+      alert('✅ Import successful!');
+    } catch(err){
+      alert('⚠️ Failed to parse file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// Old export/import buttons removed — now handled via settings menu below
+
+// ── SETTINGS MENU ─────────────────────────────────────────
+(function setupSettingsMenu(){
+  const btn = $('settings-btn');
+  const menu = $('settings-menu');
+  if(!btn || !menu) return;
+
+  function positionMenu(){
+    const btnRect = btn.getBoundingClientRect();
+    menu.style.top  = (btnRect.bottom + 8) + 'px';
+    menu.style.right = (window.innerWidth - btnRect.right) + 'px';
+  }
+  function openMenu(){
+    positionMenu();
+    menu.classList.add('open');
+    btn.classList.add('open');
+    btn.setAttribute('aria-expanded','true');
+    menu.setAttribute('aria-hidden','false');
+    updateSettingsMenuValues();
+    syncPrivacySetting();
+  }
+  function closeMenu(){
+    menu.classList.remove('open');
+    btn.classList.remove('open');
+    btn.setAttribute('aria-expanded','false');
+    menu.setAttribute('aria-hidden','true');
+  }
+  function toggleMenu(e){
+    e.stopPropagation();
+    menu.classList.contains('open') ? closeMenu() : openMenu();
+  }
+
+  btn.addEventListener('click', toggleMenu);
+
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if(!menu.classList.contains('open')) return;
+    if(!e.target.closest('#settings-wrap')) closeMenu();
+  });
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
+  });
+
+  // Item actions
+  $('settings-theme').addEventListener('click', () => { toggleTheme(); });
+  $('settings-lang').addEventListener('click', () => { toggleLang(); });
+  $('settings-privacy').addEventListener('click', () => { togglePrivacyMode(); });
+  $('settings-password').addEventListener('click', () => { closeMenu(); openPasswordModal(); });
+  $('settings-export').addEventListener('click', () => { closeMenu(); exportData(); });
+  $('settings-import').addEventListener('click', () => { closeMenu(); $('import-file-input').click(); });
+})();
+
+// ── CHANGE PASSWORD MODAL ─────────────────────────────────
+function openPasswordModal(){
+  $('pw-old').value = '';
+  $('pw-new').value = '';
+  $('pw-new2').value = '';
+  $('pw-err').style.display = 'none';
+  $('pw-err').textContent = '';
+  $('password-overlay').classList.add('open');
+  setTimeout(() => $('pw-old').focus(), 80);
+}
+function closePasswordModal(){
+  $('password-overlay').classList.remove('open');
+}
+function showPwErr(key){
+  const el = $('pw-err');
+  el.textContent = t(key);
+  el.style.color = 'var(--error)';
+  el.style.background = 'rgba(255,59,48,.08)';
+  el.style.display = 'block';
+}
+function showPwOk(key){
+  const el = $('pw-err');
+  el.textContent = t(key);
+  el.style.color = 'var(--success)';
+  el.style.background = 'rgba(52,199,89,.10)';
+  el.style.display = 'block';
+}
+$('password-close').addEventListener('click', closePasswordModal);
+$('password-cancel').addEventListener('click', closePasswordModal);
+$('password-overlay').addEventListener('click', e => { if(e.target === $('password-overlay')) closePasswordModal(); });
+$('password-submit').addEventListener('click', async () => {
+  const oldP = $('pw-old').value;
+  const newP = $('pw-new').value;
+  const newP2 = $('pw-new2').value;
+  if(!oldP || !newP || !newP2){ showPwErr('pw-err-empty'); return; }
+  if(newP.length < 8){ showPwErr('pw-err-short'); return; }
+  if(newP !== newP2){ showPwErr('pw-err-mismatch'); return; }
+  if(newP === oldP){ showPwErr('pw-err-same'); return; }
+  const submitBtn = $('password-submit');
+  submitBtn.disabled = true;
+  submitBtn.style.opacity = '.6';
+  const result = await (window._fbChangePassword ? window._fbChangePassword(oldP, newP) : { ok:false, err:'unknown' });
+  submitBtn.disabled = false;
+  submitBtn.style.opacity = '';
+  if(result.ok){
+    showPwOk('pw-success');
+    setTimeout(closePasswordModal, 1200);
+  } else {
+    const errMap = {
+      'wrong-old': 'pw-err-wrong',
+      'weak': 'pw-err-weak',
+      'recent-login': 'pw-err-recent',
+      'too-many': 'pw-err-too-many',
+    };
+    showPwErr(errMap[result.err] || 'pw-err-unknown');
+  }
+});
+// Enter key in last field submits
+$('pw-new2').addEventListener('keydown', e => { if(e.key === 'Enter') $('password-submit').click(); });
+$('import-file-input').addEventListener('change', e => {
+  if(e.target.files[0]) importData(e.target.files[0]);
+  e.target.value = '';
+});
+
+
+// ── MERCHANT → CATEGORY LEARNING (auto-suggest) ───────────────────────────────
+const MERCHANT_MAP_KEY = 'bs_merchant_categories';
+function loadMerchantMap(){
+  try { return JSON.parse(localStorage.getItem(MERCHANT_MAP_KEY) || '{}'); }
+  catch(_){ return {}; }
+}
+function saveMerchantMap(map){
+  try { localStorage.setItem(MERCHANT_MAP_KEY, JSON.stringify(map)); } catch(_){}
+}
+function recordMerchantCategory(merchant, category){
+  if(!merchant || !category) return;
+  const key = merchant.trim().toLowerCase();
+  if(!key) return;
+  const map = loadMerchantMap();
+  map[key] = category;
+  saveMerchantMap(map);
+}
+function suggestCategoryFor(merchant){
+  if(!merchant) return null;
+  const key = merchant.trim().toLowerCase();
+  if(!key) return null;
+  const map = loadMerchantMap();
+  // Exact match
+  if(map[key]) return map[key];
+  // Fuzzy: known merchant is a substring of input, or vice versa (handles "Starbucks HK" matching "Starbucks")
+  for(const k of Object.keys(map)){
+    if(key.includes(k) || k.includes(key)) return map[k];
+  }
+  return null;
+}
+// Seed with common merchants so it works right away
+function seedCommonMerchants(){
+  const map = loadMerchantMap();
+  const hasSeeded = localStorage.getItem('bs_merchants_seeded');
+  if(hasSeeded) return;
+  const seeds = {
+    // Food & drink
+    'starbucks':'餐飲','mcdonald':'餐飲','kfc':'餐飲','subway':'餐飲','pizza hut':'餐飲',
+    'burger king':'餐飲','maxim':'餐飲','美心':'餐飲','大家樂':'餐飲','大快活':'餐飲',
+    'café':'餐飲','cafe':'餐飲','餐廳':'餐飲','茶餐廳':'餐飲',
+    // Groceries
+    'wellcome':'家用','惠康':'家用','parknshop':'家用','百佳':'家用','aeon':'家用','市場':'家用',
+    'market':'家用','whole foods':'家用','city\'super':'家用',
+    // Transport
+    'mtr':'交通','港鐵':'交通','taxi':'交通','uber':'交通','bus':'交通','shell':'交通','esso':'交通','加油':'交通',
+    // Shopping / entertainment
+    'amazon':'購物','apple':'購物','netflix':'娛樂','spotify':'娛樂','disney':'娛樂','cinema':'娛樂','戲院':'娛樂',
+    // Bills
+    'clp':'水電','hkelectric':'水電','水務署':'水電','煤氣':'水電','中華電力':'水電',
+  };
+  saveMerchantMap({ ...seeds, ...map });
+  try { localStorage.setItem('bs_merchants_seeded', '1'); } catch(_){}
+}
+seedCommonMerchants();
+
+// Auto-suggest category when user types merchant
+function attachMerchantAutoSuggest(merchantId, categoryId){
+  const mEl = document.getElementById(merchantId);
+  const cEl = document.getElementById(categoryId);
+  if(!mEl || !cEl) return;
+  const handler = () => {
+    const merchant = mEl.value;
+    if(!merchant.trim()) return;
+    const suggested = suggestCategoryFor(merchant);
+    if(!suggested) return;
+    // Only auto-fill if category exists in current CATS list
+    const exists = Array.from(cEl.options).some(o => o.value === suggested);
+    if(!exists) return;
+    // Don't override if user already changed category manually
+    if(cEl.dataset.userTouched === '1') return;
+    cEl.value = suggested;
+  };
+  mEl.addEventListener('blur', handler);
+  mEl.addEventListener('input', () => {
+    // Debounce a bit for typing
+    clearTimeout(mEl._suggTimer);
+    mEl._suggTimer = setTimeout(handler, 400);
+  });
+  cEl.addEventListener('change', () => { cEl.dataset.userTouched = '1'; });
+}
+
+// Kept for backward compat (no-op now)
+function toggleMerchantField(){}
+const VIEW_KEYS = {
+  dashboard:{title:'title-dashboard',sub:'sub-dashboard'},
+  monthly:{title:'title-monthly',sub:'sub-monthly'},
+  investments:{title:'title-investments',sub:'sub-investments'},
+  categories:{title:'title-categories',sub:'sub-categories'},
+  news:{title:'title-news',sub:'sub-news'},
+  stockresearch:{title:'title-stockresearch',sub:'sub-stockresearch'}
+};
+window.VIEW_KEYS = VIEW_KEYS;
+
+function setView(v){
+  if(v === 'goals' || v === 'blackinvest') v = 'dashboard';
+  const target = $('view-' + v);
+  if(!target && v !== 'dashboard') return setView('dashboard');
+  if(!target) return;
+  curView = v;
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  target.classList.add('active');
+  const activeNav = document.querySelector(`.nav-btn[data-view="${v}"]`);
+  if(activeNav) activeNav.classList.add('active');
+  document.querySelectorAll('.mini-apps-trigger').forEach(el => el.classList.remove('active'));
+  const vk = VIEW_KEYS[v];
+  $('view-title').textContent = vk ? t(vk.title) : v;
+  if(v === 'monthly'){
+    const s = ALL_MONTHS[0], e = ALL_MONTHS[ALL_MONTHS.length - 1];
+    $('view-sub').textContent = monthYearLabel(s.m, s.y) + ' - ' + monthYearLabel(e.m, e.y) + ' · ' + t('sub-monthly-breakdown');
+  } else {
+    $('view-sub').textContent = vk ? t(vk.sub) : '';
+  }
+  $('month-strip').style.display = v === 'monthly' ? '' : 'none';
+  if(v === 'monthly'){ buildTabs(); renderMonthly(); }
+  if(v === 'transactions') renderAllTx();
+  if(v === 'dashboard') renderDashboard();
+  if(v === 'categories') renderCategories();
+  if(v === 'investments'){ renderInvestments(); fetchAllPrices(); }
+  if(v === 'news') renderNews();
+  if(v === 'stockresearch' && window.initStockResearch) window.initStockResearch();
+  document.querySelectorAll('.bottom-nav-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === v);
+  });
+}
+
+// ── MOBILE BOTTOM NAV SYNC ─────────────────────────────────────────────────────
+// Bottom nav - use document-level delegation since nav is outside script scope
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.bottom-nav-btn');
+  if(!btn) return;
+  if(btn.dataset.appsTrigger){
+    toggleMiniAppsMenu(btn);
+    return;
+  }
+  setView(btn.dataset.view);
+});
+
+// Bottom nav sync is handled inside setView
+
+
+// ── INVESTMENTS ────────────────────────────────────────────────────────────────
+const CURRENCY_SYMBOLS = { USD:'$', HKD:'$', EUR:'€', GBP:'£', JPY:'¥' };
+
+  // FX rates to HKD (auto-fetch, fallback to fixed rate)
+  let FX_TO_HKD = { USD: 7.78, HKD: 1, EUR: 8.5, GBP: 9.9, JPY: 0.052 };
+  async function fetchFXRates() {
+    try {
+      const r = await fetch('https://api.frankfurter.app/latest?from=HKD&to=USD,EUR,GBP,JPY');
+      const d = await r.json();
+      Object.keys(d.rates).forEach(cur => { FX_TO_HKD[cur] = 1 / d.rates[cur]; });
+    } catch(e) { /* use fallback rates */ }
+  }
+  fetchFXRates();
+
+function fmtPrice(val, currency='USD'){
+  const sym = CURRENCY_SYMBOLS[currency] || '$';
+  if(Math.abs(val) >= 1000) return sym + val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return sym + val.toFixed(val < 1 ? 4 : 2);
+}
+
+// ── YAHOO FINANCE via corsproxy ────────────────────────────────────────────────
+const priceCache = {};
+
+async function fetchPrice(symbol){
+  if(priceCache[symbol] && Date.now() - priceCache[symbol].ts < 60000)
+    return priceCache[symbol].price;
+
+  // Backend proxy URL (Cloudflare Worker — Finnhub key is hidden server-side)
+  const PRICE_API = 'https://blackspace.markchanchun.workers.dev';
+
+  // Convert symbol format for Finnhub
+  function toFinnhub(sym){
+    // Crypto: BTC-USD → BINANCE:BTCUSDT
+    if(sym.match(/^([A-Z]+)-USD$/i)){
+      const base = sym.split('-')[0].toUpperCase();
+      return `BINANCE:${base}USDT`;
+    }
+    // HK stocks: 0700.HK stays as-is
+    return sym.toUpperCase();
+  }
+
+  // Try our backend proxy first
+  try {
+    const fsym = toFinnhub(symbol);
+    const res = await fetch(
+      `${PRICE_API}/?symbol=${encodeURIComponent(fsym)}`,
+      { signal: AbortSignal.timeout(8000) }
+    );
+    if(res.ok){
+      const data = await res.json();
+      // Finnhub returns { c: currentPrice, ... }; c=0 means not found
+      if(data.c && data.c > 0){
+        priceCache[symbol] = { price: data.c, ts: Date.now() };
+        return data.c;
+      }
+    }
+  } catch(e){ console.warn('Price API error', symbol, e); }
+
+  // Fallback: Yahoo Finance via CORS proxies
+  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
+  const proxies = [
+    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  ];
+  for(const makeProxy of proxies){
+    try {
+      const res = await fetch(makeProxy(yahooUrl), { signal: AbortSignal.timeout(8000) });
+      if(!res.ok) continue;
+      const data = await res.json();
+      const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+      if(price){
+        priceCache[symbol] = { price, ts: Date.now() };
+        return price;
+      }
+    } catch(e){ console.warn('Yahoo proxy failed', symbol, e); }
+  }
+  return null;
+}
+
+async function fetchAllPrices(){
+  if(!investments.length) return;
+  // Clear cache so refresh always fetches fresh prices
+  Object.keys(priceCache).forEach(k => delete priceCache[k]);
+  const btn = $('refresh-prices-btn');
+  btn.querySelector('svg').classList.add('spin');
+  await Promise.all(investments.map(async inv => {
+    const price = await fetchPrice(inv.symbol);
+    inv.livePrice = price;
+  }));
+  btn.querySelector('svg').classList.remove('spin');
+  renderInvestments();
+  if(curView === 'dashboard') renderDashboard();
+  saveUserData();
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────────
+// Investment News
+const NEWS_ALIASES = {
+  NVDA:['NVIDIA','NVIDIA CORPORATION'], GOOGL:['ALPHABET','GOOGLE'], AAPL:['APPLE','APPLE INC'],
+  MSFT:['MICROSOFT','MICROSOFT CORPORATION'], AMZN:['AMAZON','AMAZON.COM'], TSM:['TAIWAN SEMICONDUCTOR','TSMC'],
+  AVGO:['BROADCOM','BROADCOM INC'], META:['META','META PLATFORMS','FACEBOOK'], TSLA:['TESLA','TESLA INC'], WMT:['WALMART','WALMART INC']
+};
+const NEWS_API = 'https://blackspace.markchanchun.workers.dev/news';
+const NEWS_ANALYSIS_API = 'https://blackspace.markchanchun.workers.dev/news-analysis';
+let newsRenderToken = 0;
+let newsLastError = '';
+const newsClientCache = new Map();
+const NEWS_CLIENT_CACHE_TTL = 5 * 60 * 1000;
+function newsEsc(value){return String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));}
+function newsRequestedTickers(){return ($('news-ticker-input')?.value||'').split(',').map(v=>v.trim().toUpperCase()).filter(Boolean);}
+function newsFocused(item,symbol){
+  const hay = `${item.title} ${item.summary}`.toUpperCase();
+  return [symbol,...(NEWS_ALIASES[symbol]||[])].some(name => new RegExp(`(^|[^A-Z0-9])${String(name).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}([^A-Z0-9]|$)`).test(hay));
+}
+function parseNewsTime(value){
+  if(!value) return new Date(0);
+  const raw = String(value);
+  const av = raw.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})$/);
+  if(av) return new Date(`${av[1]}-${av[2]}-${av[3]}T${av[4]}:${av[5]}:${av[6]}Z`);
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? new Date(0) : date;
+}
+async function fetchNewsFeed(symbols, mode, force=false){
+  const cacheKey = `${symbols.join(',')}:${mode}`;
+  const cached = newsClientCache.get(cacheKey);
+  if(!force && cached && Date.now() - cached.ts < NEWS_CLIENT_CACHE_TTL) return cached.data;
+  const url = new URL(NEWS_API);
+  url.searchParams.set('tickers', symbols.join(','));
+  url.searchParams.set('sort', mode);
+  url.searchParams.set('limit', '20');
+  url.searchParams.set('fulltext', '1');
+  if(force) url.searchParams.set('refresh', '1');
+  const res = await fetch(url.toString(), { signal: AbortSignal.timeout(60000) });
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.code || data.message || data.error || `News API ${res.status}`);
+  if(!Array.isArray(data.feed)) throw new Error('Invalid news response');
+  const feed = data.feed.map(item=>({
+    title:item.title || '',
+    source:item.source || 'RSS Feed',
+    time:item.time || item.time_published || '',
+    sentiment:Number(item.sentiment || item.overall_sentiment_score || 0),
+    relevance:Number(item.relevance || 0),
+    tickers:Array.isArray(item.tickers) ? item.tickers : [],
+    summary:item.summary || '',
+    url:item.url || '#'
+  }));
+  const newsData = { feed, aiAnalysis: data.aiAnalysis || null };
+  newsClientCache.set(cacheKey, { ts: Date.now(), data: newsData });
+  return newsData;
+}
+async function fetchNewsAIAnalysis(symbols, mode, force=false){
+  const url = new URL(NEWS_ANALYSIS_API);
+  url.searchParams.set('tickers', symbols.join(','));
+  url.searchParams.set('sort', mode);
+  url.searchParams.set('lang', curLang === 'zh' ? 'zh' : 'en');
+  if(force) url.searchParams.set('refresh', '1');
+  const res = await fetch(url.toString(), { signal: AbortSignal.timeout(60000) });
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.code || data.message || data.error || `News analysis API ${res.status}`);
+  return data.aiAnalysis || null;
+}
+function sortNewsFeed(feed, mode){
+  if(mode==='sentiment') feed.sort((a,b)=>b.sentiment-a.sentiment);
+  else if(mode==='relevance') feed.sort((a,b)=>(b.relevance||0)-(a.relevance||0));
+  else feed.sort((a,b)=>parseNewsTime(b.time)-parseNewsTime(a.time));
+  return feed;
+}
+function newsErrorText(){
+  if(!newsLastError) return '';
+  return curLang==='zh' ? '新聞 API 暫時未能連線，請檢查 Worker 部署、Finnhub key 和 DeepSeek key。' : 'News API is unavailable. Check the Worker deployment, Finnhub key, and DeepSeek key.';
+}
+function setNewsPositiveValue(value){
+  const el = $('news-positive');
+  if(!el) return;
+  el.textContent = `${value}%`;
+  el.classList.toggle('is-positive', value > 51);
+  el.classList.toggle('is-negative', value < 49);
+  el.classList.toggle('is-neutral', value >= 49 && value <= 51);
+}
+function renderNewsAIAnalysis(analysis){
+  const host = $('news-ai-analysis');
+  if(!host) return;
+  if(!analysis){
+    host.innerHTML = '';
+    return;
+  }
+  if(analysis.loading){
+    host.innerHTML = `<div class="card news-ai-card"><div class="news-ai-head"><div class="news-ai-title">${t('news-ai')}</div><span class="news-ai-pill">${t('news-ai-pill')}</span></div><div class="news-ai-section"><p>${curLang==='zh'?'AI 正在分析前 10 篇新聞內文...':'AI is analyzing the first 10 articles...'}</p></div></div>`;
+    return;
+  }
+  if(analysis.error){
+    host.innerHTML = `<div class="card news-ai-card"><div class="news-ai-head"><div class="news-ai-title">${t('news-ai')}</div><span class="news-ai-pill">${t('news-ai-pill')}</span></div><div class="news-ai-section"><p>${curLang==='zh'?'AI 分析暫時未能載入，請確認最新 Worker 已部署。':'AI analysis is temporarily unavailable. Confirm the latest Worker is deployed.'}</p></div></div>`;
+    return;
+  }
+  const points = Array.isArray(analysis.keyPoints) ? analysis.keyPoints.filter(Boolean) : [];
+  host.innerHTML = `<div class="card news-ai-card">
+    <div class="news-ai-head"><div class="news-ai-title">${newsEsc(analysis.title || t('news-ai'))}</div><span class="news-ai-pill">${t('news-ai-pill')}</span></div>
+    <div class="news-ai-body">
+      ${analysis.overall ? `<div class="news-ai-section"><strong>${t('news-ai-overall')}</strong><p>${newsEsc(analysis.overall)}</p></div>` : ''}
+      ${points.length ? `<div class="news-ai-section"><strong>${t('news-ai-points')}</strong><ul class="news-ai-points">${points.map(point=>`<li>${newsEsc(point)}</li>`).join('')}</ul></div>` : ''}
+      ${analysis.stockImpact ? `<div class="news-ai-section"><strong>${t('news-ai-impact')}</strong><p>${newsEsc(analysis.stockImpact)}</p></div>` : ''}
+      ${analysis.risks ? `<div class="news-ai-section"><strong>${t('news-ai-risk')}</strong><p>${newsEsc(analysis.risks)}</p></div>` : ''}
+    </div>
+  </div>`;
+}
+async function renderNews(force=false){
+  if(!$('news-list')) return;
+  const token = ++newsRenderToken;
+  const symbols = newsRequestedTickers();
+  const mode = $('news-sort-select')?.value || 'latest';
+  if(!symbols.length){
+    $('news-list').innerHTML = `<div class="card" style="padding:16px">${curLang==='zh'?'請先輸入股票代號。':'Enter at least one ticker.'}</div>`;
+    renderNewsAIAnalysis(null);
+    $('news-articles').textContent = '0';
+    setNewsPositiveValue(0);
+    return;
+  }
+  $('news-list').innerHTML = `<div class="card" style="padding:16px">${curLang==='zh'?'正在載入新聞...':'Loading news...'}</div>`;
+  renderNewsAIAnalysis(null);
+  let newsData;
+  let feed;
+  try{
+    newsData = await fetchNewsFeed(symbols, mode, force);
+    feed = newsData.feed;
+    newsLastError = '';
+  } catch(e){
+    console.warn('News API error', e);
+    newsLastError = e.message || 'News API error';
+    feed = [];
+  }
+  if(token !== newsRenderToken) return;
+  feed = sortNewsFeed(feed.filter(item => !symbols.length || symbols.some(symbol => newsFocused(item,symbol) || (item.tickers||[]).includes(symbol))), mode);
+  $('news-list').innerHTML = feed.length ? feed.map(renderNewsCard).join('') : `<div class="card" style="padding:16px">${newsLastError ? newsErrorText() : (curLang==='zh'?'沒有符合所選代號的公司相關新聞。':'No company-specific news matched the selected tickers.')}</div>`;
+  if(feed.length){
+    renderNewsAIAnalysis({ loading:true });
+    fetchNewsAIAnalysis(symbols, mode, force)
+      .then(analysis => { if(token === newsRenderToken) renderNewsAIAnalysis(analysis); })
+      .catch(err => { console.warn('News AI analysis error', err); if(token === newsRenderToken) renderNewsAIAnalysis({ error:true }); });
+  } else {
+    renderNewsAIAnalysis(null);
+  }
+  const positive = feed.length ? Math.round(feed.filter(i=>i.sentiment>.12).length/feed.length*100) : 0;
+  $('news-articles').textContent = feed.length;
+  setNewsPositiveValue(positive);
+  const updatedTime = new Date().toLocaleTimeString(curLang==='zh'?'zh-HK':'en-US',{hour:'2-digit',minute:'2-digit'});
+  $('news-updated').textContent = updatedTime;
+  if($('news-mobile-updated')) $('news-mobile-updated').textContent = updatedTime;
+}
+function renderNewsCard(item){
+  const tone = item.sentiment > .12 ? 'pos' : item.sentiment < -.12 ? 'neg' : 'neu';
+  const label = tone === 'pos' ? t('news-sentiment-positive') : tone === 'neg' ? t('news-sentiment-negative') : t('news-sentiment-neutral');
+  const time = parseNewsTime(item.time).toLocaleString(curLang==='zh'?'zh-HK':'en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  const tags = item.tickers.map(t=>`<span class="news-tag">${newsEsc(t)}</span>`).join('');
+  return `<article class="card news-card"><div class="news-inner"><div class="news-rail ${tone}"></div><div class="news-body"><div class="news-meta"><span class="news-source">${newsEsc(item.source)}</span><span>${time}</span><span class="news-badge ${tone}">${label} ${item.sentiment.toFixed(2)}</span></div><h3>${newsEsc(item.title)}</h3><p class="news-desc">${newsEsc(item.summary)}</p><div class="news-footer"><div class="news-tags">${tags}</div><a class="news-open" href="${newsEsc(item.url)}" target="_blank" rel="noopener">${t('news-open')} ↗</a></div></div></div></article>`;
+}
+document.addEventListener('click', e=>{
+  const chip = e.target.closest('#news-watchlist .news-chip');
+  if(!chip) return;
+  document.querySelectorAll('#news-watchlist .news-chip').forEach(btn=>btn.classList.remove('active'));
+  chip.classList.add('active');
+  $('news-ticker-input').value = chip.textContent.trim();
+  renderNews();
+});
+let newsInputTimer = null;
+document.addEventListener('input', e=>{
+  if(e.target && e.target.id==='news-ticker-input'){
+    clearTimeout(newsInputTimer);
+    newsInputTimer = setTimeout(renderNews, 500);
+  }
+});
+document.addEventListener('change', e=>{ if(e.target && e.target.id==='news-sort-select') renderNews(); });
+document.addEventListener('click', e=>{ if(e.target && e.target.id==='news-refresh-btn') renderNews(true); });
+
+function renderInvestments(){
+  $('inv-badge').textContent = investments.length;
+
+  let totalCost = 0, totalValue = 0;
+
+  const tbody = $('inv-tbody');
+  if(!investments.length){
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-row">${curLang==='zh'?'尚無持倉，立即新增第一筆投資！':'No positions yet. Add your first investment!'}</td></tr>`;
+    $('inv-total-cost').textContent = '$0';
+    $('inv-market-val').textContent = '$0';
+    $('inv-pnl').textContent = '$0';
+    $('inv-return').textContent = '0%';
+    renderCapitalKPIs(0);
+    return;
+  }
+
+  tbody.innerHTML = investments.map(inv => {
+    const sym   = CURRENCY_SYMBOLS[inv.currency] || '$';
+    const cost  = inv.qty * inv.avgCost;
+    const live  = inv.livePrice;
+    const value = live != null ? inv.qty * live : null;
+    const pnl   = value != null ? value - cost : null;
+    const ret   = pnl != null && cost > 0 ? (pnl / cost * 100) : null;
+
+    const fxRate   = FX_TO_HKD[inv.currency] || 7.78;
+    const pnlHKD   = pnl != null ? pnl * fxRate : null;
+    totalCost  += cost * fxRate;
+    totalValue += (value != null ? value : cost) * fxRate;
+
+    const priceStr = live != null
+      ? fmtPrice(live, inv.currency)
+      : '<span class="price-loading">Loading…</span>';
+
+    const pnlStr = pnlHKD != null
+      ? `<span class="${pnlHKD>=0?'inv-pos':'inv-neg'}">${pnlHKD>=0?'+':''}$${Math.abs(pnlHKD).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}</span>`
+      : '<span class="inv-neutral">—</span>';
+
+    const retStr = ret != null
+      ? `<span class="${ret>=0?'inv-pos':'inv-neg'}">${ret>=0?'+':''}${ret.toFixed(2)}%</span>`
+      : '<span class="inv-neutral">—</span>';
+
+    return `<tr>
+      <td style="font-weight:600">
+        <div>${inv.symbol}</div>
+        <div class="inv-mobile-sub">${inv.qty}</div>
+        <div class="inv-mobile-sub">${priceStr}</div>
+        <div class="inv-mobile-sub">Avg ${fmtPrice(inv.avgCost, inv.currency)}</div>
+      </td>
+      <td>${inv.qty}</td>
+      <td>${fmtPrice(inv.avgCost, inv.currency)}</td>
+      <td>${priceStr}</td>
+      <td style="text-align:right">${pnlStr}</td>
+      <td style="text-align:right">
+        <div>${retStr}</div>
+        <div class="inv-mobile-pnl">${pnlStr}</div>
+      </td>
+      <td class="td-action" style="width:68px">
+        <button class="edit-btn" data-inv-id="${inv.id}" title="Edit position" style="opacity:0">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="del-btn" data-inv-id="${inv.id}" title="Delete position">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Bind inv edit buttons
+  tbody.querySelectorAll('.edit-btn[data-inv-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openEditInvModal(+btn.dataset.invId);
+    });
+    btn.closest('tr')?.addEventListener('mouseenter', ()=>btn.style.opacity='1');
+    btn.closest('tr')?.addEventListener('mouseleave', ()=>btn.style.opacity='0');
+  });
+  // Bind delete buttons for investments
+  tbody.querySelectorAll('.del-btn[data-inv-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const inv = investments.find(x => x.id === +btn.dataset.invId);
+      if(!inv) return;
+      showConfirm(
+        curLang==='zh' ? '刪除持倉' : 'Delete Position',
+        curLang==='zh' ? `確認刪除 ${inv.symbol}?` : `Delete ${inv.symbol}?`,
+        () => {
+        investments = investments.filter(x => x.id !== +btn.dataset.invId);
+        saveUserData();
+        renderInvestments();
+      });
+    });
+  });
+
+  // Update KPIs
+  const totalPnl = totalValue - totalCost;
+  const totalRet = totalCost > 0 ? (totalPnl / totalCost * 100) : 0;
+  const hasValue = investments.length > 0;
+
+  $('inv-total-cost').textContent = totalCost.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+  $('inv-market-val').textContent = hasValue ? totalValue.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}) : '—';
+  $('inv-pnl').textContent        = hasValue ? (totalPnl>=0?'+':'')+('$'+Math.abs(totalPnl).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})) : '—';
+  $('inv-pnl').className          = 'kpi-val ' + (totalPnl>=0?'inv-pos':'inv-neg');
+  $('inv-return').textContent     = hasValue ? (totalRet>=0?'+':'')+totalRet.toFixed(2)+'%' : '—';
+  $('inv-return').className       = 'kpi-val ' + (totalRet>=0?'inv-pos':'inv-neg');
+  renderCapitalKPIs(totalCost);
+  renderAllocationChart(totalValue, totalCost);
+}
+
+// ── ASSET CLASSIFICATION ──────────────────────────────────────
+// Heuristic: symbol text → asset type
+function classifyAsset(inv){
+  const s = (inv.symbol || '').toUpperCase().trim();
+  // Crypto
+  if(/-USD$|-USDT$|USDT$/.test(s) || ['BTC','ETH','SOL','DOGE','XRP','ADA','DOT','MATIC','AVAX','LTC','BCH','LINK','UNI','ATOM','NEAR'].includes(s)) return 'crypto';
+  // Common ETFs (by symbol)
+  const etfs = ['SPY','QQQ','VOO','VTI','IVV','VXUS','VEA','VWO','BND','AGG','TLT','GLD','IWM','DIA','EEM','EFA','ARKK','XLE','XLF','XLK','XLV','SCHD','JEPI','JEPQ','VGT','VIG','VYM','VNQ','SMH','SOXX','IEFA','IEMG','IJR','IJH'];
+  if(etfs.includes(s)) return 'etf';
+  // HK listed ETFs (start with 2800, 3067, 3033 etc — 4-digit HK codes ending in 00/33/67 commonly ETF)
+  if(/^(2800|2828|3033|3067|3188|2801|2823|3140|3174)$/.test(s)) return 'etf';
+  // Bonds (common bond ETF symbols captured above); plain bond tickers rare for retail
+  if(/BOND|TREAS|TIPS/.test(s)) return 'bond';
+  // Default: stock
+  return 'stock';
+}
+
+function renderAllocationChart(totalValueHKD, totalCostHKD){
+  const card = $('inv-alloc-card');
+  const wrap = $('inv-alloc-wrap');
+  if(!card || !wrap) return;
+  if(!investments.length){ card.style.display = 'none'; return; }
+  card.style.display = '';
+
+  // Calculate value per asset type (prefer market value, fallback to cost)
+  const buckets = {};
+  investments.forEach(inv => {
+    const fxRate = FX_TO_HKD[inv.currency] || 7.78;
+    const val = inv.livePrice != null
+      ? inv.qty * inv.livePrice * fxRate
+      : inv.qty * inv.avgCost * fxRate;
+    const type = classifyAsset(inv);
+    buckets[type] = (buckets[type] || 0) + val;
+  });
+  // Add remaining cash as a bucket
+  const cashHKD = Math.max(invActualCash || 0, 0);
+  if(cashHKD > 0) buckets['cash'] = cashHKD;
+
+  const total = Object.values(buckets).reduce((s,v)=>s+v, 0);
+  if(total <= 0){ card.style.display = 'none'; return; }
+
+  const COLORS = {
+    stock:   '#0071e3',
+    etf:     '#34c759',
+    crypto:  '#ff9500',
+    bond:    '#af52de',
+    cash:    '#636366',
+    other:   '#ff3b30',
+  };
+
+  const items = Object.entries(buckets)
+    .map(([k,v]) => ({ key:k, val:v, pct: v/total*100, color: COLORS[k] || COLORS.other }))
+    .sort((a,b) => b.val - a.val);
+
+  $('inv-alloc-total').textContent = '$' + Math.round(total).toLocaleString();
+
+  // SVG donut
+  const size = 160, stroke = 22, r = (size-stroke)/2, cx = size/2, cy = size/2;
+  const circ = 2 * Math.PI * r;
+  let offset = 0;
+  const arcs = items.map(it => {
+    const len = (it.pct/100) * circ;
+    const seg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${it.color}" stroke-width="${stroke}"
+      stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"/>`;
+    offset += len;
+    return seg;
+  }).join('');
+
+  const legend = items.map(it => `
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--divider)">
+      <span style="width:10px;height:10px;border-radius:3px;background:${it.color};flex-shrink:0"></span>
+      <span style="flex:1;color:var(--text);font-weight:500">${t('asset-'+it.key)}</span>
+      <span style="color:var(--muted);font-size:11.5px">${it.pct.toFixed(1)}%</span>
+      <span style="color:var(--text);font-weight:600;min-width:72px;text-align:right">$${Math.round(it.val).toLocaleString()}</span>
+    </div>`).join('');
+
+  wrap.innerHTML = `
+    <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+      <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" style="flex-shrink:0">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--surfaceOff)" stroke-width="${stroke}"/>
+        ${arcs}
+        <text x="${cx}" y="${cy-4}" text-anchor="middle" style="font-size:11px;fill:var(--muted)">${curLang==='zh'?'總值':'Total'}</text>
+        <text x="${cx}" y="${cy+14}" text-anchor="middle" style="font-size:15px;font-weight:700;fill:var(--text);letter-spacing:-.02em">$${total>=1000000?(total/1000000).toFixed(1)+'M':total>=1000?Math.round(total/1000)+'K':Math.round(total)}</text>
+      </svg>
+      <div style="flex:1;min-width:220px">
+        ${legend}
+      </div>
+    </div>`;
+}
+
+function renderCapitalKPIs(totalCost){
+  const cap  = invCapital;
+  const cash = invActualCash || 0;
+  const fmt2 = n => (n<0?'-':'')+'$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+  $('inv-capital').textContent = fmt2(cap);
+  $('inv-cash').textContent    = fmt2(cash);
+  $('inv-cash').className      = 'kpi-val';
+  $('inv-cash-sub').textContent = curLang==='zh'?'手動輸入':'Manual entry';
+
+  // Total Account Value = (Market Value + Cash Remaining) - Capital
+  const totalValue = investments.reduce((s,i)=> s + (i.livePrice!=null ? i.qty*i.livePrice*(FX_TO_HKD[i.currency]||7.78) : i.qty*i.avgCost*(FX_TO_HKD[i.currency]||7.78)), 0);
+  const totalAcct = (totalValue + cash) - cap;
+  const acctEl = $('inv-total-acct');
+  if(cap > 0 || cash !== 0 || investments.length > 0){
+    acctEl.textContent = fmt2(totalAcct);
+    acctEl.className = 'kpi-val ' + (totalAcct>=0?'inv-pos':'inv-neg');
+  } else {
+    acctEl.textContent = '—';
+    acctEl.className = 'kpi-val';
+  }
+  // Update sub-label with formula reminder
+  const subEl = $('inv-total-acct-sub');
+  if(subEl) subEl.textContent = curLang==='zh' ? '(市值 + 剩餘現金) − 資本' : '(Market Value + Cash Remaining) − Capital';
+}
+
+// ── MODAL ──────────────────────────────────────────────────────────────────────
+function openInvModal(){
+  $('inv-symbol').value = '';
+  $('inv-qty').value    = '';
+  $('inv-cost').value   = '';
+  $('inv-currency').value = 'USD';
+  $('inv-overlay').classList.add('open');
+  setTimeout(()=>$('inv-symbol').focus(), 50);
+}
+function closeInvModal(){ $('inv-overlay').classList.remove('open'); }
+
+function getInvestmentTotalCost(){
+  return investments.reduce((s,i) => s + i.qty * i.avgCost * (FX_TO_HKD[i.currency]||7.78), 0);
+}
+
+// Capital modal
+function openCapitalModal(){
+  $('f-capital').value = invCapital || '';
+  $('capital-overlay').classList.add('open');
+  setTimeout(()=>$('f-capital').focus(), 50);
+}
+function closeCapitalModal(){ $('capital-overlay').classList.remove('open'); }
+$('edit-capital-btn').addEventListener('click', openCapitalModal);
+$('capital-close').addEventListener('click', closeCapitalModal);
+$('capital-cancel').addEventListener('click', closeCapitalModal);
+$('capital-submit').addEventListener('click', ()=>{
+  const val = parseFloat($('f-capital').value);
+  if(isNaN(val) || val < 0) return;
+  invCapital = val;
+  closeCapitalModal();
+  renderInvestments();
+  if(curView === 'dashboard') renderDashboard();
+  saveUserData();
+});
+
+// Cash remaining modal
+function openCashModal(){
+  $('f-cash').value = invActualCash || '';
+  $('cash-overlay').classList.add('open');
+  setTimeout(()=>$('f-cash').focus(), 50);
+}
+function closeCashModal(){ $('cash-overlay').classList.remove('open'); }
+$('edit-cash-btn').addEventListener('click', openCashModal);
+$('cash-close').addEventListener('click', closeCashModal);
+$('cash-cancel').addEventListener('click', closeCashModal);
+$('cash-submit').addEventListener('click', ()=>{
+  const val = parseFloat($('f-cash').value);
+  if(isNaN(val)) return;
+  invActualCash = val;
+  closeCashModal();
+  renderInvestments();
+  if(curView === 'dashboard') renderDashboard();
+  saveUserData();
+});
+
+$('add-inv-page-btn').addEventListener('click', openInvModal);
+
+// Bank modal
+function openBankModal(){
+  $('f-bank').value = dashBank || '';
+  $('bank-overlay').classList.add('open');
+  setTimeout(()=>$('f-bank').focus(), 50);
+}
+function closeBankModal(){ $('bank-overlay').classList.remove('open'); }
+$('bank-close').addEventListener('click', closeBankModal);
+$('bank-cancel').addEventListener('click', closeBankModal);
+$('bank-submit').addEventListener('click', ()=>{
+  const val = parseFloat($('f-bank').value);
+  if(isNaN(val) || val < 0) return;
+  dashBank = val;
+  closeBankModal();
+  renderDashboard();
+  saveUserData();
+});
+$('inv-close').addEventListener('click', closeInvModal);
+$('inv-cancel').addEventListener('click', closeInvModal);
+
+$('inv-submit').addEventListener('click', async () => {
+  const symbol   = $('inv-symbol').value.trim().toUpperCase();
+  const qty      = parseFloat($('inv-qty').value);
+  const avgCost  = parseFloat($('inv-cost').value);
+  const currency = $('inv-currency').value;
+  if(!symbol || !qty || !avgCost){ $('inv-symbol').focus(); return; }
+
+  // Check if same symbol + currency already exists → merge with weighted avg cost
+  const existing = investments.find(i =>
+    i.symbol.toUpperCase() === symbol && (i.currency || 'USD') === currency
+  );
+
+  let inv;
+  if(existing){
+    // Weighted average: (oldQty*oldCost + newQty*newCost) / (oldQty + newQty)
+    const totalQty = existing.qty + qty;
+    const weightedCost = (existing.qty * existing.avgCost + qty * avgCost) / totalQty;
+    existing.qty = totalQty;
+    existing.avgCost = weightedCost;
+    inv = existing;
+    // Short confirmation toast
+    showMergeToast(symbol, weightedCost, currency);
+  } else {
+    inv = { id: Date.now(), symbol, qty, avgCost, currency, livePrice: null };
+    investments.push(inv);
+  }
+  saveUserData();
+  closeInvModal();
+  renderInvestments();
+
+  // Fetch price immediately after adding
+  const price = await fetchPrice(symbol);
+  inv.livePrice = price;
+  saveUserData();
+  renderInvestments();
+});
+
+// Small toast-style confirmation when positions are merged
+function showMergeToast(symbol, avgCost, currency){
+  const curSym = (typeof CURRENCY_SYMBOLS !== 'undefined' && CURRENCY_SYMBOLS[currency]) ? CURRENCY_SYMBOLS[currency] : '$';
+  const msg = curLang === 'zh'
+    ? `已合併 ${symbol} 持倉，加權平均成本:${curSym}${avgCost.toFixed(2)}`
+    : `Merged ${symbol} position. Weighted avg cost: ${curSym}${avgCost.toFixed(2)}`;
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--surface);padding:10px 18px;border-radius:9999px;font-size:13px;font-weight:500;box-shadow:var(--shadowLg);z-index:9999;opacity:0;transition:opacity .3s,transform .3s;max-width:90vw;text-align:center';
+  document.body.appendChild(el);
+  requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateX(-50%) translateY(-4px)'; });
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(-50%) translateY(0)';
+    setTimeout(() => el.remove(), 300);
+  }, 2800);
+}
+
+['inv-symbol','inv-qty','inv-cost'].forEach(id => {
+  $(id).addEventListener('keydown', e => { if(e.key==='Enter') $('inv-submit').click(); });
+});
+
+$('refresh-prices-btn').addEventListener('click', fetchAllPrices);
+
+// ── LANDING PAGE NAVIGATION ───────────────────────────────────────────────────
+function showLanding(){
+  const lp = document.getElementById('landing-page');
+  const auth = document.getElementById('auth-screen');
+  if(lp)   lp.style.display = '';
+  document.documentElement.classList.add('landing-visible');
+  if(auth) auth.style.display = 'none';
+}
+
+function showAuth(panel){
+  const lp   = document.getElementById('landing-page');
+  const auth = document.getElementById('auth-screen');
+  if(lp)   lp.style.display = 'none';
+  document.documentElement.classList.remove('landing-visible');
+  if(auth){ auth.style.display = 'flex'; }
+  if(panel === 'register'){
+    document.getElementById('auth-login-panel').style.display = 'none';
+    document.getElementById('auth-register-panel').style.display = 'block';
+  } else {
+    document.getElementById('auth-login-panel').style.display = 'block';
+    document.getElementById('auth-register-panel').style.display = 'none';
+  }
+}
+
+// Landing → Auth buttons
+['lp-login-nav','lp-cta-login'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('click', () => showAuth('login'));
+});
+['lp-register-nav','lp-cta-main','lp-cta-bottom'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('click', () => showAuth('register'));
+});
+
+// Auth → Landing (back button)
+const authBackBtn = document.getElementById('auth-back-btn');
+if(authBackBtn) authBackBtn.addEventListener('click', () => showLanding());
+
+// Auth → Landing (go-login / go-register already handled by Firebase module)
+// Expose showLanding globally so Firebase module can call it on logout
+window.showLanding = showLanding;
+
+
+let editTxId = null;
+function openEditTxModal(id){
+  const t = transactions.find(x=>x.id===id);
+  if(!t) return;
+  editTxId = id;
+  $('et-date').value     = isoToDdmmyyyy(t.date);
+  $('et-amount').value   = Math.abs(t.amount);
+  $('et-merchant').value = t.merchant;
+  $('et-type').value     = t.type||(t.amount>0?'income':'expense');
+  $('et-category').innerHTML = CATS.map(c=>`<option value="${c.name}"${c.name===t.category?' selected':''}>${c.name}</option>`).join('');
+  $('edit-tx-overlay').classList.add('open');
+}
+function closeEditTxModal(){ $('edit-tx-overlay').classList.remove('open'); editTxId=null; }
+$('edit-tx-close').addEventListener('click', closeEditTxModal);
+$('edit-tx-cancel').addEventListener('click', closeEditTxModal);
+$('edit-tx-overlay').addEventListener('click', e=>{ if(e.target===$('edit-tx-overlay')) closeEditTxModal(); });
+$('edit-tx-submit').addEventListener('click', ()=>{
+  const t = transactions.find(x=>x.id===editTxId);
+  if(!t) return;
+  const date     = ddmmyyyyToIso($('et-date').value.trim());
+  const amount   = parseFloat($('et-amount').value);
+  const merchant = $('et-merchant').value.trim();
+  const category = $('et-category').value;
+  const type     = $('et-type').value;
+  if(!date){ $('et-date').style.borderColor='var(--error)'; $('et-date').focus(); return; }
+  $('et-date').style.borderColor='';
+  if(!amount||!merchant) return;
+  // Learn merchant → category on edit too
+  if(type === 'expense' && merchant && category){
+    recordMerchantCategory(merchant, category);
+  }
+  t.date     = date;
+  t.amount   = type==='expense'?-Math.abs(amount):Math.abs(amount);
+  t.merchant = merchant;
+  t.category = category;
+  t.type     = type;
+  saveUserData();
+  closeEditTxModal();
+  if(curView==='monthly') renderMonthly();
+  if(curView==='transactions') renderAllTx($('a-search').value);
+});
+
+// ── EDIT INVESTMENT MODAL ─────────────────────────────────────────────────────
+let editInvId = null;
+function openEditInvModal(id){
+  const inv = investments.find(x=>x.id===id);
+  if(!inv) return;
+  editInvId = id;
+  $('ei-symbol').value   = inv.symbol;
+  $('ei-qty').value      = inv.qty;
+  $('ei-cost').value     = inv.avgCost;
+  $('ei-currency').value = inv.currency||'USD';
+  $('edit-inv-overlay').classList.add('open');
+}
+function closeEditInvModal(){ $('edit-inv-overlay').classList.remove('open'); editInvId=null; }
+$('edit-inv-close').addEventListener('click', closeEditInvModal);
+$('edit-inv-cancel').addEventListener('click', closeEditInvModal);
+$('edit-inv-overlay').addEventListener('click', e=>{ if(e.target===$('edit-inv-overlay')) closeEditInvModal(); });
+$('edit-inv-submit').addEventListener('click', async ()=>{
+  const inv = investments.find(x=>x.id===editInvId);
+  if(!inv) return;
+  const symbol   = $('ei-symbol').value.trim().toUpperCase();
+  const qty      = parseFloat($('ei-qty').value);
+  const avgCost  = parseFloat($('ei-cost').value);
+  const currency = $('ei-currency').value;
+  if(!symbol||isNaN(qty)||isNaN(avgCost)) return;
+  const symbolChanged = inv.symbol!==symbol;
+  inv.symbol=symbol; inv.qty=qty; inv.avgCost=avgCost; inv.currency=currency;
+  if(symbolChanged) inv.livePrice=null;
+  saveUserData(); closeEditInvModal(); renderInvestments();
+  if(symbolChanged){ inv.livePrice=await fetchPrice(symbol); saveUserData(); renderInvestments(); }
+});
+
+// ── EDIT CATEGORY MODAL ───────────────────────────────────────────────────────
+let editCatIdx = null;
+let editSelColor = '';
+
+function buildEditColorPicker(currentCol){
+  editSelColor = currentCol||PALETTE[0];
+  $('ec-color').value = editSelColor;
+  $('edit-color-picker').innerHTML = PALETTE.map(col=>
+    `<div class="color-swatch-opt${col===editSelColor?' selected':''}" style="background:${col}" data-col="${col}"></div>`
+  ).join('');
+  $('edit-color-picker').querySelectorAll('.color-swatch-opt').forEach(sw=>{
+    sw.addEventListener('click',()=>{
+      editSelColor=sw.dataset.col; $('ec-color').value=editSelColor;
+      $('edit-color-picker').querySelectorAll('.color-swatch-opt').forEach(s=>s.classList.toggle('selected',s===sw));
+    });
+  });
+}
+
+function openEditCatModal(idx){
+  const c=CATS[idx]; if(!c) return;
+  editCatIdx=idx;
+  $('ec-name').value   = c.name;
+  $('ec-budget').value = c.budget||'';
+  buildEditColorPicker(c.col);
+  $('ec-recurring').checked = !!c.recurring;
+  $('ec-recurring-fields').style.display = c.recurring?'flex':'none';
+  $('ec-rec-amount').value = c.recAmount||'';
+  $('ec-rec-day').value    = c.recDay||1;
+  $('edit-cat-overlay').classList.add('open');
+  $('ec-name').focus();
+}
+function closeEditCatModal(){ $('edit-cat-overlay').classList.remove('open'); editCatIdx=null; }
+$('edit-cat-close').addEventListener('click', closeEditCatModal);
+$('edit-cat-cancel').addEventListener('click', closeEditCatModal);
+$('edit-cat-overlay').addEventListener('click', e=>{ if(e.target===$('edit-cat-overlay')) closeEditCatModal(); });
+$('ec-recurring').addEventListener('change', ()=>{
+  $('ec-recurring-fields').style.display=$('ec-recurring').checked?'flex':'none';
+});
+$('edit-cat-submit').addEventListener('click', ()=>{
+  if(editCatIdx===null) return;
+  const name      = $('ec-name').value.trim();
+  const budget    = parseFloat($('ec-budget').value)||0;
+  const col       = $('ec-color').value||PALETTE[0];
+  const recurring = $('ec-recurring').checked;
+  const recAmount = parseFloat($('ec-rec-amount').value)||0;
+  const recDay    = parseInt($('ec-rec-day').value)||1;
+  if(!name) return;
+  if(CATS.find((c,i)=>i!==editCatIdx&&c.name.toLowerCase()===name.toLowerCase())){
+    $('ec-name').style.borderColor='var(--error)';
+    setTimeout(()=>$('ec-name').style.borderColor='',1500); return;
+  }
+  const oldName=CATS[editCatIdx].name;
+  if(oldName!==name) transactions.forEach(t=>{ if(t.category===oldName) t.category=name; });
+  CATS[editCatIdx]={name,col,budget,recurring,recAmount,recDay};
+  saveUserData(); closeEditCatModal(); renderCategories();
+  if(curView==='monthly') renderMonthly();
+});
+
+// ── RECURRING HELPER (for Add Category checkbox) ──────────────────────────────
+function toggleRecurringFields(chkId, fieldsId){
+  $(fieldsId).style.display=$(chkId).checked?'flex':'none';
+}
+
+// ── OVERRIDE cat-submit TO INCLUDE RECURRING ─────────────────────────────────
+// Remove existing listener by replacing the node, then re-attach
+(function(){
+  const oldBtn = $('cat-submit');
+  const newBtn = oldBtn.cloneNode(true);
+  oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+  newBtn.addEventListener('click',()=>{
+    const name      = $('c-name').value.trim();
+    const budget    = parseFloat($('c-budget').value)||0;
+    const col       = $('c-color').value||PALETTE[0];
+    const recurring = $('c-recurring').checked;
+    const recAmount = parseFloat($('c-rec-amount').value)||0;
+    const recDay    = parseInt($('c-rec-day').value)||1;
+    if(!name){ $('c-name').focus(); return; }
+    if(CATS.find(c=>c.name.toLowerCase()===name.toLowerCase())){
+      $('c-name').style.borderColor='var(--error)';
+      setTimeout(()=>$('c-name').style.borderColor='',1500); return;
+    }
+    CATS.push({name,col,budget,recurring,recAmount,recDay});
+    saveUserData(); closeCatModal(); renderCategories();
+  });
+})();
+
+// ── RECURRING AUTO-BOOK ───────────────────────────────────────────────────────
+function applyRecurringTransactions(){
+  const today=new Date();
+  const y=today.getFullYear(), m=today.getMonth();
+  let changed=false;
+  CATS.forEach(cat=>{
+    if(!cat.recurring||!cat.recAmount||!cat.recDay) return;
+    const ym=`${y}-${String(m+1).padStart(2,'0')}`;
+    const alreadyBooked=transactions.some(t=>t.recurringCat===cat.name&&t.date.startsWith(ym));
+    if(alreadyBooked||today.getDate()<cat.recDay) return;
+    const date=`${y}-${String(m+1).padStart(2,'0')}-${String(cat.recDay).padStart(2,'0')}`;
+    transactions.unshift({
+      id: Date.now()+Math.random(),
+      date, merchant:cat.name, category:cat.name,
+      amount:-Math.abs(cat.recAmount), type:'expense', recurringCat:cat.name,
+    });
+    changed=true;
+  });
+  if(changed) saveUserData();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// BlackSpace v2.0 — Charts, AI Insights & Tweaks
+// ═══════════════════════════════════════════════════════════════════
+
+// ── SVG DONUT CHART ──────────────────────────────────────────────
+function renderDonut(catMap, containerId, total) {
+  const el = $(containerId);
+  if (!el) return;
+  const entries = Object.entries(catMap)
+    .map(([name, val]) => ({ name, val, col: (CATS.find(c=>c.name===name)||{}).col || '#888' }))
+    .filter(e => e.val > 0)
+    .sort((a,b) => b.val - a.val)
+    .slice(0, 8);
+  if (!entries.length) { el.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:12px;text-align:center">本期無支出</div>'; return; }
+
+  const R = 70, r = 46, cx = 90, cy = 90, totalVal = entries.reduce((s,e)=>s+e.val,0);
+  let angle = -Math.PI / 2;
+  const slices = entries.map(e => {
+    const sweep = (e.val / totalVal) * Math.PI * 2;
+    const x1 = cx + R * Math.cos(angle), y1 = cy + R * Math.sin(angle);
+    angle += sweep;
+    const x2 = cx + R * Math.cos(angle), y2 = cy + R * Math.sin(angle);
+    const lf = sweep > Math.PI ? 1 : 0;
+    const ix1 = cx + r * Math.cos(angle - sweep), iy1 = cy + r * Math.sin(angle - sweep);
+    const ix2 = cx + r * Math.cos(angle), iy2 = cy + r * Math.sin(angle);
+    const d = `M${x1},${y1} A${R},${R} 0 ${lf},1 ${x2},${y2} L${ix2},${iy2} A${r},${r} 0 ${lf},0 ${ix1},${iy1} Z`;
+    return { ...e, d, sweep };
+  });
+
+  const fmtK = n => n >= 1000 ? '$'+(n/1000).toFixed(1)+'k' : '$'+n.toLocaleString();
+  const legendRows = entries.map(e => `
+    <div class="donut-legend-row">
+      <div class="donut-legend-dot" style="background:${e.col}"></div>
+      <div class="donut-legend-name">${e.name}</div>
+      <div class="donut-legend-pct">${Math.round(e.val/totalVal*100)}%</div>
+      <div class="donut-legend-amt">${fmtK(e.val)}</div>
+    </div>`).join('');
+
+  el.innerHTML = `<div class="donut-wrap">
+    <svg class="donut-svg" width="180" height="180" viewBox="0 0 180 180">
+      <defs><filter id="dShadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity=".15"/></filter></defs>
+      ${slices.map((s,i) => `<path d="${s.d}" fill="${s.col}" style="cursor:pointer;transform-origin:${cx}px ${cy}px;transition:transform .2s" onmouseenter="this.setAttribute('transform','scale(1.04)')" onmouseleave="this.setAttribute('transform','')"><title>${s.name}: ${fmtK(s.val)} (${Math.round(s.val/totalVal*100)}%)</title></path>`).join('')}
+      <circle cx="${cx}" cy="${cy}" r="${r-6}" fill="var(--surface)"/>
+      <text x="${cx}" y="${cy-9}" class="donut-center-val" dominant-baseline="middle">${fmtK(totalVal)}</text>
+      <text x="${cx}" y="${cy+11}" class="donut-center-text" dominant-baseline="middle">${curLang==='zh' ? '總支出' : 'Total Spent'}</text>
+    </svg>
+    <div class="donut-legend">${legendRows}</div>
+  </div>`;
+}
+
+// ── SVG LINE CHART ───────────────────────────────────────────────
+function renderLineChart(containerId) {
+  const el = $(containerId);
+  if (!el) return;
+  const months = ALL_MONTHS;
+  if (months.length < 2) { el.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:12px">月份不足</div>'; return; }
+
+  const W = el.offsetWidth || 560, H = 140, PL = 36, PR = 12, PT = 16, PB = 28;
+  const cw = W - PL - PR, ch = H - PT - PB;
+
+  const data = months.map(({y,m}) => {
+    const txs = transactions.filter(t => { const d = new Date(t.date+'T00:00:00'); return d.getFullYear()===y && d.getMonth()===m && t.type!=='income'; });
+    return txs.reduce((s,t) => s + Math.abs(t.amount), 0);
+  });
+  const maxVal = Math.max(...data, 1);
+  const pts = data.map((v,i) => ({ x: PL + (i/(months.length-1))*cw, y: PT + ch - (v/maxVal)*ch, v }));
+
+  const pathD = pts.map((p,i) => (i===0?`M${p.x},${p.y}`:`C${pts[i-1].x + (p.x-pts[i-1].x)/2},${pts[i-1].y} ${p.x - (p.x-pts[i-1].x)/2},${p.y} ${p.x},${p.y}`)).join(' ');
+  const areaD = pathD + ` L${pts[pts.length-1].x},${PT+ch} L${pts[0].x},${PT+ch} Z`;
+
+  const gridLines = [0.25, 0.5, 0.75, 1].map(f => {
+    const yy = PT + ch - f*ch;
+    const lbl = f===1 ? (maxVal>=1000?'$'+(maxVal/1000).toFixed(0)+'k':'$'+maxVal) : '';
+    return `<line x1="${PL}" y1="${yy}" x2="${W-PR}" y2="${yy}" class="lc-gridline"/>
+            ${lbl ? `<text x="${PL-4}" y="${yy+4}" font-size="9" fill="var(--faint)" text-anchor="end">${lbl}</text>` : ''}`;
+  }).join('');
+
+  const labels = months.map(({y,m},i) => {
+    if (months.length <= 6 || i % Math.ceil(months.length/6) === 0) {
+      const x = PL + (i/(months.length-1))*cw;
+      return `<text x="${x}" y="${H-4}" class="lc-label">${monthLabel(m)}</text>`;
+    }
+    return '';
+  }).join('');
+
+  const dots = pts.map((p,i) => `<circle cx="${p.x}" cy="${p.y}" r="3.5" class="lc-dot"><title>${monthYearLabel(months[i].m, months[i].y)}: $${p.v.toLocaleString()}</title></circle>`).join('');
+
+  el.innerHTML = `<div class="line-chart-wrap">
+    <svg class="line-chart-svg" height="${H}" viewBox="0 0 ${W} ${H}">
+      <defs><linearGradient id="lcGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--primary)" stop-opacity=".5"/>
+        <stop offset="100%" stop-color="var(--primary)" stop-opacity="0"/>
+      </linearGradient></defs>
+      ${gridLines}
+      <path d="${areaD}" class="lc-area"/>
+      <path d="${pathD}" class="lc-line"/>
+      ${dots}
+      ${labels}
+    </svg>
+  </div>`;
+  $('dash-trend-range').textContent = `${monthYearLabel(months[0].m, months[0].y)} – ${monthYearLabel(months[months.length-1].m, months[months.length-1].y)}`;
+}
+
+// ── DASHBOARD BAR (fallback) ─────────────────────────────────────
+function renderDashBar(catMap, containerId) {
+  const el = $(containerId);
+  if (!el) return;
+  const entries = Object.entries(catMap).filter(([,v])=>v>0).sort(([,a],[,b])=>b-a).slice(0,8);
+  const maxV = Math.max(...entries.map(([,v])=>v), 1);
+  el.innerHTML = `<div class="bar-chart" style="margin-top:4px">` + entries.map(([name, val]) => {
+    const cat = CATS.find(c=>c.name===name)||{col:'#888'};
+    const pct = (val/maxV)*100;
+    return `<div class="bar-row">
+      <div class="bar-lbl">${name}</div>
+      <div class="bar-inner">
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${cat.col}"></div></div>
+        <div class="bar-amt">${val>=1000?'$'+(val/1000).toFixed(1)+'k':('$'+val.toLocaleString())}</div>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+// ── DONUT CHART TOGGLE ───────────────────────────────────────────
+let _dashChartMode = 'donut'; // 'donut' | 'bar'
+function dashCycleChart(){
+  _dashChartMode = _dashChartMode === 'donut' ? 'bar' : 'donut';
+  const isDonut = _dashChartMode === 'donut';
+  $('dash-donut-wrap').style.display = isDonut ? '' : 'none';
+  $('dash-bar-wrap').style.display   = isDonut ? 'none' : '';
+}
+
+// ── CATEGORY RANGE TOGGLE (annual / monthly) ─────────────────────
+window._dashCatRange = 'annual';  // 'annual' | 'monthly'
+
+function computeDashCatMap(range) {
+  let rangeS, rangeE;
+  if (range === 'monthly' && ALL_MONTHS[curMonthIdx]) {
+    const { y, m } = ALL_MONTHS[curMonthIdx];
+    rangeS = new Date(y, m, 1);
+    rangeE = new Date(y, m + 1, 0);
+  } else {
+    rangeS = new Date(rangeStartYear, rangeStartMonth, 1);
+    rangeE = new Date(rangeEndYear, rangeEndMonth + 1, 0);
+  }
+  const tx = transactions.filter(t => t.type !== 'income' && new Date(t.date) >= rangeS && new Date(t.date) <= rangeE);
+  const catMap = {};
+  CATS.forEach(c => catMap[c.name] = 0);
+  tx.forEach(t => { if (catMap[t.category] !== undefined) catMap[t.category] += Math.abs(t.amount); });
+  return { catMap, total: tx.reduce((s,t) => s + Math.abs(t.amount), 0), hasData: tx.length > 0 };
+}
+
+function redrawDashCategoryChart() {
+  const { catMap, total, hasData } = computeDashCatMap(window._dashCatRange);
+  if (!hasData) {
+    const emptyMsg = window._dashCatRange === 'monthly'
+      ? '本月未有交易紀錄'
+      : '所選範圍未有交易紀錄';
+    $('dash-donut-wrap').innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--muted);font-size:12px">${emptyMsg}</div>`;
+    $('dash-bar-wrap').innerHTML = '';
+    return;
+  }
+  renderDonut(catMap, 'dash-donut-wrap', total);
+  renderDashBar(catMap, 'dash-bar-wrap');
+}
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.chart-range-btn');
+  if (!btn) return;
+  const toggle = btn.closest('.chart-range-toggle');
+  toggle.querySelectorAll('.chart-range-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window._dashCatRange = btn.dataset.range || 'annual';
+  redrawDashCategoryChart();
+});
+
+// ── PATCHED renderDashboard — add charts + AI after original ─────
+const _origRenderDashboard = renderDashboard;
+window._v2DashLoaded = false;
+renderDashboard = function() {
+  _origRenderDashboard.apply(this, arguments);
+
+  // Decide whether the charts half has anything to show based on the full range.
+  // (Monthly range's empty state is handled inside redrawDashCategoryChart.)
+  const rangeS = new Date(rangeStartYear, rangeStartMonth, 1);
+  const rangeE = new Date(rangeEndYear, rangeEndMonth + 1, 0);
+  const yearTx = transactions.filter(t => t.type !== 'income' && new Date(t.date) >= rangeS && new Date(t.date) <= rangeE);
+  const hasData = yearTx.length > 0;
+
+  // v2 section is always visible so the AI card & refresh button are reachable
+  $('dash-v2-section').style.display = '';
+  // Hide only the charts half when there's nothing to chart
+  const chartsWrap = document.querySelector('.dash-v2-charts');
+  if (chartsWrap) chartsWrap.style.display = hasData ? '' : 'none';
+
+  // Always render AI insights card — even with no data, so users see the
+  // data requirements and can tap the refresh button after adding data.
+  // (The AI card itself handles the empty-state messaging.)
+  if (!window._v2DashLoaded) {
+    window._v2DashLoaded = true;
+    loadAIInsights();
+  }
+  const rb = $('dash-ai-refresh');
+  if (rb) {
+    rb.onclick = () => {
+      // Visual feedback: spin icon + flash background so user knows the tap registered
+      rb.classList.add('refreshing');
+      window._v2DashLoaded = false;
+      loadAIInsights();
+      setTimeout(() => rb.classList.remove('refreshing'), 600);
+    };
+  }
+
+  if (!hasData) return;
+
+  renderLineChart('dash-line-chart');
+  // Draw category chart using whichever range is currently selected
+  redrawDashCategoryChart();
+};
+
+// ── AI INSIGHTS ──────────────────────────────────────────────────
+// Minimum data requirements before analysis is meaningful
+const AI_MIN_TX = 5;              // 至少 5 筆交易
+const AI_MIN_INCOME_MONTHS = 1;   // 至少設定 1 個月的收入
+const AI_MIN_CATEGORIES = 2;      // 至少 2 個分類有支出
+
+async function loadAIInsights() {
+  const bodyEl = $('dash-ai-body');
+  if (!bodyEl) return;
+
+  // Brief loading flash so the refresh button always has visible feedback,
+  // even when the final render is near-instant (local rules / empty state).
+  bodyEl.innerHTML = `<div class="ai-loading"><span style="color:var(--muted);font-size:12px">分析中</span><span class="ai-loading-dots">${'<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--primary);margin:0 2px">•</span>'.repeat(3)}</span></div>`;
+  await new Promise(r => setTimeout(r, 250));
+
+  // ── 1. DATA SUFFICIENCY CHECK ───────────────────────────────────
+  const rangeS = new Date(rangeStartYear, rangeStartMonth, 1);
+  const rangeE = new Date(rangeEndYear, rangeEndMonth + 1, 0);
+  const yearTx = transactions.filter(t => t.type !== 'income' && new Date(t.date) >= rangeS && new Date(t.date) <= rangeE);
+  const totalSpend = yearTx.reduce((s,t) => s + Math.abs(t.amount), 0);
+  const catMap = {};
+  CATS.forEach(c => catMap[c.name] = 0);
+  yearTx.forEach(t => { if (catMap[t.category] !== undefined) catMap[t.category] += Math.abs(t.amount); });
+  const usedCats = Object.values(catMap).filter(v => v > 0).length;
+  const topCats = Object.entries(catMap).filter(([,v])=>v>0).sort(([,a],[,b])=>b-a).slice(0,4);
+  const totalMonths = (rangeEndYear - rangeStartYear)*12 + (rangeEndMonth - rangeStartMonth) + 1;
+  const avgMonthly = totalSpend / totalMonths;
+
+  // Exclude investment categories from "spend" when computing savings rate
+  // (investment is a capital transfer, not consumption). Matches Annual Summary.
+  const invCatNames = CATS.filter(c => /invest|投資/i.test(c.name)).map(c => c.name);
+  const annualInvAmt = yearTx
+    .filter(t => t.type === 'expense' && invCatNames.includes(t.category))
+    .reduce((s,t) => s + Math.abs(t.amount), 0);
+  const netSpend = totalSpend - annualInvAmt;
+
+  const incomeMonths = Object.keys(incomeMap).filter(k => {
+    const [y,m] = k.split('-').map(Number); const d = new Date(y,m,1);
+    return d >= rangeS && d <= rangeE && incomeMap[k] > 0;
+  }).length;
+  const totalIncome = Object.keys(incomeMap).filter(k => {
+    const [y,m] = k.split('-').map(Number); const d = new Date(y,m,1);
+    return d >= rangeS && d <= rangeE;
+  }).reduce((s,k) => s + incomeMap[k], 0);
+
+  // Build list of what's missing
+  const missing = [];
+  const zhMode = curLang === 'zh';
+  if (yearTx.length < AI_MIN_TX) {
+    missing.push({
+      icon: '📝',
+      label: zhMode ? `交易紀錄` : `Transactions`,
+      detail: zhMode ? `目前 ${yearTx.length} 筆，還需要 ${AI_MIN_TX - yearTx.length} 筆` : `${yearTx.length} logged, ${AI_MIN_TX - yearTx.length} more needed`,
+      action: { text: zhMode ? '新增交易' : 'Add', view: 'monthly' }
+    });
+  }
+  if (incomeMonths < AI_MIN_INCOME_MONTHS) {
+    missing.push({
+      icon: '💰',
+      label: zhMode ? `本月收入` : `Monthly income`,
+      detail: zhMode ? `還未設定本月收入，無法計算儲蓄率` : `Income not set — savings rate can't be calculated`,
+      action: { text: zhMode ? '設定收入' : 'Set', fn: 'openIncomeModal' }
+    });
+  }
+  if (usedCats < AI_MIN_CATEGORIES && yearTx.length >= AI_MIN_TX) {
+    missing.push({
+      icon: '🏷️',
+      label: zhMode ? `分類多樣性` : `Category diversity`,
+      detail: zhMode
+        ? `目前只用了 ${usedCats} 個分類，建議使用至少 ${AI_MIN_CATEGORIES} 個以分析消費結構`
+        : `Only ${usedCats} categor${usedCats===1?'y':'ies'} used. Use at least ${AI_MIN_CATEGORIES} for meaningful analysis.`,
+      action: null
+    });
+  }
+
+  if (missing.length) {
+    bodyEl.innerHTML = `
+      <div style="padding:4px 0">
+        <div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          ${zhMode ? '再補充一些資料，即可獲得個人化分析' : 'Add a bit more data to unlock personalized insights'}
+        </div>
+        ${missing.map(m => `
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surfaceOff);border-radius:10px;margin-bottom:8px">
+            <div style="font-size:16px;line-height:1;flex-shrink:0;margin-top:1px">${m.icon}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px">${m.label}</div>
+              <div style="font-size:11.5px;color:var(--muted);line-height:1.5">${m.detail}</div>
+            </div>
+            ${m.action ? `<button onclick="${m.action.fn ? m.action.fn + '()' : `setView('${m.action.view}')`}" style="flex-shrink:0;font-size:11px;font-weight:600;color:var(--primary);background:var(--surface);border:1px solid var(--border);padding:5px 10px;border-radius:6px;white-space:nowrap;cursor:pointer">${m.action.text}</button>` : ''}
+          </div>
+        `).join('')}
+      </div>`;
+    return;
+  }
+
+  // ── 2. DATA IS SUFFICIENT — compute derived metrics ─────────────
+  const savingsRate = totalIncome > 0 ? ((totalIncome - netSpend) / totalIncome * 100).toFixed(1) : null;
+  const budgetWarnings = CATS.filter(c => {
+    const spent = catMap[c.name] || 0;
+    return c.budget > 0 && (spent / totalMonths) > c.budget;
+  }).map(c => c.name);
+
+  // ── 3. LOCAL RULE-BASED INSIGHTS (fallback and primary path) ────
+  function buildLocalInsights() {
+    const out = [];
+    const sRate = parseFloat(savingsRate);
+    const zh = curLang === 'zh';
+
+    if (!isNaN(sRate)) {
+      if (sRate >= 30) {
+        out.push({ type: 'ok', text: zh
+          ? `儲蓄率 ${sRate}%，表現優秀！繼續維持這個節奏，考慮把多出的儲蓄投入長期投資。`
+          : `Savings rate ${sRate}% — excellent! Keep it up and consider investing the surplus for long-term growth.` });
+      } else if (sRate >= 15) {
+        out.push({ type: 'tip', text: zh
+          ? `儲蓄率 ${sRate}%，屬健康水平。嘗試每月再多儲 5%，一年後的累積效果相當可觀。`
+          : `Savings rate ${sRate}% is healthy. Try saving an extra 5% each month — the cumulative effect over a year is significant.` });
+      } else if (sRate >= 0) {
+        out.push({ type: 'warn', text: zh
+          ? `儲蓄率只有 ${sRate}%，建議先釐清最大的 1-2 項支出，看看有沒有可以削減的空間。`
+          : `Savings rate is only ${sRate}%. Identify your top 1-2 expense categories and look for areas to cut back.` });
+      } else {
+        out.push({ type: 'warn', text: zh
+          ? `目前支出超過收入（赤字 ${Math.abs(sRate)}%），請優先檢視支出，避免動用儲蓄或借貸。`
+          : `Spending exceeds income (deficit ${Math.abs(sRate)}%). Review expenses urgently to avoid dipping into savings or debt.` });
+      }
+    }
+
+    if (topCats.length) {
+      const [topName, topVal] = topCats[0];
+      const pct = totalSpend > 0 ? (topVal / totalSpend * 100).toFixed(0) : 0;
+      if (pct >= 40) {
+        out.push({ type: 'warn', text: zh
+          ? `${topName}佔總支出 ${pct}%，比重偏高。可以檢視這類消費是否有可替代的選擇。`
+          : `${topName} accounts for ${pct}% of total spending — quite high. Consider whether there are alternatives for this category.` });
+      } else {
+        out.push({ type: 'tip', text: zh
+          ? `最大支出類別是${topName}（$${topVal.toLocaleString()}，佔 ${pct}%），分佈還算平均。`
+          : `Your largest category is ${topName} ($${topVal.toLocaleString()}, ${pct}%). Spending distribution looks balanced.` });
+      }
+    }
+
+    if (budgetWarnings.length) {
+      out.push({ type: 'warn', text: zh
+        ? `${budgetWarnings.slice(0,2).join('、')}${budgetWarnings.length > 2 ? '等' : ''}已超出預算，建議重新檢視預算設定或調整消費習慣。`
+        : `${budgetWarnings.slice(0,2).join(', ')}${budgetWarnings.length > 2 ? ', etc.' : ''} over budget. Review budget limits or adjust spending habits.` });
+    } else if (CATS.some(c => c.budget > 0)) {
+      out.push({ type: 'ok', text: zh
+        ? `所有已設定預算的分類都在控制範圍內，預算執行力不錯。`
+        : `All categories with budgets are within limits — great budget discipline.` });
+    }
+
+    if (goals.length === 0) {
+      out.push({ type: 'tip', text: zh
+        ? `還未設定儲蓄目標。設定明確目標（例如旅行、緊急基金）能顯著提升儲蓄動力。`
+        : `No savings goals set yet. Concrete goals (e.g. travel, emergency fund) significantly boost motivation to save.` });
+    } else if (goals.length >= 1 && out.length < 3) {
+      out.push({ type: 'ok', text: zh
+        ? `已設定 ${goals.length} 個儲蓄目標，持續追蹤有助於保持理財動力。`
+        : `You have ${goals.length} savings goal${goals.length > 1 ? 's' : ''} — tracking them consistently keeps you motivated.` });
+    }
+
+    return out.slice(0, 3);
+  }
+
+  function renderInsights(items) {
+    bodyEl.innerHTML = items.map(item => `
+      <div class="ai-insight-item">
+        <div class="ai-insight-dot ${item.type === 'warn' ? 'warn' : item.type === 'ok' ? 'ok' : ''}"></div>
+        <div>${item.text}</div>
+      </div>`).join('');
+  }
+
+  // ── 4. TRY AI (Claude Artifacts sandbox only), ELSE LOCAL ───────
+  const prompt = `你是一位香港個人財務顧問。請用繁體中文，基於以下數據給出 3 條精簡財務建議（每條 1-2 句）。
+
+數據摘要（港幣 HKD）：
+- 分析期間：${totalMonths} 個月
+- 總支出：$${totalSpend.toLocaleString()}
+- 月均支出：$${Math.round(avgMonthly).toLocaleString()}
+${savingsRate !== null ? `- 儲蓄率：${savingsRate}%` : ''}
+- 主要支出分類：${topCats.map(([n,v]) => `${n}($${v.toLocaleString()})`).join('、')}
+${budgetWarnings.length ? `- 超出預算分類：${budgetWarnings.join('、')}` : ''}
+${goals.length ? `- 儲蓄目標數量：${goals.length}` : ''}
+
+請返回 JSON 格式：{"insights":[{"type":"ok|warn|tip","text":"建議內容"},...]，只含 insights 陣列}`;
+
+  try {
+    if (!window.claude || typeof window.claude.complete !== 'function') {
+      throw new Error('no-api');
+    }
+    const raw = await window.claude.complete({ messages: [{ role: 'user', content: prompt }] });
+    const json = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] || '{}');
+    const items = json.insights || [];
+    if (!items.length) throw new Error('empty');
+    renderInsights(items);
+  } catch(e) {
+    // Fallback to local rule-based insights — always produces output
+    renderInsights(buildLocalInsights());
+  }
+}
+
+// ── GOAL RINGS UPGRADE ───────────────────────────────────────────
+const _origRenderGoals = renderGoals;
+renderGoals = function() {
+  const g = $('goals-grid');
+  if (!goals.length) { _origRenderGoals.apply(this, arguments); return; }
+
+  const RING_R = 32, RING_CIRC = 2 * Math.PI * RING_R;
+  const RING_COLORS = ['var(--primary)', 'var(--success)', 'var(--warn)', 'var(--purple)'];
+
+  g.innerHTML = goals.map((gl, idx) => {
+    const pct = Math.min(Math.round((gl.saved / gl.target) * 100), 100);
+    const offset = RING_CIRC * (1 - pct/100);
+    const col = RING_COLORS[idx % RING_COLORS.length];
+    return `<div class="goal-card-v2">
+      <div style="position:absolute;top:12px;right:12px;display:flex;gap:4px;opacity:0;transition:opacity var(--trans)" class="goal-actions">
+        <button class="goal-edit" data-id="${gl.id}" style="width:28px;height:28px;border-radius:8px;color:var(--faint);display:inline-flex;align-items:center;justify-content:center;transition:background var(--trans),color var(--trans)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="goal-del" data-id="${gl.id}" style="width:28px;height:28px;border-radius:8px;color:var(--faint);display:inline-flex;align-items:center;justify-content:center;transition:background var(--trans),color var(--trans)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+      <div class="goal-ring-wrap">
+        <svg class="goal-ring-svg" width="80" height="80" viewBox="0 0 80 80">
+          <circle class="goal-ring-bg" cx="40" cy="40" r="${RING_R}"/>
+          <circle class="goal-ring-fill" cx="40" cy="40" r="${RING_R}"
+            stroke="${col}"
+            stroke-dasharray="${RING_CIRC}"
+            stroke-dashoffset="${offset}"
+            transform="rotate(-90 40 40)"/>
+          <text x="40" y="44" class="goal-ring-pct" font-size="14" text-anchor="middle" fill="var(--text)">${pct}%</text>
+        </svg>
+        <div class="goal-ring-info">
+          <div class="goal-ring-name">${gl.name}</div>
+          <div class="goal-ring-meta">${pct === 100
+            ? (curLang==='zh' ? '🎉 已達成目標！' : '🎉 Goal achieved!')
+            : (curLang==='zh' ? `還差 ${fmt(gl.target - gl.saved)}` : `${fmt(gl.target - gl.saved)} to go`)}</div>
+        </div>
+      </div>
+      <div class="goal-ring-amts">
+        <span style="font-weight:700;color:${col}">${fmt(gl.saved)} ${curLang==='zh' ? '已存' : 'saved'}</span>
+        <span style="color:var(--muted)">${curLang==='zh' ? '目標 ' : 'of '}${fmt(gl.target)}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  g.querySelectorAll('.goal-card-v2').forEach(card => {
+    const acts = card.querySelector('.goal-actions');
+    card.addEventListener('mouseenter', () => acts.style.opacity='1');
+    card.addEventListener('mouseleave', () => acts.style.opacity='0');
+  });
+  g.querySelectorAll('.goal-edit').forEach(btn => {
+    btn.addEventListener('click', () => openEditGoalModal(+btn.dataset.id));
+    btn.addEventListener('mouseenter', () => { btn.style.background='var(--surfaceOff)'; btn.style.color='var(--primary)'; });
+    btn.addEventListener('mouseleave', () => { btn.style.background=''; btn.style.color='var(--faint)'; });
+  });
+  g.querySelectorAll('.goal-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const gl = goals.find(x => x.id === +btn.dataset.id);
+      if (!gl) return;
+      showConfirm(curLang==='zh'?'刪除目標':'Delete Goal', curLang==='zh' ? `確認刪除目標 "${gl.name}"?` : `Delete goal "${gl.name}"?`, () => {
+        goals = goals.filter(x => x.id !== +btn.dataset.id);
+        saveUserData(); renderGoals();
+      });
+    });
+    btn.addEventListener('mouseenter', () => { btn.style.background='rgba(255,59,48,.1)'; btn.style.color='var(--error)'; });
+    btn.addEventListener('mouseleave', () => { btn.style.background=''; btn.style.color='var(--faint)'; });
+  });
+};
+
+// ── FIXED: Blue theme + Donut chart + AI insights always on ──────
+// No Tweaks panel needed — settings are locked in.
+
+// Keep iOS PWA viewport height in sync after keyboard open/close.
+// Without this, Safari can leave a white strip below the app until restart.
+(function syncAppViewport(){
+  const root = document.documentElement;
+  let timer = null;
+
+  function applyViewportVars(){
+    const vv = window.visualViewport;
+    const height = vv ? vv.height : window.innerHeight;
+    const gap = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+    root.style.setProperty('--app-height', `${Math.round(height)}px`);
+    root.style.setProperty('--keyboard-safe-bottom', gap > 80 ? `${Math.round(gap)}px` : '0px');
+  }
+
+  function scheduleViewportSync(){
+    applyViewportVars();
+    clearTimeout(timer);
+    timer = setTimeout(applyViewportVars, 260);
+  }
+
+  applyViewportVars();
+  window.addEventListener('resize', scheduleViewportSync);
+  window.addEventListener('orientationchange', scheduleViewportSync);
+  window.addEventListener('focusin', scheduleViewportSync);
+  window.addEventListener('focusout', scheduleViewportSync);
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', scheduleViewportSync);
+    window.visualViewport.addEventListener('scroll', scheduleViewportSync);
+  }
+})();
+
+// Re-render line chart on resize
+window.addEventListener('resize', () => {
+  if (curView === 'dashboard') renderLineChart('dash-line-chart');
+});
+
+</script>
+<script>
+(function(){
+  const STOCK_RESEARCH_CSS = "\n    :host {\n      --bg: #f5f5f7;\n      --surface: #ffffff;\n      --surface2: #fafafa;\n      --surfaceOff: #f2f2f7;\n      --surfaceDyn: #e8e8ed;\n      --divider: #e5e5ea;\n      --border: #d1d1d6;\n      --text: #1d1d1f;\n      --muted: #6e6e73;\n      --faint: #aeaeb2;\n      --primary: #0071e3;\n      --primaryHov: #0077ed;\n      --primaryHL: #e3f0ff;\n      --panel: var(--surface);\n      --panel-soft: var(--surface2);\n      --ink: var(--text);\n      --line: var(--border);\n      --blue: var(--primary);\n      --blue-soft: var(--primaryHL);\n      --green: #10b981;\n      --red: #ef4444;\n      --amber: #f59e0b;\n      --shadow: 0 2px 8px rgba(0,0,0,.06),0 0 0 0.5px rgba(0,0,0,.04);\n      --r: 0.625rem;\n      --rLg: 0.875rem;\n      --rXl: 1.25rem;\n      --rFull: 9999px;\n      --mono: 'JetBrains Mono','SF Mono',Menlo,Consolas,monospace;\n    }\n\n    * { box-sizing: border-box; }\n\n    html,\n    body {\n      scrollbar-width: none;\n    }\n\n    html::-webkit-scrollbar,\n    body::-webkit-scrollbar {\n      display: none;\n    }\n\n    body {\n      margin: 0;\n      min-height: 100vh;\n      background: transparent;\n      color: var(--ink);\n      font-family: \"Noto Sans TC\", -apple-system, BlinkMacSystemFont, \"Helvetica Neue\", Arial, sans-serif;\n      line-height: 1.5;\n    }\n\n    button, input { font: inherit; }\n    button {\n      appearance: none;\n      -webkit-appearance: none;\n      border: none;\n      background: none;\n      color: inherit;\n      font-family: inherit;\n    }\n    input {\n      appearance: none;\n      -webkit-appearance: none;\n      font-family: inherit;\n    }\n\n    .app {\n      width: min(1500px, calc(100% - 32px));\n      margin: 0 auto;\n      padding: 0 0 40px;\n    }\n\n    .tx-card {\n      background: var(--surface);\n      border: 1px solid var(--divider);\n      border-radius: var(--rXl);\n      overflow: hidden;\n      box-shadow: var(--shadow);\n    }\n\n    .news-controls {\n      padding: 16px;\n      margin-bottom: 14px;\n    }\n\n    .news-control-grid {\n      display: grid;\n      grid-template-columns: minmax(360px, 0.7fr) auto minmax(0, 1fr);\n      gap: 12px;\n      align-items: end;\n    }\n\n    .news-field {\n      display: flex;\n      flex-direction: column;\n      gap: 7px;\n    }\n\n    .kpi-lbl {\n      font-size: 11px;\n      font-weight: 600;\n      text-transform: uppercase;\n      letter-spacing: .06em;\n      color: var(--muted);\n      margin-bottom: 8px;\n    }\n\n    .news-input {\n      height: 44px;\n      width: 100%;\n      border: 1px solid var(--border);\n      border-radius: 12px;\n      background: var(--surface);\n      color: var(--text);\n      padding: 0 13px;\n      outline: none;\n      font-family: inherit;\n    }\n\n    .news-input:focus {\n      border-color: var(--primary);\n      box-shadow: 0 0 0 3px var(--primaryHL);\n    }\n\n    .news-refresh {\n      height: 44px;\n      padding: 0 16px;\n      border-radius: 12px;\n      background: var(--primary);\n      color: #fff;\n      font-weight: 800;\n      display: inline-flex;\n      align-items: center;\n      gap: 8px;\n      justify-content: center;\n    }\n\n    .news-refresh:disabled {\n      cursor: wait;\n    }\n\n    .news-chips {\n      display: flex;\n      gap: 8px;\n      flex-wrap: wrap;\n      align-items: end;\n      margin-top: 0;\n    }\n\n    .news-chip {\n      min-width: 54px;\n      height: 32px;\n      padding: 0 11px;\n      border: 1px solid transparent;\n      border-radius: 10px;\n      background: var(--surfaceOff);\n      color: var(--text);\n      font-family: \"Noto Sans TC\", -apple-system, BlinkMacSystemFont, \"Helvetica Neue\", Arial, sans-serif;\n      font-size: 12px;\n      font-weight: 800;\n    }\n\n    .news-chip.active {\n      border-color: var(--primary);\n      background: var(--primaryHL);\n      color: var(--primary);\n    }\n\n    .stock-search-spacer {\n      display: none;\n    }\n\n    .message {\n      padding: 18px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel);\n      color: var(--muted);\n      box-shadow: var(--shadow);\n    }\n\n    .company-card {\n      position: relative;\n      display: grid;\n      grid-template-columns: minmax(0, 1fr) minmax(560px, 1.25fr);\n      gap: 6px;\n      padding: 12px;\n      margin-bottom: 4px;\n      background: var(--panel);\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      box-shadow: var(--shadow);\n    }\n\n    .company-main {\n      display: grid;\n      grid-template-columns: 82px minmax(0, 1fr);\n      gap: 16px;\n      align-items: center;\n      min-width: 0;\n    }\n\n    .logo-box {\n      display: grid;\n      place-items: center;\n      width: 82px;\n      height: 82px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n      color: var(--blue);\n      font-size: 28px;\n      font-weight: 900;\n    }\n\n    .logo-box img {\n      width: 64px;\n      height: 64px;\n      object-fit: contain;\n    }\n\n    .company-main h2 {\n      margin: 0;\n      font-size: 30px;\n      line-height: 1.1;\n    }\n\n    .company-main p {\n      margin: 8px 0 0;\n      max-width: 780px;\n      color: var(--muted);\n      font-size: 14px;\n    }\n\n    .tag-row {\n      display: flex;\n      flex-wrap: wrap;\n      justify-content: flex-end;\n      gap: 8px;\n      margin: 0;\n    }\n\n    .tag {\n      padding: 4px 8px;\n      border: 1px solid var(--line);\n      border-radius: 999px;\n      background: var(--panel-soft);\n      color: var(--muted);\n      font-size: 12px;\n      font-weight: 700;\n    }\n\n    .quote-box {\n      display: grid;\n      grid-template-columns: repeat(3, 150px);\n      gap: 8px;\n      align-content: center;\n      justify-content: end;\n    }\n\n    .quote-item {\n      min-height: 82px;\n      padding: 12px 8px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n    }\n\n    .company-side {\n      display: grid;\n      gap: 8px;\n      align-content: start;\n    }\n\n    .price-card {\n      text-align: center;\n    }\n\n    .mobile-price-card {\n      display: none;\n    }\n\n    .quote-item small {\n      display: block;\n      color: var(--muted);\n      font-size: 10px;\n      font-weight: 800;\n      text-transform: uppercase;\n    }\n\n    .quote-item strong {\n      display: block;\n      margin-top: 6px;\n      font-size: 22px;\n      line-height: 1.1;\n    }\n\n    .range-value {\n      display: grid;\n      justify-items: center;\n      gap: 0;\n      margin-top: 6px;\n      color: var(--text);\n      font-size: 22px;\n      font-weight: 800;\n      line-height: 1.02;\n    }\n\n    .positive, .up { color: var(--green); }\n    .negative, .down { color: var(--red); }\n\n    .dashboard-grid {\n      display: grid;\n      grid-template-columns: 1.18fr 0.82fr;\n      gap: 4px;\n      align-items: start;\n    }\n\n    .dashboard-column {\n      display: grid;\n      gap: 4px;\n      align-content: start;\n    }\n\n    .panel {\n      min-width: 0;\n      padding: 12px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel);\n      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);\n    }\n\n    .wide,\n    .panel.wide { grid-column: 1 / -1; }\n\n    .insight-grid {\n      grid-column: 1 / -1;\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 4px;\n      align-items: start;\n    }\n\n    .entry-panel .ladder-grid {\n      grid-template-columns: 1fr;\n      gap: 0;\n      align-content: space-between;\n      flex: 1;\n    }\n\n    .entry-panel {\n      display: flex;\n      flex-direction: column;\n      height: 463px;\n    }\n\n    .score-panel {\n      display: flex;\n      flex-direction: column;\n      align-self: stretch;\n    }\n\n    .panel-head {\n      display: flex;\n      justify-content: space-between;\n      align-items: flex-start;\n      gap: 6px;\n      margin-bottom: 8px;\n    }\n\n    .panel h3 {\n      margin: 0;\n      font-size: 18px;\n      line-height: 1.2;\n    }\n\n    .panel-note {\n      margin: 4px 0 0;\n      color: var(--muted);\n      font-size: 12px;\n    }\n\n    .trend-toggle {\n      display: inline-flex;\n      gap: 3px;\n      padding: 3px;\n      border: 1px solid var(--line);\n      border-radius: 999px;\n      background: var(--panel-soft);\n    }\n\n    .trend-toggle button {\n      min-width: 76px;\n      border: 0;\n      border-radius: 999px;\n      background: transparent;\n      color: var(--muted);\n      cursor: pointer;\n      font: inherit;\n      font-size: 12px;\n      font-weight: 800;\n      line-height: 1;\n      padding: 8px 12px;\n    }\n\n    .trend-toggle button.is-active {\n      background: var(--blue);\n      color: #fff;\n      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);\n    }\n\n    .chart-period[hidden] {\n      display: none;\n    }\n\n    .score-row {\n      display: grid;\n      grid-template-columns: 170px minmax(0, 1fr);\n      gap: 8px;\n      align-items: center;\n    }\n\n    .score-panel .score-row {\n      flex: 1;\n      align-content: center;\n      min-height: 190px;\n    }\n\n    .score-ring {\n      display: grid;\n      place-items: center;\n      justify-self: center;\n      position: relative;\n      width: 150px;\n      height: 150px;\n      border-radius: 50%;\n    }\n\n    .score-ring-svg {\n      position: absolute;\n      inset: 0;\n      width: 100%;\n      height: 100%;\n      overflow: visible;\n    }\n\n    .score-ring-track,\n    .score-ring-progress {\n      fill: none;\n      stroke-width: 20;\n    }\n\n    .score-ring-track {\n      stroke: #e7eef8;\n    }\n\n    .score-ring-progress {\n      stroke: var(--score-color, var(--blue));\n      stroke-linecap: butt;\n      transform: rotate(-90deg);\n      transform-origin: 75px 75px;\n    }\n\n    .score-ring > div {\n      display: flex;\n      flex-direction: column;\n      align-items: center;\n      justify-content: center;\n      gap: 6px;\n      position: relative;\n      z-index: 1;\n      width: 112px;\n      height: 112px;\n      padding: 0 12px;\n      border-radius: 50%;\n      background: var(--panel);\n      text-align: center;\n    }\n\n    .score-ring strong {\n      display: block;\n      font-size: 34px;\n      line-height: 1;\n    }\n\n    .score-ring span {\n      display: block;\n      max-width: 82px;\n      color: var(--muted);\n      font-size: 11px;\n      font-weight: 800;\n      line-height: 1.15;\n      text-transform: uppercase;\n      white-space: normal;\n      overflow-wrap: anywhere;\n    }\n\n    .score-list {\n      display: grid;\n      gap: 10px;\n    }\n\n    .score-line {\n      display: grid;\n      grid-template-columns: 120px minmax(0, 1fr) 42px;\n      gap: 10px;\n      align-items: center;\n      font-size: 13px;\n    }\n\n    .score-line b {\n      color: var(--score-color, var(--text));\n    }\n\n    .track {\n      height: 8px;\n      overflow: hidden;\n      border-radius: 999px;\n      background: #e7eef8;\n    }\n\n    .track i {\n      display: block;\n      height: 100%;\n      width: var(--w);\n      border-radius: inherit;\n      background: var(--score-color, var(--blue));\n    }\n\n    .metric-grid {\n      display: grid;\n      grid-template-columns: repeat(3, minmax(120px, 1fr));\n      gap: 4px;\n    }\n\n    .metric-box {\n      min-height: 76px;\n      padding: 12px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n    }\n\n    .metric-box span {\n      display: block;\n      color: var(--muted);\n      font-size: 11px;\n      font-weight: 800;\n      text-transform: uppercase;\n    }\n\n    .metric-box strong {\n      display: block;\n      margin-top: 8px;\n      font-size: 20px;\n      line-height: 1.1;\n    }\n\n    .chart-grid {\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 4px;\n    }\n\n    .mini-chart {\n      padding: 10px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n    }\n\n    .mini-chart h4 {\n      margin: 0 0 12px;\n      font-size: 13px;\n    }\n\n    .bars {\n      display: grid;\n      grid-template-columns: repeat(var(--bar-count), minmax(34px, 1fr));\n      gap: 9px;\n      align-items: stretch;\n      height: 150px;\n      overflow-x: auto;\n      overflow-y: visible;\n      padding-top: 20px;\n      scrollbar-width: none;\n    }\n\n    .bars::-webkit-scrollbar {\n      display: none;\n    }\n\n    .bar-col {\n      display: grid;\n      grid-template-rows: minmax(0, 1fr) 16px;\n      gap: 7px;\n      height: 100%;\n      min-width: 0;\n      text-align: center;\n    }\n\n    .bar-plot {\n      display: flex;\n      align-items: flex-end;\n      height: 100%;\n    }\n\n    .bar {\n      position: relative;\n      width: 100%;\n      min-height: 4px;\n      border-radius: 6px 6px 2px 2px;\n      background: var(--blue);\n    }\n\n    .bar.negative { background: var(--red); }\n\n    .bar span {\n      position: absolute;\n      left: 0;\n      right: 0;\n      top: -18px;\n      color: var(--muted);\n      font-size: 10px;\n      font-weight: 800;\n      line-height: 1;\n      text-align: center;\n      white-space: nowrap;\n      overflow: hidden;\n      text-overflow: clip;\n    }\n\n    .bar-year {\n      z-index: 1;\n      color: var(--muted);\n      font-size: 11px;\n      font-weight: 800;\n      line-height: 16px;\n    }\n\n    .table-wrap {\n      overflow-x: auto;\n      scrollbar-width: none;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n    }\n\n    .table-wrap::-webkit-scrollbar,\n    .preset-row::-webkit-scrollbar {\n      display: none;\n    }\n\n    table {\n      width: 100%;\n      border-collapse: collapse;\n      background: var(--panel);\n      font-size: 13px;\n    }\n\n    th, td {\n      padding: 11px 12px;\n      border-bottom: 1px solid var(--line);\n      text-align: right;\n      white-space: nowrap;\n    }\n\n    th:first-child, td:first-child {\n      text-align: left;\n      font-weight: 800;\n    }\n\n    th {\n      background: var(--panel-soft);\n      color: var(--muted);\n      font-size: 11px;\n      text-transform: uppercase;\n    }\n\n    tr:last-child td { border-bottom: 0; }\n\n    .wide-table {\n      min-width: 650px;\n    }\n\n    .text {\n      margin: 0;\n      color: #334155;\n      font-size: 14px;\n    }\n\n    .list {\n      display: grid;\n      gap: 6px;\n      margin: 0;\n      padding: 0;\n      list-style: none;\n    }\n\n    .list li {\n      position: relative;\n      padding-left: 16px;\n      color: #334155;\n      font-family: Arial, sans-serif;\n      font-size: 14px;\n    }\n\n    .list li::before {\n      content: \"\";\n      position: absolute;\n      left: 0;\n      top: 0.72em;\n      width: 6px;\n      height: 6px;\n      border-radius: 50%;\n      background: var(--blue);\n    }\n\n    .ai-summary {\n      display: grid;\n      gap: 10px;\n    }\n\n    .ai-summary p {\n      margin: 0;\n      color: #334155;\n      font-size: 14px;\n    }\n\n    .ai-summary strong {\n      color: var(--ink);\n    }\n\n    .ladder-grid {\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 4px;\n    }\n\n    .ladder {\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      overflow: hidden;\n      background: var(--panel);\n    }\n\n    .ladder h4 {\n      margin: 0;\n      padding: 12px;\n      border-bottom: 1px solid var(--line);\n      background: var(--panel-soft);\n      font-size: 13px;\n    }\n\n    .ladder-row {\n      display: grid;\n      grid-template-columns: 64px 90px minmax(100px, 1fr);\n      gap: 10px;\n      padding: 11px 12px;\n      border-bottom: 1px solid var(--line);\n      font-size: 13px;\n    }\n\n    .ladder-row:last-child { border-bottom: 0; }\n\n    .ladder-row span {\n      color: var(--muted);\n      font-weight: 800;\n    }\n\n    .empty {\n      padding: 14px;\n      border: 1px dashed var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n      color: var(--muted);\n      font-size: 13px;\n    }\n\n\n    .message,\n    .company-card,\n    .quote-item,\n    .panel,\n    .metric-box,\n    .mini-chart,\n    .table-wrap,\n    .ladder,\n    .empty,\n    .logo-box {\n      border: 1px solid var(--divider);\n      border-radius: 20px;\n      background: var(--surface);\n      box-shadow: none;\n    }\n\n    .trend-toggle {\n      border-color: var(--border);\n      background: var(--surface);\n    }\n\n    @media (max-width: 1100px) {\n      .company-card, .dashboard-grid, .insight-grid, .ladder-grid { grid-template-columns: 1fr; }\n      .tag-row { justify-content: flex-start; }\n      .quote-box {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n        justify-content: stretch;\n      }\n      .entry-panel { height: auto; }\n    }\n\n    @media (max-width: 760px) {\n      .news-control-grid {\n        grid-template-columns: 1fr;\n        gap: 10px;\n      }\n      .news-refresh {\n        width: 100%;\n      }\n      .news-chips {\n        margin-top: 4px;\n      }\n      .app {\n        width: min(100% - 20px, 1500px);\n        padding-top: 14px;\n      }\n      .search-panel {\n        padding: 16px;\n      }\n      .search-control-grid {\n        grid-template-columns: 1fr;\n        gap: 10px;\n      }\n      .stock-search-spacer {\n        display: none;\n      }\n      .search-box {\n        min-height: 0;\n        padding: 0;\n      }\n      .search-box span {\n        font-size: 12px;\n        font-weight: 700;\n      }\n      .search-box input {\n        height: 44px;\n        font-size: 14px;\n        font-weight: 400;\n      }\n      .primary-btn {\n        width: 100%;\n        height: 44px;\n        border-radius: 12px;\n        background: var(--primary, #007aff);\n        box-shadow: none;\n        font-weight: 800;\n      }\n      .preset-row {\n        display: flex;\n        flex-wrap: wrap;\n        gap: 8px;\n        overflow: visible;\n      }\n      .preset-row button {\n        height: 32px;\n        padding: 0 11px;\n        border: 0;\n        border-radius: 10px;\n        background: var(--surfaceOff, #f1f1f6);\n        color: var(--text, var(--ink));\n        font-size: 12px;\n        font-weight: 800;\n      }\n      .news-chip.active,\n      .news-chip:hover {\n        border-color: var(--primary);\n        background: var(--primaryHL);\n        color: var(--primary);\n      }\n      .score-row, .chart-grid { grid-template-columns: 1fr; }\n      .company-card {\n        gap: 8px;\n        padding: 10px;\n      }\n      .company-main {\n        grid-template-columns: 56px minmax(0, 1fr) 164px;\n        gap: 10px;\n        align-items: center;\n      }\n      .logo-box {\n        width: 56px;\n        height: 56px;\n      }\n      .logo-box img {\n        width: 44px;\n        height: 44px;\n      }\n      .company-main h2 { font-size: 22px; }\n      .company-main p {\n        margin-top: 4px;\n        font-size: 12px;\n        line-height: 1.35;\n      }\n      .company-side {\n        display: contents;\n      }\n      .tag-row {\n        display: none;\n      }\n      .mobile-price-card {\n        display: grid;\n        grid-column: auto;\n        grid-template-columns: auto auto minmax(0, auto);\n        column-gap: 6px;\n        align-items: center;\n        align-content: center;\n        justify-self: stretch;\n        width: 164px;\n        height: 36px;\n        min-height: 36px;\n        padding: 3px 10px;\n        border: 1px solid var(--line);\n        border-radius: 999px;\n        background: var(--panel-soft);\n        color: var(--red);\n        text-align: left;\n        overflow: hidden;\n      }\n      .mobile-price-card small {\n        min-width: max-content;\n        color: var(--muted);\n        font-size: 10px;\n        font-weight: 800;\n        line-height: 1;\n        text-transform: none;\n      }\n      .mobile-price-card strong {\n        margin-top: 0;\n        color: var(--ink);\n        font-size: 13px;\n        font-weight: 800;\n        line-height: 1;\n        white-space: nowrap;\n      }\n      .mobile-price-card span {\n        display: block;\n        grid-column: auto;\n        min-width: 0;\n        color: inherit;\n        font-size: 11px;\n        line-height: 1;\n        white-space: nowrap;\n        overflow: hidden;\n        text-overflow: clip;\n      }\n      .desktop-price-card {\n        display: none;\n      }\n      .quote-box {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n        gap: 4px;\n      }\n      .quote-item {\n        min-height: 64px;\n        padding: 9px 8px;\n      }\n      .company-main .mobile-price-card {\n        grid-template-columns: auto minmax(0, 1fr);\n        column-gap: 4px;\n        width: 164px;\n        height: 36px;\n        min-height: 36px;\n        padding: 3px 10px;\n      }\n      .company-main .mobile-price-card small {\n        display: none;\n      }\n      .company-main .mobile-price-card span {\n        justify-self: start;\n        text-align: left;\n      }\n      .quote-item strong,\n      .range-value {\n        font-size: 18px;\n      }\n      .quote-box .quote-item strong {\n        margin-top: 5px;\n        font-size: 18px;\n      }\n      .quote-box .quote-item small {\n        font-size: 11px;\n      }\n      .quote-box .range-value {\n        display: block;\n        white-space: nowrap;\n        font-size: 15px;\n        line-height: 1.1;\n      }\n      .quote-box .range-value span {\n        display: inline;\n      }\n      .metric-grid { grid-template-columns: 1fr 1fr; }\n      .metric-box {\n        min-height: 68px;\n        padding: 10px;\n      }\n      .metric-box strong {\n        font-size: 18px;\n      }\n      .mini-chart {\n        padding: 9px;\n        overflow: hidden;\n        touch-action: pan-y;\n      }\n      .bars {\n        grid-template-columns: repeat(var(--bar-count), minmax(0, 1fr));\n        gap: 5px;\n        height: 148px;\n        overflow: hidden;\n        padding-top: 22px;\n        padding-bottom: 2px;\n        touch-action: none;\n      }\n      .bar-col {\n        grid-template-rows: minmax(0, 1fr) 18px;\n        gap: 6px;\n      }\n      .bar span {\n        top: -17px;\n        font-size: 8px;\n      }\n      .bar-year {\n        display: block;\n        min-height: 18px;\n        font-size: 10px;\n        line-height: 18px;\n        white-space: nowrap;\n        overflow: visible;\n      }\n    }\n\n    @media (max-width: 480px) {\n      .company-main {\n        grid-template-columns: 50px minmax(0, 1fr) 164px;\n        gap: 8px;\n      }\n      .logo-box {\n        width: 50px;\n        height: 50px;\n      }\n      .logo-box img {\n        width: 38px;\n        height: 38px;\n      }\n      .company-main h2 { font-size: 19px; }\n      .company-main p { display: none; }\n      .mobile-price-card {\n        width: 164px;\n      }\n      .mobile-price-card strong {\n        font-size: 14px;\n      }\n      .mobile-price-card span {\n        font-size: 12px;\n      }\n      .quote-box,\n      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }\n      .quote-item strong { font-size: 18px; }\n      .panel { padding: 14px; }\n    }\n  \n:host{display:block;min-height:100%;background:transparent;color:var(--ink);font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;line-height:1.5;}";
+  const STOCK_RESEARCH_HTML = "<main class=\"app\">\n    <section class=\"tx-card news-controls\">\n      <div class=\"news-control-grid\">\n        <label class=\"news-field\" for=\"symbolInput\">\n          <span class=\"kpi-lbl\" id=\"tickerLabel\">Ticker</span>\n          <input class=\"news-input\" id=\"symbolInput\" value=\"NVDA\" autocomplete=\"off\" spellcheck=\"false\" />\n        </label>\n        <button class=\"news-refresh\" id=\"analyzeBtn\">Analyze</button>\n        <nav class=\"news-chips\" id=\"presetRow\" aria-label=\"Quick symbols\">\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"NVDA\">NVDA</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"GOOGL\">GOOGL</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"AAPL\">AAPL</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"MSFT\">MSFT</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"AMZN\">AMZN</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"TSM\">TSM</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"AVGO\">AVGO</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"META\">META</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"TSLA\">TSLA</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"WMT\">WMT</button>\n        </nav>\n      </div>\n    </section>\n\n    <div id=\"output\" class=\"message\"></div>\n\n  </main>";
+
+  function bootStockResearch(root){
+const API = 'https://blackspace.markchanchun.workers.dev';
+      const $ = (id) => root.getElementById(id);
+      const output = $('output');
+      const analyzeBtn = $('analyzeBtn');
+      const symbolInput = $('symbolInput');
+      const urlLang = new URLSearchParams(location.search).get('lang');
+      const UI_LANG = normalizeLanguage(
+        urlLang ||
+        localStorage.getItem('bs_lang') ||
+        localStorage.getItem('blackspace-language') ||
+        localStorage.getItem('blackspace-lang') ||
+        localStorage.getItem('language') ||
+        document.documentElement.lang ||
+        navigator.language
+      );
+      const API_LANG = UI_LANG === 'en' ? 'en' : 'zh';
+  
+      const uiCopy = {
+        en: {
+          pageTitle: 'Stock Research',
+          pageSubtitle: 'Only shows features supported by current APIs',
+          ticker: 'Ticker',
+          analyze: 'Analyze',
+          loading: 'Loading',
+          quickSymbols: 'Quick symbols',
+          initialMessage: 'Enter a ticker. The demo will load Finnhub, BlackSpace News AI, and SEC EDGAR data.',
+          enterTicker: 'Please enter a ticker.',
+          loadingResearch: (symbol) => `Loading ${symbol} research data...`,
+          researchFailed: 'Research failed',
+          companyDescription: (name) => name
+            ? `${name} price, valuation, SEC financials, peer comparison, and risk/news summary.`
+            : 'This page only shows stock research data available from current sources.',
+          sharePrice: 'Share Price',
+          range52: '52 Week Range',
+          marketCap: 'Market Cap',
+          researchScorecard: 'Research Scorecard',
+          aiScoreLoading: 'AI score loading...',
+          aiScoreUnavailable: 'AI score unavailable.',
+          financialSnapshot: 'Financial Snapshot',
+          financialSnapshotNote: 'Latest available annual or TTM data',
+          revenue: 'Revenue',
+          netIncome: 'Net Income',
+          assets: 'Assets',
+          liabilities: 'Liabilities',
+          operatingCashFlow: 'Operating Cash Flow',
+          freeCashFlow: 'Free Cash Flow',
+          roe: 'ROE',
+          grossMargin: 'Gross Margin',
+          netMargin: 'Net Margin',
+          secFinancialTrends: 'SEC Financial Trends',
+          secFinancialTrendsNote: 'SEC company facts by annual or quarterly filing period',
+          financialTrendPeriod: 'Financial trend period',
+          annual: 'Annual',
+          quarterly: 'Quarterly',
+          annualUnavailable: 'Annual SEC financial trend data unavailable.',
+          quarterlyUnavailable: 'Quarterly SEC financial trend data unavailable.',
+          valuationAnalysis: 'Valuation Analysis',
+          metric: 'Metric',
+          company: 'Company',
+          peerMedian: 'Peer Median',
+          trailingPe: 'Trailing P/E',
+          forwardPe: 'Forward P/E',
+          fcfYield: 'FCF Yield',
+          peerComparison: 'Peer Comparison',
+          symbol: 'Symbol',
+          peerUnavailable: 'Peer route unavailable or no peers returned.',
+          riskNewsMonitor: 'Risk & News Monitor',
+          riskNewsNote: 'Key risks and recent news',
+          riskNewsUnavailable: 'Risk and news summary unavailable. This demo only displays stable current data sources.',
+          aiAnalysis: 'AI Analysis',
+          aiAnalysisNote: 'Company-wide conclusion',
+          aiAnalysisUnavailable: 'AI analysis unavailable.',
+          aiAnalysisLoading: 'AI analysis loading...',
+          thesis: 'Thesis',
+          financialRead: 'Financial read',
+          valuation: 'Valuation',
+          risk: 'Risk',
+          watch: 'Watch',
+          noLivePrice: 'No live price available.',
+          stagedEntry: 'Staged Entry Reference',
+          stagedEntryNote: 'Generated from current price, beta, valuation, and score',
+          halfPlan: '1/2 Plan - 50% / 50%',
+          quarterPlan: '1/4 Plan - 25% / 25% / 25% / 25%',
+          step: 'Step',
+          strongWatchlist: 'Strong watchlist',
+          balancedWatchlist: 'Balanced watchlist',
+          highCaution: 'High caution',
+          priceFairValue: 'Price/Fair Value',
+          economicMoat: 'Economic Moat',
+          uncertainty: 'Uncertainty',
+          financialHealth: 'Financial Health',
+          capitalAllocation: 'Capital Allocation',
+          quality: 'Quality',
+          growth: 'Growth',
+          riskControl: 'Risk control'
+        },
+        zh: {
+          pageTitle: '股票研究',
+          pageSubtitle: '只顯示目前 API 支援的功能',
+          ticker: '股票代號',
+          analyze: '分析',
+          loading: '載入中',
+          quickSymbols: '快速股票清單',
+          initialMessage: '輸入股票代號後，Demo 會載入 Finnhub、BlackSpace News AI 及 SEC EDGAR 資料。',
+          enterTicker: '請輸入股票代號。',
+          loadingResearch: (symbol) => `正在載入 ${symbol} 研究資料...`,
+          researchFailed: '研究資料載入失敗',
+          companyDescription: (name) => name
+            ? `${name} 股價、估值、SEC 財務、同業比較及風險/新聞摘要。`
+            : '此頁只顯示目前資料來源可提供的股票研究資料。',
+          sharePrice: '股價',
+          range52: '52 週範圍',
+          marketCap: '市值',
+          researchScorecard: '研究評分',
+          aiScoreLoading: 'AI 評分載入中...',
+          aiScoreUnavailable: 'AI 評分暫時不可用。',
+          financialSnapshot: '財務快照',
+          financialSnapshotNote: '最新年度或 TTM 資料',
+          revenue: '收入',
+          netIncome: '淨利',
+          assets: '資產',
+          liabilities: '負債',
+          operatingCashFlow: '營運現金流',
+          freeCashFlow: '自由現金流',
+          roe: '股東權益回報率',
+          grossMargin: '毛利率',
+          netMargin: '淨利率',
+          secFinancialTrends: 'SEC 財務趨勢',
+          secFinancialTrendsNote: 'SEC 公司資料，按年度或季度申報期顯示',
+          financialTrendPeriod: '財務趨勢週期',
+          annual: '年度',
+          quarterly: '季度',
+          annualUnavailable: '年度 SEC 財務趨勢資料暫時不可用。',
+          quarterlyUnavailable: '季度 SEC 財務趨勢資料暫時不可用。',
+          valuationAnalysis: '估值分析',
+          metric: '指標',
+          company: '公司',
+          peerMedian: '同業中位數',
+          trailingPe: '過去 P/E',
+          forwardPe: '預期 P/E',
+          fcfYield: '自由現金流收益率',
+          peerComparison: '同業比較',
+          symbol: '代號',
+          peerUnavailable: '同業資料路由不可用，或未返回同業名單。',
+          riskNewsMonitor: '風險與新聞監察',
+          riskNewsNote: '主要風險及近期新聞',
+          riskNewsUnavailable: '風險與新聞摘要暫時不可用。此 Demo 只顯示穩定的現有資料來源。',
+          aiAnalysis: 'AI 分析',
+          aiAnalysisNote: '公司整體結論',
+          aiAnalysisUnavailable: 'AI 分析暫時不可用。',
+          aiAnalysisLoading: 'AI 分析載入中...',
+          thesis: '投資觀點',
+          financialRead: '財務解讀',
+          valuation: '估值',
+          risk: '風險',
+          watch: '觀察重點',
+          noLivePrice: '沒有即時價格資料。',
+          stagedEntry: '分批建倉參考',
+          stagedEntryNote: '根據現價、Beta、估值及評分產生',
+          halfPlan: '1/2 建倉 - 50% / 50%',
+          quarterPlan: '1/4 建倉 - 25% / 25% / 25% / 25%',
+          step: '步驟',
+          strongWatchlist: '強力觀察',
+          balancedWatchlist: '平衡觀察',
+          highCaution: '高度謹慎',
+          priceFairValue: '價格/公允值',
+          economicMoat: '經濟護城河',
+          uncertainty: '不確定性',
+          financialHealth: '財務健康',
+          capitalAllocation: '資本配置',
+          quality: '質素',
+          growth: '增長',
+          riskControl: '風險控制'
+        }
+      };
+  
+      function normalizeLanguage(value) {
+        const text = String(value || '').toLowerCase();
+        return text.startsWith('en') ? 'en' : 'zh';
+      }
+  
+      function t(key, ...args) {
+        const value = uiCopy[UI_LANG]?.[key] ?? uiCopy.en[key] ?? key;
+        return typeof value === 'function' ? value(...args) : value;
+      }
+  
+      function applyStaticCopy() {
+        document.documentElement.lang = UI_LANG === 'en' ? 'en' : 'zh-HK';
+        if ($('pageTitle')) $('pageTitle').textContent = t('pageTitle');
+        if ($('pageSubtitle')) $('pageSubtitle').textContent = '';
+        $('tickerLabel').textContent = t('ticker');
+        analyzeBtn.textContent = t('analyze');
+        $('presetRow').setAttribute('aria-label', t('quickSymbols'));
+        output.textContent = t('initialMessage');
+      }
+  
+      const metricKeys = {
+        pe: ['peNormalizedAnnual', 'peTTM', 'peInclExtraTTM'],
+        forwardPe: ['forwardPERatio', 'forwardPE'],
+        pb: ['pbAnnual', 'pbQuarterly'],
+        ps: ['psTTM', 'psAnnual'],
+        roe: ['roeTTM', 'roeRfy'],
+        grossMargin: ['grossMarginTTM', 'grossMarginAnnual'],
+        netMargin: ['netProfitMarginTTM', 'netProfitMarginAnnual'],
+        beta: ['beta'],
+        debtEquity: ['totalDebt/totalEquityAnnual', 'totalDebt/totalEquityQuarterly'],
+        currentRatio: ['currentRatioAnnual', 'currentRatioQuarterly'],
+        dividendYield: ['dividendYieldIndicatedAnnual', 'currentDividendYieldTTM'],
+        marketCap: ['marketCapitalization'],
+        week52High: ['52WeekHigh'],
+        week52Low: ['52WeekLow']
+      };
+  
+      function esc(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[char]));
+      }
+  
+      function attr(value) {
+        return esc(value).replace(/`/g, '&#96;');
+      }
+  
+      function num(value) {
+        if (value === null || value === undefined || value === '') return null;
+        const n = Number(value);
+        return Number.isFinite(n) ? n : null;
+      }
+  
+      function fmtNum(value, digits = 2) {
+        const n = num(value);
+        if (n == null) return '-';
+        return n.toLocaleString('en-US', { maximumFractionDigits: digits });
+      }
+  
+      function fmtMoney(value, digits = 2) {
+        const n = num(value);
+        if (n == null) return '-';
+        return '$' + n.toLocaleString('en-US', { maximumFractionDigits: digits });
+      }
+  
+      function compactMoney(value) {
+        const n = num(value);
+        if (n == null) return '-';
+        const abs = Math.abs(n);
+        const sign = n < 0 ? '-' : '';
+        if (abs >= 1e12) return `${sign}$${(abs / 1e12).toFixed(2)}T`;
+        if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(2)}B`;
+        if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(2)}M`;
+        if (abs >= 1e3) return `${sign}$${(abs / 1e3).toFixed(1)}K`;
+        return fmtMoney(n, 0);
+      }
+  
+      function pct(value, digits = 2) {
+        const n = num(value);
+        if (n == null) return '-';
+        const normalized = Math.abs(n) <= 2 ? n * 100 : n;
+        return `${normalized.toFixed(digits)}%`;
+      }
+  
+      function signed(value, digits = 2) {
+        const n = num(value);
+        if (n == null) return '-';
+        return `${n >= 0 ? '+' : ''}${n.toFixed(digits)}`;
+      }
+  
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+  
+      function median(values) {
+        const list = values.map(num).filter((v) => v != null).sort((a, b) => a - b);
+        if (!list.length) return null;
+        const middle = Math.floor(list.length / 2);
+        return list.length % 2 ? list[middle] : (list[middle - 1] + list[middle]) / 2;
+      }
+  
+      function metric(metrics, names) {
+        for (const name of names) {
+          const value = num(metrics?.[name]);
+          if (value != null) return value;
+        }
+        return null;
+      }
+  
+      function positiveMetric(metrics, names) {
+        const value = metric(metrics, names);
+        return value != null && value > 0 ? value : null;
+      }
+  
+      function positiveMedian(values) {
+        return median(values.filter((value) => num(value) != null && num(value) > 0));
+      }
+  
+      function yoy(series) {
+        const values = (series || []).map((item) => num(item.value)).filter((v) => v != null);
+        if (values.length < 2 || values[values.length - 2] === 0) return null;
+        return (values[values.length - 1] / values[values.length - 2]) - 1;
+      }
+  
+      function sentenceList(text, max = 4) {
+        return String(text || '')
+          .replace(/\s+/g, ' ')
+          .replace(/([\u3002\uff01\uff1f])/g, '$1 ')
+          .split(/(?<=[.!?])\s+/)
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .slice(0, max);
+      }
+  
+      async function fetchJson(url) {
+        const response = await fetch(url);
+        const text = await response.text();
+        let data;
+        try { data = text ? JSON.parse(text) : null; } catch (error) { throw new Error(`Invalid JSON from ${url}`); }
+        if (!response.ok || data?.error) throw new Error(data?.error || `Request failed ${response.status}`);
+        return data;
+      }
+  
+      function cleanSymbol() {
+        return symbolInput.value.trim().toUpperCase().replace(/[^A-Z0-9.-]/g, '');
+      }
+  
+      function syncPresetState(symbol = cleanSymbol()) {
+        root.querySelectorAll('[data-symbol]').forEach((button) => {
+          const active = button.dataset.symbol === symbol;
+          button.classList.toggle('active', active);
+          button.classList.toggle('is-active', active);
+        });
+      }
+  
+      function getLogo(profile, symbol) {
+        if (profile.logo) return `<img src="${attr(profile.logo)}" alt="${attr(profile.name || symbol)} logo">`;
+        return esc(symbol.slice(0, 2));
+      }
+  
+      function companyHeader({ symbol, profile, quote, metrics, score }) {
+        const price = num(quote?.c);
+        const change = num(quote?.d);
+        const changePct = num(quote?.dp);
+        const changeClass = change == null || change >= 0 ? 'positive' : 'negative';
+        const low52 = metric(metrics, metricKeys.week52Low);
+        const high52 = metric(metrics, metricKeys.week52High);
+        const marketCap = metric(metrics, metricKeys.marketCap);
+        const marketCapMillions = marketCap != null ? marketCap : num(profile?.marketCapitalization);
+        const tags = [profile.ticker || symbol, profile.exchange, profile.finnhubIndustry, profile.country].filter(Boolean);
+        const description = t('companyDescription', profile.name);
+  
+        return `
+          <section class="company-card">
+            <div class="company-main">
+              <div class="logo-box">${getLogo(profile, symbol)}</div>
+              <div>
+                <h2>${esc(profile.name || symbol)}</h2>
+                <p>${esc(description)}</p>
+              </div>
+              <div class="quote-item price-card mobile-price-card"><small>${esc(t('sharePrice'))}</small><strong>${fmtMoney(price)}</strong><span class="${changeClass}">${signed(change)} (${signed(changePct)}%)</span></div>
+            </div>
+            <div class="company-side">
+              <div class="tag-row">${tags.map((tag) => `<span class="tag">${esc(tag)}</span>`).join('')}</div>
+              <div class="quote-box">
+                <div class="quote-item price-card desktop-price-card"><small>${esc(t('sharePrice'))}</small><strong>${fmtMoney(price)}</strong><span class="${changeClass}">${signed(change)} (${signed(changePct)}%)</span></div>
+                <div class="quote-item price-card"><small>${esc(t('range52'))}</small><div class="range-value"><span>${fmtMoney(low52)}</span><span>-</span><span>${fmtMoney(high52)}</span></div></div>
+                <div class="quote-item price-card"><small>${esc(t('marketCap'))}</small><strong>${compactMoney(marketCapMillions != null ? marketCapMillions * 1000000 : null)}</strong></div>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+  
+      function panel(title, source, body, note = '', className = '') {
+        return `
+          <section class="panel ${esc(className)}">
+            <div class="panel-head">
+              <div><h3>${esc(title)}</h3>${note ? `<p class="panel-note">${esc(note)}</p>` : ''}</div>
+            </div>
+            ${body}
+          </section>
+        `;
+      }
+  
+      function buildScore({ metrics, secFacts, newsAnalysis, peers }) {
+        const pe = positiveMetric(metrics, metricKeys.pe);
+        const fpe = positiveMetric(metrics, metricKeys.forwardPe);
+        const pb = positiveMetric(metrics, metricKeys.pb);
+        const roe = metric(metrics, metricKeys.roe);
+        const gross = metric(metrics, metricKeys.grossMargin);
+        const debt = metric(metrics, metricKeys.debtEquity);
+        const revenueGrowth = yoy(secFacts?.trends?.revenue);
+        const fcf = num(secFacts?.facts?.freeCashFlow?.value);
+        const peerPe = positiveMedian(peers.map((item) => item.pe));
+        const sentiment = num(newsAnalysis?.summary?.sentimentScore);
+        const quality = clamp(42 + (roe ? roe * 85 : 0) + (gross ? gross * 24 : 0) - (debt ? Math.min(debt, 3) * 8 : 0), 0, 100);
+        const growth = clamp(50 + (revenueGrowth != null ? revenueGrowth * 180 : 0) + (fcf > 0 ? 10 : -8), 0, 100);
+        const valuationBase = peerPe && pe ? 60 + ((peerPe - pe) / peerPe) * 90 : 55;
+        const valuation = clamp(valuationBase + (fpe && pe && fpe < pe ? 8 : 0) - (pb && pb > 12 ? 8 : 0), 0, 100);
+        const risk = clamp(66 - (debt ? Math.min(debt, 3) * 12 : 0) + (fcf > 0 ? 8 : 0) + (sentiment ? sentiment * 8 : 0), 0, 100);
+        const total = Math.round(quality * 0.3 + growth * 0.24 + valuation * 0.26 + risk * 0.2);
+        const label = total >= 75 ? 'Strong watchlist' : total >= 58 ? 'Balanced watchlist' : 'High caution';
+        return { total, label, lines: [['Quality', Math.round(quality)], ['Growth', Math.round(growth)], ['Valuation', Math.round(valuation)], ['Risk control', Math.round(risk)]] };
+      }
+  
+      function scoreLabel(label) {
+        const key = String(label || '').trim().toLowerCase();
+        const map = {
+          'strong watchlist': 'strongWatchlist',
+          'balanced watchlist': 'balancedWatchlist',
+          'high caution': 'highCaution'
+        };
+        return map[key] ? t(map[key]) : label;
+      }
+  
+      function scoreLineLabel(label) {
+        const key = String(label || '').trim().toLowerCase();
+        const map = {
+          'price/fair value': 'priceFairValue',
+          'economic moat': 'economicMoat',
+          'uncertainty': 'uncertainty',
+          'financial health': 'financialHealth',
+          'capital allocation': 'capitalAllocation',
+          'quality': 'quality',
+          'growth': 'growth',
+          'valuation': 'valuation',
+          'risk control': 'riskControl'
+        };
+        return map[key] ? t(map[key]) : label;
+      }
+  
+      function scorecard(score, source = 'DeepSeek v4 Pro') {
+        const colorFor = (value) => num(value) >= 50 ? 'var(--blue)' : 'var(--red)';
+        return panel(t('researchScorecard'), source, `
+          <div class="score-row">
+            <div class="score-ring" style="--score-color:${colorFor(score.total)}">
+              <svg class="score-ring-svg" viewBox="0 0 150 150" aria-hidden="true">
+                <circle class="score-ring-track" cx="75" cy="75" r="65"></circle>
+                <circle class="score-ring-progress" cx="75" cy="75" r="65" pathLength="100" stroke-dasharray="${score.total} 100"></circle>
+              </svg>
+              <div><strong>${score.total}</strong><span>${esc(scoreLabel(score.label))}</span></div>
+            </div>
+            <div class="score-list">${score.lines.map(([label, value]) => `<div class="score-line" style="--score-color:${colorFor(value)}"><span>${esc(scoreLineLabel(label))}</span><div class="track"><i style="--w:${value}%"></i></div><b>${value}</b></div>`).join('')}</div>
+          </div>
+        `, '', 'score-panel');
+      }
+  
+      function scorecardLoading() {
+        return panel(t('researchScorecard'), 'DeepSeek v4 Pro', `<div class="empty">${esc(t('aiScoreLoading'))}</div>`, '', 'score-panel');
+      }
+  
+      function scorecardUnavailable() {
+        return panel(t('researchScorecard'), 'DeepSeek v4 Pro', `<div class="empty">${esc(t('aiScoreUnavailable'))}</div>`, '', 'score-panel');
+      }
+  
+      function normalizeAiScore(aiConclusion) {
+        const raw = aiConclusion?.analysis?.researchScore || aiConclusion?.researchScore;
+        if (!raw || typeof raw !== 'object') return null;
+        const lines = Array.isArray(raw.lines)
+          ? raw.lines
+          : [
+              ['Price/Fair Value', raw.lines?.priceFairValue ?? raw.lines?.valuation ?? raw.priceFairValue ?? raw.valuation],
+              ['Economic Moat', raw.lines?.economicMoat ?? raw.lines?.moat ?? raw.economicMoat ?? raw.moat],
+              ['Uncertainty', raw.lines?.uncertainty ?? raw.uncertainty],
+              ['Financial Health', raw.lines?.financialHealth ?? raw.lines?.quality ?? raw.financialHealth ?? raw.quality],
+              ['Capital Allocation', raw.lines?.capitalAllocation ?? raw.capitalAllocation]
+            ];
+        const total = clamp(Math.round(num(raw.total) ?? 0), 0, 100);
+        return {
+          total,
+          label: raw.label || (total >= 75 ? 'Strong watchlist' : total >= 58 ? 'Balanced watchlist' : 'High caution'),
+          lines: lines.map(([label, value]) => [label, clamp(Math.round(num(value) ?? 0), 0, 100)])
+        };
+      }
+  
+      function financialSnapshot(secFacts, metrics) {
+        const facts = secFacts?.facts || {};
+        const secNetMargin = num(facts.revenue?.value) ? num(facts.netIncome?.value) / num(facts.revenue?.value) : null;
+        const rows = [
+          [t('revenue'), compactMoney(facts.revenue?.value)],
+          [t('netIncome'), compactMoney(facts.netIncome?.value)],
+          [t('assets'), compactMoney(facts.assets?.value)],
+          [t('liabilities'), compactMoney(facts.liabilities?.value)],
+          [t('operatingCashFlow'), compactMoney(facts.operatingCashFlow?.value)],
+          [t('freeCashFlow'), compactMoney(facts.freeCashFlow?.value)],
+          [t('roe'), pct(metric(metrics, metricKeys.roe))],
+          [t('grossMargin'), pct(metric(metrics, metricKeys.grossMargin))],
+          [t('netMargin'), pct(secNetMargin ?? metric(metrics, metricKeys.netMargin))]
+        ];
+        return panel(t('financialSnapshot'), 'SEC + Finnhub', `<div class="metric-grid">${rows.map(([label, value]) => `<div class="metric-box"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('')}</div>`, t('financialSnapshotNote'));
+      }
+  
+      function chart(title, series, color = 'var(--blue)') {
+        const clean = (series || []).map((item) => ({ ...item, value: num(item.value) })).filter((item) => item.value != null);
+        if (!clean.length) return '';
+        const max = Math.max(...clean.map((item) => Math.abs(item.value))) || 1;
+        const label = (item) => {
+          const fp = String(item.fp || '').toUpperCase();
+          const fy = item.fy || Number(String(item.end || '').slice(0, 4));
+          if (/^Q[1-4]$/.test(fp) && fy) return `${String(fy).slice(-2)}${fp}`;
+          return item.fy || item.period || '';
+        };
+        return `
+          <div class="mini-chart">
+            <h4>${esc(title)}</h4>
+            <div class="bars" style="--bar-count:${clean.length}">${clean.map((item) => {
+              const height = Math.max(5, Math.round(Math.abs(item.value) / max * 102));
+              const negative = item.value < 0 ? 'negative' : '';
+              return `<div class="bar-col"><div class="bar-plot"><div class="bar ${negative}" style="height:${height}px;background:${negative ? 'var(--red)' : color}"><span>${chartValueLabel(item.value)}</span></div></div><div class="bar-year">${esc(label(item))}</div></div>`;
+            }).join('')}</div>
+          </div>
+        `;
+      }
+  
+      function annualWindow(series, years = 9) {
+        const rows = (series || []).filter((item) => Number(item.fy));
+        if (!rows.length) return [];
+        const latest = Math.max(...rows.map((item) => Number(item.fy)));
+        return rows.filter((item) => Number(item.fy) >= latest - years + 1);
+      }
+  
+      function quarterlyWindow(series, quarters = 9) {
+        const rows = (series || []).filter((item) => item.end);
+        if (!rows.length) return [];
+        return rows
+          .sort((a, b) => String(a.end || '').localeCompare(String(b.end || '')))
+          .slice(-quarters);
+      }
+  
+      function financialCharts(secFacts) {
+        const trends = secFacts?.trends || {};
+        const quarterlyTrends = secFacts?.quarterlyTrends || {};
+        const annualCharts = [
+          chart(t('revenue'), annualWindow(trends.revenue), 'var(--blue)'),
+          chart(t('netIncome'), annualWindow(trends.netIncome), 'var(--green)'),
+          chart(t('operatingCashFlow'), annualWindow(trends.operatingCashFlow), 'var(--amber)'),
+          chart(t('freeCashFlow'), annualWindow(trends.freeCashFlow), 'var(--blue)')
+        ].filter(Boolean).join('');
+        const quarterlyCharts = [
+          chart(t('revenue'), quarterlyWindow(quarterlyTrends.revenue), 'var(--blue)'),
+          chart(t('netIncome'), quarterlyWindow(quarterlyTrends.netIncome), 'var(--green)'),
+          chart(t('operatingCashFlow'), quarterlyWindow(quarterlyTrends.operatingCashFlow), 'var(--amber)'),
+          chart(t('freeCashFlow'), quarterlyWindow(quarterlyTrends.freeCashFlow), 'var(--blue)')
+        ].filter(Boolean).join('');
+        return `
+          <section class="panel sec-trends-panel">
+            <div class="panel-head">
+              <div><h3>${esc(t('secFinancialTrends'))}</h3><p class="panel-note">${esc(t('secFinancialTrendsNote'))}</p></div>
+              <div class="trend-toggle" role="group" aria-label="${attr(t('financialTrendPeriod'))}">
+                <button type="button" class="is-active" data-trend-toggle="annual">${esc(t('annual'))}</button>
+                <button type="button" data-trend-toggle="quarterly">${esc(t('quarterly'))}</button>
+              </div>
+            </div>
+            <section class="chart-period" data-chart-period="annual">
+              ${annualCharts ? `<div class="chart-grid">${annualCharts}</div>` : `<div class="empty">${esc(t('annualUnavailable'))}</div>`}
+            </section>
+            <section class="chart-period" data-chart-period="quarterly" hidden>
+              ${quarterlyCharts ? `<div class="chart-grid">${quarterlyCharts}</div>` : `<div class="empty">${esc(t('quarterlyUnavailable'))}</div>`}
+            </section>
+          </section>
+        `;
+      }
+  
+      function valuation(metrics, peers, secFacts) {
+        const peerPe = positiveMedian(peers.map((item) => item.pe));
+        const fcf = num(secFacts?.facts?.freeCashFlow?.value);
+        const marketCap = metric(metrics, metricKeys.marketCap);
+        const fcfYield = fcf && marketCap ? fcf / (marketCap * 1000000) : null;
+        const rows = [
+          [t('trailingPe'), positiveMetric(metrics, metricKeys.pe), peerPe],
+          [t('forwardPe'), positiveMetric(metrics, metricKeys.forwardPe), positiveMedian(peers.map((item) => item.forwardPe))],
+          ['P/B', positiveMetric(metrics, metricKeys.pb), positiveMedian(peers.map((item) => item.pb))],
+          ['P/S', positiveMetric(metrics, metricKeys.ps), positiveMedian(peers.map((item) => item.ps))]
+        ];
+        return panel(t('valuationAnalysis'), 'Finnhub + SEC', `
+          <div class="table-wrap"><table><thead><tr><th>${esc(t('metric'))}</th><th>${esc(t('company'))}</th><th>${esc(t('peerMedian'))}</th></tr></thead><tbody>
+            ${rows.map(([label, own, peer]) => `<tr><td>${esc(label)}</td><td>${fmtNum(own)}</td><td>${fmtNum(peer)}</td></tr>`).join('')}
+            <tr><td>${esc(t('fcfYield'))}</td><td>${pct(fcfYield)}</td><td>-</td></tr>
+          </tbody></table></div>
+        `);
+      }
+  
+      async function fetchPeerItems(symbol) {
+        const fallbackPeers = {
+          AAPL: ['MSFT', 'GOOGL', 'AMZN', 'META', 'DELL'],
+          MSFT: ['AAPL', 'GOOGL', 'AMZN', 'ORCL', 'ADBE'],
+          NVDA: ['AMD', 'AVGO', 'INTC', 'QCOM', 'TSM'],
+          TSLA: ['GM', 'F', 'RIVN', 'LCID', 'TM'],
+          META: ['GOOGL', 'SNAP', 'PINS', 'RDDT', 'MTCH'],
+          TSM: ['NVDA', 'AMD', 'INTC', 'ASML', 'QCOM']
+        };
+        try {
+          const symbols = await fetchJson(`${API}/peers?symbol=${encodeURIComponent(symbol)}`);
+          const sourceSymbols = Array.isArray(symbols) && symbols.length ? symbols : fallbackPeers[symbol] || [];
+          const unique = [...new Set(sourceSymbols.filter((item) => item && item !== symbol))].slice(0, 5);
+          const rows = await Promise.all(unique.map(async (peerSymbol) => {
+            try {
+              const peerMetrics = await fetchJson(`${API}/metric?symbol=${encodeURIComponent(peerSymbol)}&metric=all`);
+              const m = peerMetrics.metric || peerMetrics;
+              return { symbol: peerSymbol, pe: positiveMetric(m, metricKeys.pe), forwardPe: positiveMetric(m, metricKeys.forwardPe), pb: positiveMetric(m, metricKeys.pb), ps: positiveMetric(m, metricKeys.ps), roe: metric(m, metricKeys.roe), marketCap: metric(m, metricKeys.marketCap) };
+            } catch (error) {
+              return { symbol: peerSymbol, pe: null, forwardPe: null, pb: null, ps: null, roe: null, marketCap: null };
+            }
+          }));
+          return rows.filter((item) => item && item.symbol);
+        } catch (error) {
+          return (fallbackPeers[symbol] || []).slice(0, 5).map((peerSymbol) => ({
+            symbol: peerSymbol,
+            pe: null,
+            forwardPe: null,
+            pb: null,
+            ps: null,
+            roe: null,
+            marketCap: null
+          }));
+        }
+      }
+  
+      function peerTable(symbol, metrics, peers) {
+        const own = { symbol, pe: positiveMetric(metrics, metricKeys.pe), forwardPe: positiveMetric(metrics, metricKeys.forwardPe), pb: positiveMetric(metrics, metricKeys.pb), roe: metric(metrics, metricKeys.roe), marketCap: metric(metrics, metricKeys.marketCap) };
+        const rows = [own, ...peers];
+        if (!peers.length) return panel(t('peerComparison'), 'Finnhub', `<div class="empty">${esc(t('peerUnavailable'))}</div>`);
+        return panel(t('peerComparison'), 'Finnhub', `
+          <div class="table-wrap"><table class="wide-table"><thead><tr><th>${esc(t('symbol'))}</th><th>${esc(t('marketCap'))}</th><th>P/E</th><th>${esc(t('forwardPe'))}</th><th>P/B</th><th>${esc(t('roe'))}</th></tr></thead><tbody>
+            ${rows.map((item) => `<tr><td>${esc(item.symbol)}</td><td>${compactMoney(item.marketCap ? item.marketCap * 1000000 : null)}</td><td>${fmtNum(item.pe)}</td><td>${fmtNum(item.forwardPe)}</td><td>${fmtNum(item.pb)}</td><td>${pct(item.roe)}</td></tr>`).join('')}
+          </tbody></table></div>
+        `);
+      }
+  
+      function filingRiskItems(filing) {
+        if (Array.isArray(filing?.aiSummary?.risks)) return filing.aiSummary.risks;
+        if (filing?.aiSummary?.riskFactors) return sentenceList(filing.aiSummary.riskFactors, 5);
+        if (Array.isArray(filing?.fallback?.riskPoints) && filing.fallback.riskPoints.length) return filing.fallback.riskPoints.slice(0, 6);
+        return sentenceList(filing?.sections?.riskFactors || filing?.riskFactors || '', 6);
+      }
+  
+      function newsItems(newsAnalysis) {
+        const ai = newsAnalysis?.aiAnalysis;
+        const items = [];
+        if (ai?.overall) items.push(ai.overall);
+        if (ai?.stockImpact) items.push(ai.stockImpact);
+        if (ai?.risks) items.push(ai.risks);
+        if (Array.isArray(ai?.keyPoints)) items.push(...ai.keyPoints);
+        const rawItems = newsAnalysis?.items || newsAnalysis?.news || [];
+        rawItems.slice(0, 4).forEach((item) => {
+          const text = item.summary || item.headline || item.title;
+          if (text) items.push(text);
+        });
+        return items.filter(Boolean);
+      }
+  
+      function riskNewsPanel(filing, newsAnalysis) {
+        const items = [...filingRiskItems(filing), ...newsItems(newsAnalysis)].slice(0, 7);
+        if (!items.length) return panel(t('riskNewsMonitor'), 'SEC + News AI', `<div class="empty">${esc(t('riskNewsUnavailable'))}</div>`);
+        return panel(t('riskNewsMonitor'), 'SEC + News AI', `<ul class="list">${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`, t('riskNewsNote'));
+      }
+  
+      function aiConclusionPanel(aiConclusion) {
+        const data = aiConclusion?.analysis || aiConclusion;
+        if (!data || data.error) return panel(t('aiAnalysis'), 'DeepSeek v4 Pro', `<div class="empty">${esc(t('aiAnalysisUnavailable'))}</div>`, t('aiAnalysisNote'), 'ai-analysis-panel');
+        const points = Array.isArray(data.keyPoints) ? data.keyPoints.slice(0, 4) : [];
+        const source = data.provider === 'deepseek' || aiConclusion?.provider === 'deepseek_stock_research' ? 'DeepSeek v4 Pro' : 'DeepSeek v4 Pro';
+        const body = `
+          <div class="ai-summary">
+            ${data.thesis ? `<p><strong>${esc(t('thesis'))}:</strong> ${esc(data.thesis)}</p>` : ''}
+            ${data.financialRead ? `<p><strong>${esc(t('financialRead'))}:</strong> ${esc(data.financialRead)}</p>` : ''}
+            ${data.valuationRead ? `<p><strong>${esc(t('valuation'))}:</strong> ${esc(data.valuationRead)}</p>` : ''}
+            ${data.riskRead ? `<p><strong>${esc(t('risk'))}:</strong> ${esc(data.riskRead)}</p>` : ''}
+            ${data.watchItems ? `<p><strong>${esc(t('watch'))}:</strong> ${esc(data.watchItems)}</p>` : ''}
+            ${points.length ? `<ul class="list">${points.map((point) => `<li>${esc(point)}</li>`).join('')}</ul>` : ''}
+          </div>
+        `;
+        return panel(t('aiAnalysis'), source, body, t('aiAnalysisNote'), 'ai-analysis-panel');
+      }
+  
+      function aiConclusionLoading() {
+        return panel(t('aiAnalysis'), 'DeepSeek v4 Pro', `<div class="empty">${esc(t('aiAnalysisLoading'))}</div>`, t('aiAnalysisNote'), 'ai-analysis-panel');
+      }
+  
+      async function loadStockAiAnalysis(symbol) {
+        const panelEl = root.querySelector('.ai-analysis-panel');
+        try {
+          const aiConclusion = await fetchJson(`${API}/stock-ai-analysis?symbol=${encodeURIComponent(symbol)}&lang=${API_LANG}`);
+          if (cleanSymbol() !== symbol) return;
+          const latestPanel = root.querySelector('.ai-analysis-panel');
+          if (latestPanel) latestPanel.outerHTML = aiConclusionPanel(aiConclusion);
+          const aiScore = normalizeAiScore(aiConclusion);
+          const scorePanel = root.querySelector('.score-panel');
+          if (aiScore && scorePanel) scorePanel.outerHTML = scorecard(aiScore, 'DeepSeek v4 Pro');
+          if (!aiScore && scorePanel) scorePanel.outerHTML = scorecardUnavailable();
+        } catch (_) {
+          const scorePanel = root.querySelector('.score-panel');
+          if (scorePanel) scorePanel.outerHTML = scorecardUnavailable();
+          const latestPanel = root.querySelector('.ai-analysis-panel');
+          if (latestPanel) latestPanel.outerHTML = aiConclusionPanel(null);
+        }
+      }
+  
+      function entryLadder(quote, metrics, peers, score) {
+        const price = num(quote?.c);
+        if (!price) return panel(t('stagedEntry'), 'Calculated', `<div class="empty">${esc(t('noLivePrice'))}</div>`);
+        const beta = metric(metrics, metricKeys.beta) || 1;
+        const pe = positiveMetric(metrics, metricKeys.pe);
+        const peerPe = positiveMedian(peers.map((item) => item.pe));
+        const highRisk = beta > 1.4 || score.total < 55 || (pe && peerPe && pe > peerPe * 1.25);
+        const pullback = highRisk ? 0.1 : 0.07;
+        const deep = highRisk ? 0.2 : 0.15;
+        const half = [['1', '50%', `${fmtMoney(price * (1 - pullback * 0.45))} - ${fmtMoney(price * (1 - pullback * 0.15))}`], ['2', '50%', `${fmtMoney(price * (1 - deep))} - ${fmtMoney(price * (1 - pullback))}`]];
+        const quarter = [['1', '25%', `${fmtMoney(price * 0.98)} - ${fmtMoney(price * 1.01)}`], ['2', '25%', `${fmtMoney(price * (1 - pullback * 0.75))} - ${fmtMoney(price * (1 - pullback * 0.35))}`], ['3', '25%', `${fmtMoney(price * (1 - deep * 0.75))} - ${fmtMoney(price * (1 - pullback))}`], ['4', '25%', `${fmtMoney(price * (1 - deep * 1.15))} - ${fmtMoney(price * (1 - deep))}`]];
+        const ladderBlock = (title, rows) => `<div class="ladder"><h4>${esc(title)}</h4>${rows.map((row) => `<div class="ladder-row"><span>${esc(t('step'))} ${esc(row[0])}</span><b>${esc(row[1])}</b><strong>${esc(row[2])}</strong></div>`).join('')}</div>`;
+        return `
+          <section class="panel entry-panel">
+            <div class="panel-head"><div><h3>${esc(t('stagedEntry'))}</h3><p class="panel-note">${esc(t('stagedEntryNote'))}</p></div></div>
+            <div class="ladder-grid">${ladderBlock(t('halfPlan'), half)}${ladderBlock(t('quarterPlan'), quarter)}</div>
+          </section>
+        `;
+      }
+  
+      async function analyze() {
+        const symbol = cleanSymbol();
+        if (!symbol) {
+          output.className = 'message';
+          output.textContent = t('enterTicker');
+          return;
+        }
+        symbolInput.value = symbol;
+        syncPresetState(symbol);
+        analyzeBtn.disabled = true;
+        analyzeBtn.textContent = t('loading');
+        output.className = 'message';
+        output.textContent = t('loadingResearch', symbol);
+        const status = { finnhub: false, sec: false, filing: false, peers: false, news: false };
+  
+        try {
+          const [profileRes, quoteRes, metricRes, secRes, filingRes, newsRes] = await Promise.allSettled([
+            fetchJson(`${API}/profile2?symbol=${encodeURIComponent(symbol)}`),
+            fetchJson(`${API}/quote?symbol=${encodeURIComponent(symbol)}`),
+            fetchJson(`${API}/metric?symbol=${encodeURIComponent(symbol)}&metric=all`),
+            fetchJson(`${API}/sec-companyfacts?symbol=${encodeURIComponent(symbol)}`),
+            fetchJson(`${API}/sec-filing-sections?symbol=${encodeURIComponent(symbol)}&lang=${API_LANG}&ai=1`),
+            fetchJson(`${API}/news-analysis?tickers=${encodeURIComponent(symbol)}&sort=latest&lang=${API_LANG}`)
+          ]);
+          const profile = profileRes.status === 'fulfilled' ? profileRes.value : {};
+          const quote = quoteRes.status === 'fulfilled' ? quoteRes.value : {};
+          const metricPayload = metricRes.status === 'fulfilled' ? metricRes.value : {};
+          const metrics = metricPayload.metric || metricPayload || {};
+          const secFacts = secRes.status === 'fulfilled' ? secRes.value : null;
+          const filing = filingRes.status === 'fulfilled' ? filingRes.value : null;
+          const newsAnalysis = newsRes.status === 'fulfilled' ? newsRes.value : null;
+          status.finnhub = profileRes.status === 'fulfilled' || quoteRes.status === 'fulfilled' || metricRes.status === 'fulfilled';
+          status.sec = secRes.status === 'fulfilled';
+          status.filing = filingRes.status === 'fulfilled';
+          status.news = newsRes.status === 'fulfilled';
+          const peers = await fetchPeerItems(symbol);
+          status.peers = peers.length > 0;
+          if (!status.finnhub && !status.sec) throw new Error('Main data sources returned no result.');
+          const score = buildScore({ metrics, secFacts, newsAnalysis, peers });
+          output.className = '';
+          output.innerHTML = `
+            ${companyHeader({ symbol, profile, quote, metrics, score })}
+            <div class="dashboard-grid">
+              <div class="dashboard-column">
+                ${scorecardLoading()}
+                ${financialCharts(secFacts)}
+                ${peerTable(symbol, metrics, peers)}
+              </div>
+              <div class="dashboard-column">
+                ${financialSnapshot(secFacts, metrics)}
+                ${valuation(metrics, peers, secFacts)}
+                ${entryLadder(quote, metrics, peers, score)}
+              </div>
+              <div class="insight-grid">
+                ${riskNewsPanel(filing, newsAnalysis)}
+                ${aiConclusionLoading()}
+              </div>
+            </div>
+          `;
+          loadStockAiAnalysis(symbol);
+        } catch (error) {
+          output.className = 'message';
+          output.innerHTML = `<strong>${esc(t('researchFailed'))}</strong><br>${esc(error.message || error)}`;
+        } finally {
+          analyzeBtn.disabled = false;
+          analyzeBtn.textContent = t('analyze');
+        }
+      }
+  
+      applyStaticCopy();
+  
+      analyzeBtn.addEventListener('click', analyze);
+      symbolInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') analyze();
+      });
+      symbolInput.addEventListener('input', () => syncPresetState());
+      root.querySelectorAll('[data-symbol]').forEach((button) => {
+        button.addEventListener('click', () => {
+          symbolInput.value = button.dataset.symbol;
+          syncPresetState(button.dataset.symbol);
+          analyze();
+        });
+      });
+      root.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-trend-toggle]');
+        if (!button) return;
+        const panelEl = button.closest('.sec-trends-panel');
+        if (!panelEl) return;
+        const period = button.dataset.trendToggle;
+        panelEl.querySelectorAll('[data-trend-toggle]').forEach((item) => {
+          item.classList.toggle('is-active', item === button);
+        });
+        panelEl.querySelectorAll('[data-chart-period]').forEach((section) => {
+          section.hidden = section.dataset.chartPeriod !== period;
+        });
+      });
+      analyze();
+  }
+  let stockResearchRoot = null;
+  let stockResearchInitialized = false;
+  function bootStockResearch(root){
+
+    const API = 'https://blackspace.markchanchun.workers.dev';
+    const $ = (id) => root.getElementById(id);
+    const output = $('output');
+    const analyzeBtn = $('analyzeBtn');
+    const symbolInput = $('symbolInput');
+    const urlLang = new URLSearchParams(location.search).get('lang');
+    const UI_LANG = normalizeLanguage(
+      urlLang ||
+      localStorage.getItem('bs_lang') ||
+      localStorage.getItem('blackspace-language') ||
+      localStorage.getItem('blackspace-lang') ||
+      localStorage.getItem('language') ||
+      document.documentElement.lang ||
+      navigator.language
+    );
+    const API_LANG = UI_LANG === 'en' ? 'en' : 'zh';
+
+    const uiCopy = {
+      en: {
+        pageTitle: 'Stock Research',
+        pageSubtitle: 'Only shows features supported by current APIs',
+        ticker: 'Ticker',
+        analyze: 'Analyze',
+        loading: 'Loading',
+        quickSymbols: 'Quick symbols',
+        initialMessage: 'Enter a ticker. The demo will load Finnhub, BlackSpace News AI, and SEC EDGAR data.',
+        enterTicker: 'Please enter a ticker.',
+        loadingResearch: (symbol) => `Loading ${symbol} research data...`,
+        researchFailed: 'Research failed',
+        companyDescription: (name) => name
+          ? `${name} price, valuation, SEC financials, peer comparison, and risk/news summary.`
+          : 'This page only shows stock research data available from current sources.',
+        sharePrice: 'Share Price',
+        range52: '52 Week Range',
+        marketCap: 'Market Cap',
+        researchScorecard: 'Research Scorecard',
+        aiScoreLoading: 'AI score loading...',
+        aiScoreUnavailable: 'AI score unavailable.',
+        financialSnapshot: 'Financial Snapshot',
+        financialSnapshotNote: 'Latest available annual or TTM data',
+        revenue: 'Revenue',
+        netIncome: 'Net Income',
+        assets: 'Assets',
+        liabilities: 'Liabilities',
+        operatingCashFlow: 'Operating Cash Flow',
+        freeCashFlow: 'Free Cash Flow',
+        roe: 'ROE',
+        grossMargin: 'Gross Margin',
+        netMargin: 'Net Margin',
+        secFinancialTrends: 'SEC Financial Trends',
+        secFinancialTrendsNote: 'SEC company facts by annual or quarterly filing period',
+        financialTrendPeriod: 'Financial trend period',
+        annual: 'Annual',
+        quarterly: 'Quarterly',
+        annualUnavailable: 'Annual SEC financial trend data unavailable.',
+        quarterlyUnavailable: 'Quarterly SEC financial trend data unavailable.',
+        valuationAnalysis: 'Valuation Analysis',
+        metric: 'Metric',
+        company: 'Company',
+        peerMedian: 'Peer Median',
+        trailingPe: 'Trailing P/E',
+        forwardPe: 'Forward P/E',
+        fcfYield: 'FCF Yield',
+        peerComparison: 'Peer Comparison',
+        symbol: 'Symbol',
+        peerUnavailable: 'Peer route unavailable or no peers returned.',
+        riskNewsMonitor: 'Risk & News Monitor',
+        riskNewsNote: 'Key risks and recent news',
+        riskNewsUnavailable: 'Risk and news summary unavailable. This demo only displays stable current data sources.',
+        aiAnalysis: 'AI Analysis',
+        aiAnalysisNote: 'Company-wide conclusion',
+        aiAnalysisUnavailable: 'AI analysis unavailable.',
+        aiAnalysisLoading: 'AI analysis loading...',
+        thesis: 'Thesis',
+        financialRead: 'Financial read',
+        valuation: 'Valuation',
+        risk: 'Risk',
+        watch: 'Watch',
+        noLivePrice: 'No live price available.',
+        stagedEntry: 'Staged Entry Reference',
+        stagedEntryNote: 'Generated from current price, beta, valuation, and score',
+        halfPlan: '1/2 Plan - 50% / 50%',
+        quarterPlan: '1/4 Plan - 25% / 25% / 25% / 25%',
+        step: 'Step',
+        strongWatchlist: 'Strong watchlist',
+        balancedWatchlist: 'Balanced watchlist',
+        highCaution: 'High caution',
+        priceFairValue: 'Price/Fair Value',
+        economicMoat: 'Economic Moat',
+        uncertainty: 'Uncertainty',
+        financialHealth: 'Financial Health',
+        capitalAllocation: 'Capital Allocation',
+        quality: 'Quality',
+        growth: 'Growth',
+        riskControl: 'Risk control'
+      },
+      zh: {
+        pageTitle: '股票研究',
+        pageSubtitle: '只顯示目前 API 支援的功能',
+        ticker: '股票代號',
+        analyze: '分析',
+        loading: '載入中',
+        quickSymbols: '快速股票清單',
+        initialMessage: '輸入股票代號後，Demo 會載入 Finnhub、BlackSpace News AI 及 SEC EDGAR 資料。',
+        enterTicker: '請輸入股票代號。',
+        loadingResearch: (symbol) => `正在載入 ${symbol} 研究資料...`,
+        researchFailed: '研究資料載入失敗',
+        companyDescription: (name) => name
+          ? `${name} 股價、估值、SEC 財務、同業比較及風險/新聞摘要。`
+          : '此頁只顯示目前資料來源可提供的股票研究資料。',
+        sharePrice: '股價',
+        range52: '52 週範圍',
+        marketCap: '市值',
+        researchScorecard: '研究評分',
+        aiScoreLoading: 'AI 評分載入中...',
+        aiScoreUnavailable: 'AI 評分暫時不可用。',
+        financialSnapshot: '財務快照',
+        financialSnapshotNote: '最新年度或 TTM 資料',
+        revenue: '收入',
+        netIncome: '淨利',
+        assets: '資產',
+        liabilities: '負債',
+        operatingCashFlow: '營運現金流',
+        freeCashFlow: '自由現金流',
+        roe: '股東權益回報率',
+        grossMargin: '毛利率',
+        netMargin: '淨利率',
+        secFinancialTrends: 'SEC 財務趨勢',
+        secFinancialTrendsNote: 'SEC 公司資料，按年度或季度申報期顯示',
+        financialTrendPeriod: '財務趨勢週期',
+        annual: '年度',
+        quarterly: '季度',
+        annualUnavailable: '年度 SEC 財務趨勢資料暫時不可用。',
+        quarterlyUnavailable: '季度 SEC 財務趨勢資料暫時不可用。',
+        valuationAnalysis: '估值分析',
+        metric: '指標',
+        company: '公司',
+        peerMedian: '同業中位數',
+        trailingPe: '過去 P/E',
+        forwardPe: '預期 P/E',
+        fcfYield: '自由現金流收益率',
+        peerComparison: '同業比較',
+        symbol: '代號',
+        peerUnavailable: '同業資料路由不可用，或未返回同業名單。',
+        riskNewsMonitor: '風險與新聞監察',
+        riskNewsNote: '主要風險及近期新聞',
+        riskNewsUnavailable: '風險與新聞摘要暫時不可用。此 Demo 只顯示穩定的現有資料來源。',
+        aiAnalysis: 'AI 分析',
+        aiAnalysisNote: '公司整體結論',
+        aiAnalysisUnavailable: 'AI 分析暫時不可用。',
+        aiAnalysisLoading: 'AI 分析載入中...',
+        thesis: '投資觀點',
+        financialRead: '財務解讀',
+        valuation: '估值',
+        risk: '風險',
+        watch: '觀察重點',
+        noLivePrice: '沒有即時價格資料。',
+        stagedEntry: '分批建倉參考',
+        stagedEntryNote: '根據現價、Beta、估值及評分產生',
+        halfPlan: '1/2 建倉 - 50% / 50%',
+        quarterPlan: '1/4 建倉 - 25% / 25% / 25% / 25%',
+        step: '步驟',
+        strongWatchlist: '強力觀察',
+        balancedWatchlist: '平衡觀察',
+        highCaution: '高度謹慎',
+        priceFairValue: '價格/公允值',
+        economicMoat: '經濟護城河',
+        uncertainty: '不確定性',
+        financialHealth: '財務健康',
+        capitalAllocation: '資本配置',
+        quality: '質素',
+        growth: '增長',
+        riskControl: '風險控制'
+      }
+    };
+
+    function normalizeLanguage(value) {
+      const text = String(value || '').toLowerCase();
+      return text.startsWith('en') ? 'en' : 'zh';
+    }
+
+    function t(key, ...args) {
+      const value = uiCopy[UI_LANG]?.[key] ?? uiCopy.en[key] ?? key;
+      return typeof value === 'function' ? value(...args) : value;
+    }
+
+    function applyStaticCopy() {
+      root.host.setAttribute('lang', UI_LANG === 'en' ? 'en' : 'zh-HK');
+      if ($('pageTitle')) $('pageTitle').textContent = t('pageTitle');
+      if ($('pageSubtitle')) $('pageSubtitle').textContent = '';
+      $('tickerLabel').textContent = t('ticker');
+      analyzeBtn.textContent = t('analyze');
+      $('presetRow').setAttribute('aria-label', t('quickSymbols'));
+      output.textContent = t('initialMessage');
+    }
+
+    const metricKeys = {
+      pe: ['peNormalizedAnnual', 'peTTM', 'peInclExtraTTM'],
+      forwardPe: ['forwardPERatio', 'forwardPE'],
+      pb: ['pbAnnual', 'pbQuarterly'],
+      ps: ['psTTM', 'psAnnual'],
+      roe: ['roeTTM', 'roeRfy'],
+      grossMargin: ['grossMarginTTM', 'grossMarginAnnual'],
+      netMargin: ['netProfitMarginTTM', 'netProfitMarginAnnual'],
+      beta: ['beta'],
+      debtEquity: ['totalDebt/totalEquityAnnual', 'totalDebt/totalEquityQuarterly'],
+      currentRatio: ['currentRatioAnnual', 'currentRatioQuarterly'],
+      dividendYield: ['dividendYieldIndicatedAnnual', 'currentDividendYieldTTM'],
+      marketCap: ['marketCapitalization'],
+      week52High: ['52WeekHigh'],
+      week52Low: ['52WeekLow']
+    };
+
+    function esc(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[char]));
+    }
+
+    function attr(value) {
+      return esc(value).replace(/`/g, '&#96;');
+    }
+
+    function num(value) {
+      if (value === null || value === undefined || value === '') return null;
+      const n = Number(value);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function fmtNum(value, digits = 2) {
+      const n = num(value);
+      if (n == null) return '-';
+      return n.toLocaleString('en-US', { maximumFractionDigits: digits });
+    }
+
+    function fmtMoney(value, digits = 2) {
+      const n = num(value);
+      if (n == null) return '-';
+      return '$' + n.toLocaleString('en-US', { maximumFractionDigits: digits });
+    }
+
+    function compactMoney(value) {
+      const n = num(value);
+      if (n == null) return '-';
+      const abs = Math.abs(n);
+      const sign = n < 0 ? '-' : '';
+      if (abs >= 1e12) return `${sign}$${(abs / 1e12).toFixed(2)}T`;
+      if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(2)}B`;
+      if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(2)}M`;
+      if (abs >= 1e3) return `${sign}$${(abs / 1e3).toFixed(1)}K`;
+      return fmtMoney(n, 0);
+    }
+
+    function pct(value, digits = 2) {
+      const n = num(value);
+      if (n == null) return '-';
+      const normalized = Math.abs(n) <= 2 ? n * 100 : n;
+      return `${normalized.toFixed(digits)}%`;
+    }
+
+    function signed(value, digits = 2) {
+      const n = num(value);
+      if (n == null) return '-';
+      return `${n >= 0 ? '+' : ''}${n.toFixed(digits)}`;
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function median(values) {
+      const list = values.map(num).filter((v) => v != null).sort((a, b) => a - b);
+      if (!list.length) return null;
+      const middle = Math.floor(list.length / 2);
+      return list.length % 2 ? list[middle] : (list[middle - 1] + list[middle]) / 2;
+    }
+
+    function metric(metrics, names) {
+      for (const name of names) {
+        const value = num(metrics?.[name]);
+        if (value != null) return value;
+      }
+      return null;
+    }
+
+    function positiveMetric(metrics, names) {
+      const value = metric(metrics, names);
+      return value != null && value > 0 ? value : null;
+    }
+
+    function positiveMedian(values) {
+      return median(values.filter((value) => num(value) != null && num(value) > 0));
+    }
+
+    function yoy(series) {
+      const values = (series || []).map((item) => num(item.value)).filter((v) => v != null);
+      if (values.length < 2 || values[values.length - 2] === 0) return null;
+      return (values[values.length - 1] / values[values.length - 2]) - 1;
+    }
+
+    function sentenceList(text, max = 4) {
+      return String(text || '')
+        .replace(/\s+/g, ' ')
+        .replace(/([\u3002\uff01\uff1f])/g, '$1 ')
+        .split(/(?<=[.!?])\s+/)
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .slice(0, max);
+    }
+
+    async function fetchJson(url) {
+      const response = await fetch(url);
+      const text = await response.text();
+      let data;
+      try { data = text ? JSON.parse(text) : null; } catch (error) { throw new Error(`Invalid JSON from ${url}`); }
+      if (!response.ok || data?.error) throw new Error(data?.error || `Request failed ${response.status}`);
+      return data;
+    }
+
+    function cleanSymbol() {
+      return symbolInput.value.trim().toUpperCase().replace(/[^A-Z0-9.-]/g, '');
+    }
+
+    function syncPresetState(symbol = cleanSymbol()) {
+      root.querySelectorAll('[data-symbol]').forEach((button) => {
+        const active = button.dataset.symbol === symbol;
+        button.classList.toggle('active', active);
+        button.classList.toggle('is-active', active);
+      });
+    }
+
+    function getLogo(profile, symbol) {
+      if (profile.logo) return `<img src="${attr(profile.logo)}" alt="${attr(profile.name || symbol)} logo">`;
+      return esc(symbol.slice(0, 2));
+    }
+
+    function companyHeader({ symbol, profile, quote, metrics, score }) {
+      const price = num(quote?.c);
+      const change = num(quote?.d);
+      const changePct = num(quote?.dp);
+      const changeClass = change == null || change >= 0 ? 'positive' : 'negative';
+      const low52 = metric(metrics, metricKeys.week52Low);
+      const high52 = metric(metrics, metricKeys.week52High);
+      const marketCap = metric(metrics, metricKeys.marketCap);
+      const marketCapMillions = marketCap != null ? marketCap : num(profile?.marketCapitalization);
+      const tags = [profile.ticker || symbol, profile.exchange, profile.finnhubIndustry, profile.country].filter(Boolean);
+      const description = t('companyDescription', profile.name);
+
+      return `
+        <section class="company-card">
+          <div class="company-main">
+            <div class="logo-box">${getLogo(profile, symbol)}</div>
+            <div>
+              <h2>${esc(profile.name || symbol)}</h2>
+              <p>${esc(description)}</p>
+            </div>
+            <div class="quote-item price-card mobile-price-card"><small>${esc(t('sharePrice'))}</small><strong>${fmtMoney(price)}</strong><span class="${changeClass}">${signed(change)} (${signed(changePct)}%)</span></div>
+          </div>
+          <div class="company-side">
+            <div class="tag-row">${tags.map((tag) => `<span class="tag">${esc(tag)}</span>`).join('')}</div>
+            <div class="quote-box">
+              <div class="quote-item price-card desktop-price-card"><small>${esc(t('sharePrice'))}</small><strong>${fmtMoney(price)}</strong><span class="${changeClass}">${signed(change)} (${signed(changePct)}%)</span></div>
+              <div class="quote-item price-card"><small>${esc(t('range52'))}</small><div class="range-value"><span>${fmtMoney(low52)}</span><span>-</span><span>${fmtMoney(high52)}</span></div></div>
+              <div class="quote-item price-card"><small>${esc(t('marketCap'))}</small><strong>${compactMoney(marketCapMillions != null ? marketCapMillions * 1000000 : null)}</strong></div>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function panel(title, source, body, note = '', className = '') {
+      return `
+        <section class="panel ${esc(className)}">
+          <div class="panel-head">
+            <div><h3>${esc(title)}</h3>${note ? `<p class="panel-note">${esc(note)}</p>` : ''}</div>
+          </div>
+          ${body}
+        </section>
+      `;
+    }
+
+    function buildScore({ metrics, secFacts, newsAnalysis, peers }) {
+      const pe = positiveMetric(metrics, metricKeys.pe);
+      const fpe = positiveMetric(metrics, metricKeys.forwardPe);
+      const pb = positiveMetric(metrics, metricKeys.pb);
+      const roe = metric(metrics, metricKeys.roe);
+      const gross = metric(metrics, metricKeys.grossMargin);
+      const debt = metric(metrics, metricKeys.debtEquity);
+      const revenueGrowth = yoy(secFacts?.trends?.revenue);
+      const fcf = num(secFacts?.facts?.freeCashFlow?.value);
+      const peerPe = positiveMedian(peers.map((item) => item.pe));
+      const sentiment = num(newsAnalysis?.summary?.sentimentScore);
+      const quality = clamp(42 + (roe ? roe * 85 : 0) + (gross ? gross * 24 : 0) - (debt ? Math.min(debt, 3) * 8 : 0), 0, 100);
+      const growth = clamp(50 + (revenueGrowth != null ? revenueGrowth * 180 : 0) + (fcf > 0 ? 10 : -8), 0, 100);
+      const valuationBase = peerPe && pe ? 60 + ((peerPe - pe) / peerPe) * 90 : 55;
+      const valuation = clamp(valuationBase + (fpe && pe && fpe < pe ? 8 : 0) - (pb && pb > 12 ? 8 : 0), 0, 100);
+      const risk = clamp(66 - (debt ? Math.min(debt, 3) * 12 : 0) + (fcf > 0 ? 8 : 0) + (sentiment ? sentiment * 8 : 0), 0, 100);
+      const total = Math.round(quality * 0.3 + growth * 0.24 + valuation * 0.26 + risk * 0.2);
+      const label = total >= 75 ? 'Strong watchlist' : total >= 58 ? 'Balanced watchlist' : 'High caution';
+      return { total, label, lines: [['Quality', Math.round(quality)], ['Growth', Math.round(growth)], ['Valuation', Math.round(valuation)], ['Risk control', Math.round(risk)]] };
+    }
+
+    function scoreLabel(label) {
+      const key = String(label || '').trim().toLowerCase();
+      const map = {
+        'strong watchlist': 'strongWatchlist',
+        'balanced watchlist': 'balancedWatchlist',
+        'high caution': 'highCaution'
+      };
+      return map[key] ? t(map[key]) : label;
+    }
+
+    function scoreLineLabel(label) {
+      const key = String(label || '').trim().toLowerCase();
+      const map = {
+        'price/fair value': 'priceFairValue',
+        'economic moat': 'economicMoat',
+        'uncertainty': 'uncertainty',
+        'financial health': 'financialHealth',
+        'capital allocation': 'capitalAllocation',
+        'quality': 'quality',
+        'growth': 'growth',
+        'valuation': 'valuation',
+        'risk control': 'riskControl'
+      };
+      return map[key] ? t(map[key]) : label;
+    }
+
+    function scorecard(score, source = 'DeepSeek v4 Pro') {
+      const colorFor = (value) => num(value) >= 50 ? 'var(--blue)' : 'var(--red)';
+      return panel(t('researchScorecard'), source, `
+        <div class="score-row">
+          <div class="score-ring" style="--score-color:${colorFor(score.total)}">
+            <svg class="score-ring-svg" viewBox="0 0 150 150" aria-hidden="true">
+              <circle class="score-ring-track" cx="75" cy="75" r="65"></circle>
+              <circle class="score-ring-progress" cx="75" cy="75" r="65" pathLength="100" stroke-dasharray="${score.total} 100"></circle>
+            </svg>
+            <div><strong>${score.total}</strong><span>${esc(scoreLabel(score.label))}</span></div>
+          </div>
+          <div class="score-list">${score.lines.map(([label, value]) => `<div class="score-line" style="--score-color:${colorFor(value)}"><span>${esc(scoreLineLabel(label))}</span><div class="track"><i style="--w:${value}%"></i></div><b>${value}</b></div>`).join('')}</div>
+        </div>
+      `, '', 'score-panel');
+    }
+
+    function scorecardLoading() {
+      return panel(t('researchScorecard'), 'DeepSeek v4 Pro', `<div class="empty">${esc(t('aiScoreLoading'))}</div>`, '', 'score-panel');
+    }
+
+    function scorecardUnavailable() {
+      return panel(t('researchScorecard'), 'DeepSeek v4 Pro', `<div class="empty">${esc(t('aiScoreUnavailable'))}</div>`, '', 'score-panel');
+    }
+
+    function normalizeAiScore(aiConclusion) {
+      const raw = aiConclusion?.analysis?.researchScore || aiConclusion?.researchScore;
+      if (!raw || typeof raw !== 'object') return null;
+      const lines = Array.isArray(raw.lines)
+        ? raw.lines
+        : [
+            ['Price/Fair Value', raw.lines?.priceFairValue ?? raw.lines?.valuation ?? raw.priceFairValue ?? raw.valuation],
+            ['Economic Moat', raw.lines?.economicMoat ?? raw.lines?.moat ?? raw.economicMoat ?? raw.moat],
+            ['Uncertainty', raw.lines?.uncertainty ?? raw.uncertainty],
+            ['Financial Health', raw.lines?.financialHealth ?? raw.lines?.quality ?? raw.financialHealth ?? raw.quality],
+            ['Capital Allocation', raw.lines?.capitalAllocation ?? raw.capitalAllocation]
+          ];
+      const total = clamp(Math.round(num(raw.total) ?? 0), 0, 100);
+      return {
+        total,
+        label: raw.label || (total >= 75 ? 'Strong watchlist' : total >= 58 ? 'Balanced watchlist' : 'High caution'),
+        lines: lines.map(([label, value]) => [label, clamp(Math.round(num(value) ?? 0), 0, 100)])
+      };
+    }
+
+    function financialSnapshot(secFacts, metrics) {
+      const facts = secFacts?.facts || {};
+      const secNetMargin = num(facts.revenue?.value) ? num(facts.netIncome?.value) / num(facts.revenue?.value) : null;
+      const rows = [
+        [t('revenue'), compactMoney(facts.revenue?.value)],
+        [t('netIncome'), compactMoney(facts.netIncome?.value)],
+        [t('assets'), compactMoney(facts.assets?.value)],
+        [t('liabilities'), compactMoney(facts.liabilities?.value)],
+        [t('operatingCashFlow'), compactMoney(facts.operatingCashFlow?.value)],
+        [t('freeCashFlow'), compactMoney(facts.freeCashFlow?.value)],
+        [t('roe'), pct(metric(metrics, metricKeys.roe))],
+        [t('grossMargin'), pct(metric(metrics, metricKeys.grossMargin))],
+        [t('netMargin'), pct(secNetMargin ?? metric(metrics, metricKeys.netMargin))]
+      ];
+      return panel(t('financialSnapshot'), 'SEC + Finnhub', `<div class="metric-grid">${rows.map(([label, value]) => `<div class="metric-box"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('')}</div>`, t('financialSnapshotNote'));
+    }
+
+    function chartValueLabel(value) {
+      const n = num(value);
+      if (n == null) return '-';
+      const abs = Math.abs(n);
+      const sign = n < 0 ? '-' : '';
+      if (abs >= 1e12) return sign + (abs / 1e12).toFixed(abs >= 10e12 ? 0 : 1) + 'T';
+      if (abs >= 1e9) return sign + (abs / 1e9).toFixed(abs >= 10e9 ? 0 : 1) + 'B';
+      if (abs >= 1e6) return sign + (abs / 1e6).toFixed(abs >= 100e6 ? 0 : 1) + 'M';
+      if (abs >= 1e3) return sign + (abs / 1e3).toFixed(abs >= 100e3 ? 0 : 1) + 'K';
+      return String(Math.round(n));
+    }
+
+    function chart(title, series, color = 'var(--blue)') {
+      const clean = (series || []).map((item) => ({ ...item, value: num(item.value) })).filter((item) => item.value != null);
+      if (!clean.length) return '';
+      const max = Math.max(...clean.map((item) => Math.abs(item.value))) || 1;
+      const label = (item) => {
+        const fp = String(item.fp || '').toUpperCase();
+        const fy = item.fy || Number(String(item.end || '').slice(0, 4));
+        if (/^Q[1-4]$/.test(fp) && fy) return `${String(fy).slice(-2)}${fp}`;
+        return item.fy || item.period || '';
+      };
+      return `
+        <div class="mini-chart">
+          <h4>${esc(title)}</h4>
+          <div class="bars" style="--bar-count:${clean.length}">${clean.map((item) => {
+            const height = Math.max(5, Math.round(Math.abs(item.value) / max * 102));
+            const negative = item.value < 0 ? 'negative' : '';
+            return `<div class="bar-col"><div class="bar-plot"><div class="bar ${negative}" style="height:${height}px;background:${negative ? 'var(--red)' : color}"><span>${chartValueLabel(item.value)}</span></div></div><div class="bar-year">${esc(label(item))}</div></div>`;
+          }).join('')}</div>
+        </div>
+      `;
+    }
+
+    function annualWindow(series, years = 9) {
+      const rows = (series || []).filter((item) => Number(item.fy));
+      if (!rows.length) return [];
+      const latest = Math.max(...rows.map((item) => Number(item.fy)));
+      return rows.filter((item) => Number(item.fy) >= latest - years + 1);
+    }
+
+    function quarterlyWindow(series, quarters = 9) {
+      const rows = (series || []).filter((item) => item.end);
+      if (!rows.length) return [];
+      return rows
+        .sort((a, b) => String(a.end || '').localeCompare(String(b.end || '')))
+        .slice(-quarters);
+    }
+
+    function financialCharts(secFacts) {
+      const trends = secFacts?.trends || {};
+      const quarterlyTrends = secFacts?.quarterlyTrends || {};
+      const annualCharts = [
+        chart(t('revenue'), annualWindow(trends.revenue), 'var(--blue)'),
+        chart(t('netIncome'), annualWindow(trends.netIncome), 'var(--green)'),
+        chart(t('operatingCashFlow'), annualWindow(trends.operatingCashFlow), 'var(--amber)'),
+        chart(t('freeCashFlow'), annualWindow(trends.freeCashFlow), 'var(--blue)')
+      ].filter(Boolean).join('');
+      const quarterlyCharts = [
+        chart(t('revenue'), quarterlyWindow(quarterlyTrends.revenue), 'var(--blue)'),
+        chart(t('netIncome'), quarterlyWindow(quarterlyTrends.netIncome), 'var(--green)'),
+        chart(t('operatingCashFlow'), quarterlyWindow(quarterlyTrends.operatingCashFlow), 'var(--amber)'),
+        chart(t('freeCashFlow'), quarterlyWindow(quarterlyTrends.freeCashFlow), 'var(--blue)')
+      ].filter(Boolean).join('');
+      return `
+        <section class="panel sec-trends-panel">
+          <div class="panel-head">
+            <div><h3>${esc(t('secFinancialTrends'))}</h3><p class="panel-note">${esc(t('secFinancialTrendsNote'))}</p></div>
+            <div class="trend-toggle" role="group" aria-label="${attr(t('financialTrendPeriod'))}">
+              <button type="button" class="is-active" data-trend-toggle="annual">${esc(t('annual'))}</button>
+              <button type="button" data-trend-toggle="quarterly">${esc(t('quarterly'))}</button>
+            </div>
+          </div>
+          <section class="chart-period" data-chart-period="annual">
+            ${annualCharts ? `<div class="chart-grid">${annualCharts}</div>` : `<div class="empty">${esc(t('annualUnavailable'))}</div>`}
+          </section>
+          <section class="chart-period" data-chart-period="quarterly" hidden>
+            ${quarterlyCharts ? `<div class="chart-grid">${quarterlyCharts}</div>` : `<div class="empty">${esc(t('quarterlyUnavailable'))}</div>`}
+          </section>
+        </section>
+      `;
+    }
+
+    function valuation(metrics, peers, secFacts) {
+      const peerPe = positiveMedian(peers.map((item) => item.pe));
+      const fcf = num(secFacts?.facts?.freeCashFlow?.value);
+      const marketCap = metric(metrics, metricKeys.marketCap);
+      const fcfYield = fcf && marketCap ? fcf / (marketCap * 1000000) : null;
+      const rows = [
+        [t('trailingPe'), positiveMetric(metrics, metricKeys.pe), peerPe],
+        [t('forwardPe'), positiveMetric(metrics, metricKeys.forwardPe), positiveMedian(peers.map((item) => item.forwardPe))],
+        ['P/B', positiveMetric(metrics, metricKeys.pb), positiveMedian(peers.map((item) => item.pb))],
+        ['P/S', positiveMetric(metrics, metricKeys.ps), positiveMedian(peers.map((item) => item.ps))]
+      ];
+      return panel(t('valuationAnalysis'), 'Finnhub + SEC', `
+        <div class="table-wrap"><table><thead><tr><th>${esc(t('metric'))}</th><th>${esc(t('company'))}</th><th>${esc(t('peerMedian'))}</th></tr></thead><tbody>
+          ${rows.map(([label, own, peer]) => `<tr><td>${esc(label)}</td><td>${fmtNum(own)}</td><td>${fmtNum(peer)}</td></tr>`).join('')}
+          <tr><td>${esc(t('fcfYield'))}</td><td>${pct(fcfYield)}</td><td>-</td></tr>
+        </tbody></table></div>
+      `);
+    }
+
+    async function fetchPeerItems(symbol) {
+      const fallbackPeers = {
+        AAPL: ['MSFT', 'GOOGL', 'AMZN', 'META', 'DELL'],
+        MSFT: ['AAPL', 'GOOGL', 'AMZN', 'ORCL', 'ADBE'],
+        NVDA: ['AMD', 'AVGO', 'INTC', 'QCOM', 'TSM'],
+        TSLA: ['GM', 'F', 'RIVN', 'LCID', 'TM'],
+        META: ['GOOGL', 'SNAP', 'PINS', 'RDDT', 'MTCH'],
+        TSM: ['NVDA', 'AMD', 'INTC', 'ASML', 'QCOM']
+      };
+      try {
+        const symbols = await fetchJson(`${API}/peers?symbol=${encodeURIComponent(symbol)}`);
+        const sourceSymbols = Array.isArray(symbols) && symbols.length ? symbols : fallbackPeers[symbol] || [];
+        const unique = [...new Set(sourceSymbols.filter((item) => item && item !== symbol))].slice(0, 5);
+        const rows = await Promise.all(unique.map(async (peerSymbol) => {
+          try {
+            const peerMetrics = await fetchJson(`${API}/metric?symbol=${encodeURIComponent(peerSymbol)}&metric=all`);
+            const m = peerMetrics.metric || peerMetrics;
+            return { symbol: peerSymbol, pe: positiveMetric(m, metricKeys.pe), forwardPe: positiveMetric(m, metricKeys.forwardPe), pb: positiveMetric(m, metricKeys.pb), ps: positiveMetric(m, metricKeys.ps), roe: metric(m, metricKeys.roe), marketCap: metric(m, metricKeys.marketCap) };
+          } catch (error) {
+            return { symbol: peerSymbol, pe: null, forwardPe: null, pb: null, ps: null, roe: null, marketCap: null };
+          }
+        }));
+        return rows.filter((item) => item && item.symbol);
+      } catch (error) {
+        return (fallbackPeers[symbol] || []).slice(0, 5).map((peerSymbol) => ({
+          symbol: peerSymbol,
+          pe: null,
+          forwardPe: null,
+          pb: null,
+          ps: null,
+          roe: null,
+          marketCap: null
+        }));
+      }
+    }
+
+    function peerTable(symbol, metrics, peers) {
+      const own = { symbol, pe: positiveMetric(metrics, metricKeys.pe), forwardPe: positiveMetric(metrics, metricKeys.forwardPe), pb: positiveMetric(metrics, metricKeys.pb), roe: metric(metrics, metricKeys.roe), marketCap: metric(metrics, metricKeys.marketCap) };
+      const rows = [own, ...peers];
+      if (!peers.length) return panel(t('peerComparison'), 'Finnhub', `<div class="empty">${esc(t('peerUnavailable'))}</div>`);
+      return panel(t('peerComparison'), 'Finnhub', `
+        <div class="table-wrap"><table class="wide-table"><thead><tr><th>${esc(t('symbol'))}</th><th>${esc(t('marketCap'))}</th><th>P/E</th><th>${esc(t('forwardPe'))}</th><th>P/B</th><th>${esc(t('roe'))}</th></tr></thead><tbody>
+          ${rows.map((item) => `<tr><td>${esc(item.symbol)}</td><td>${compactMoney(item.marketCap ? item.marketCap * 1000000 : null)}</td><td>${fmtNum(item.pe)}</td><td>${fmtNum(item.forwardPe)}</td><td>${fmtNum(item.pb)}</td><td>${pct(item.roe)}</td></tr>`).join('')}
+        </tbody></table></div>
+      `);
+    }
+
+    function filingRiskItems(filing) {
+      if (Array.isArray(filing?.aiSummary?.risks)) return filing.aiSummary.risks;
+      if (filing?.aiSummary?.riskFactors) return sentenceList(filing.aiSummary.riskFactors, 5);
+      if (Array.isArray(filing?.fallback?.riskPoints) && filing.fallback.riskPoints.length) return filing.fallback.riskPoints.slice(0, 6);
+      return sentenceList(filing?.sections?.riskFactors || filing?.riskFactors || '', 6);
+    }
+
+    function newsItems(newsAnalysis) {
+      const ai = newsAnalysis?.aiAnalysis;
+      const items = [];
+      if (ai?.overall) items.push(ai.overall);
+      if (ai?.stockImpact) items.push(ai.stockImpact);
+      if (ai?.risks) items.push(ai.risks);
+      if (Array.isArray(ai?.keyPoints)) items.push(...ai.keyPoints);
+      const rawItems = newsAnalysis?.items || newsAnalysis?.news || [];
+      rawItems.slice(0, 4).forEach((item) => {
+        const text = item.summary || item.headline || item.title;
+        if (text) items.push(text);
+      });
+      return items.filter(Boolean);
+    }
+
+    function riskNewsPanel(filing, newsAnalysis) {
+      const items = [...filingRiskItems(filing), ...newsItems(newsAnalysis)].slice(0, 7);
+      if (!items.length) return panel(t('riskNewsMonitor'), 'SEC + News AI', `<div class="empty">${esc(t('riskNewsUnavailable'))}</div>`);
+      return panel(t('riskNewsMonitor'), 'SEC + News AI', `<ul class="list">${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`, t('riskNewsNote'));
+    }
+
+    function aiConclusionPanel(aiConclusion) {
+      const data = aiConclusion?.analysis || aiConclusion;
+      if (!data || data.error) return panel(t('aiAnalysis'), 'DeepSeek v4 Pro', `<div class="empty">${esc(t('aiAnalysisUnavailable'))}</div>`, t('aiAnalysisNote'), 'ai-analysis-panel');
+      const points = Array.isArray(data.keyPoints) ? data.keyPoints.slice(0, 4) : [];
+      const source = data.provider === 'deepseek' || aiConclusion?.provider === 'deepseek_stock_research' ? 'DeepSeek v4 Pro' : 'DeepSeek v4 Pro';
+      const body = `
+        <div class="ai-summary">
+          ${data.thesis ? `<p><strong>${esc(t('thesis'))}:</strong> ${esc(data.thesis)}</p>` : ''}
+          ${data.financialRead ? `<p><strong>${esc(t('financialRead'))}:</strong> ${esc(data.financialRead)}</p>` : ''}
+          ${data.valuationRead ? `<p><strong>${esc(t('valuation'))}:</strong> ${esc(data.valuationRead)}</p>` : ''}
+          ${data.riskRead ? `<p><strong>${esc(t('risk'))}:</strong> ${esc(data.riskRead)}</p>` : ''}
+          ${data.watchItems ? `<p><strong>${esc(t('watch'))}:</strong> ${esc(data.watchItems)}</p>` : ''}
+          ${points.length ? `<ul class="list">${points.map((point) => `<li>${esc(point)}</li>`).join('')}</ul>` : ''}
+        </div>
+      `;
+      return panel(t('aiAnalysis'), source, body, t('aiAnalysisNote'), 'ai-analysis-panel');
+    }
+
+    function aiConclusionLoading() {
+      return panel(t('aiAnalysis'), 'DeepSeek v4 Pro', `<div class="empty">${esc(t('aiAnalysisLoading'))}</div>`, t('aiAnalysisNote'), 'ai-analysis-panel');
+    }
+
+    async function loadStockAiAnalysis(symbol) {
+      const panelEl = root.querySelector('.ai-analysis-panel');
+      try {
+        const aiConclusion = await fetchJson(`${API}/stock-ai-analysis?symbol=${encodeURIComponent(symbol)}&lang=${API_LANG}`);
+        if (cleanSymbol() !== symbol) return;
+        const latestPanel = root.querySelector('.ai-analysis-panel');
+        if (latestPanel) latestPanel.outerHTML = aiConclusionPanel(aiConclusion);
+        const aiScore = normalizeAiScore(aiConclusion);
+        const scorePanel = root.querySelector('.score-panel');
+        if (aiScore && scorePanel) scorePanel.outerHTML = scorecard(aiScore, 'DeepSeek v4 Pro');
+        if (!aiScore && scorePanel) scorePanel.outerHTML = scorecardUnavailable();
+      } catch (_) {
+        const scorePanel = root.querySelector('.score-panel');
+        if (scorePanel) scorePanel.outerHTML = scorecardUnavailable();
+        const latestPanel = root.querySelector('.ai-analysis-panel');
+        if (latestPanel) latestPanel.outerHTML = aiConclusionPanel(null);
+      }
+    }
+
+    function entryLadder(quote, metrics, peers, score) {
+      const price = num(quote?.c);
+      if (!price) return panel(t('stagedEntry'), 'Calculated', `<div class="empty">${esc(t('noLivePrice'))}</div>`);
+      const beta = metric(metrics, metricKeys.beta) || 1;
+      const pe = positiveMetric(metrics, metricKeys.pe);
+      const peerPe = positiveMedian(peers.map((item) => item.pe));
+      const highRisk = beta > 1.4 || score.total < 55 || (pe && peerPe && pe > peerPe * 1.25);
+      const pullback = highRisk ? 0.1 : 0.07;
+      const deep = highRisk ? 0.2 : 0.15;
+      const half = [['1', '50%', `${fmtMoney(price * (1 - pullback * 0.45))} - ${fmtMoney(price * (1 - pullback * 0.15))}`], ['2', '50%', `${fmtMoney(price * (1 - deep))} - ${fmtMoney(price * (1 - pullback))}`]];
+      const quarter = [['1', '25%', `${fmtMoney(price * 0.98)} - ${fmtMoney(price * 1.01)}`], ['2', '25%', `${fmtMoney(price * (1 - pullback * 0.75))} - ${fmtMoney(price * (1 - pullback * 0.35))}`], ['3', '25%', `${fmtMoney(price * (1 - deep * 0.75))} - ${fmtMoney(price * (1 - pullback))}`], ['4', '25%', `${fmtMoney(price * (1 - deep * 1.15))} - ${fmtMoney(price * (1 - deep))}`]];
+      const ladderBlock = (title, rows) => `<div class="ladder"><h4>${esc(title)}</h4>${rows.map((row) => `<div class="ladder-row"><span>${esc(t('step'))} ${esc(row[0])}</span><b>${esc(row[1])}</b><strong>${esc(row[2])}</strong></div>`).join('')}</div>`;
+      return `
+        <section class="panel entry-panel">
+          <div class="panel-head"><div><h3>${esc(t('stagedEntry'))}</h3><p class="panel-note">${esc(t('stagedEntryNote'))}</p></div></div>
+          <div class="ladder-grid">${ladderBlock(t('halfPlan'), half)}${ladderBlock(t('quarterPlan'), quarter)}</div>
+        </section>
+      `;
+    }
+
+    async function analyze() {
+      const symbol = cleanSymbol();
+      syncPresetState(symbol);
+      if (!symbol) {
+        output.className = 'message';
+        output.textContent = t('enterTicker');
+        return;
+      }
+      symbolInput.value = symbol;
+      analyzeBtn.disabled = true;
+      analyzeBtn.textContent = t('loading');
+      output.className = 'message';
+      output.textContent = t('loadingResearch', symbol);
+      const status = { finnhub: false, sec: false, filing: false, peers: false, news: false };
+
+      try {
+        const [profileRes, quoteRes, metricRes, secRes, filingRes, newsRes] = await Promise.allSettled([
+          fetchJson(`${API}/profile2?symbol=${encodeURIComponent(symbol)}`),
+          fetchJson(`${API}/quote?symbol=${encodeURIComponent(symbol)}`),
+          fetchJson(`${API}/metric?symbol=${encodeURIComponent(symbol)}&metric=all`),
+          fetchJson(`${API}/sec-companyfacts?symbol=${encodeURIComponent(symbol)}`),
+          fetchJson(`${API}/sec-filing-sections?symbol=${encodeURIComponent(symbol)}&lang=${API_LANG}&ai=1`),
+          fetchJson(`${API}/news-analysis?tickers=${encodeURIComponent(symbol)}&sort=latest&lang=${API_LANG}`)
+        ]);
+        const profile = profileRes.status === 'fulfilled' ? profileRes.value : {};
+        const quote = quoteRes.status === 'fulfilled' ? quoteRes.value : {};
+        const metricPayload = metricRes.status === 'fulfilled' ? metricRes.value : {};
+        const metrics = metricPayload.metric || metricPayload || {};
+        const secFacts = secRes.status === 'fulfilled' ? secRes.value : null;
+        const filing = filingRes.status === 'fulfilled' ? filingRes.value : null;
+        const newsAnalysis = newsRes.status === 'fulfilled' ? newsRes.value : null;
+        status.finnhub = profileRes.status === 'fulfilled' || quoteRes.status === 'fulfilled' || metricRes.status === 'fulfilled';
+        status.sec = secRes.status === 'fulfilled';
+        status.filing = filingRes.status === 'fulfilled';
+        status.news = newsRes.status === 'fulfilled';
+        const peers = await fetchPeerItems(symbol);
+        status.peers = peers.length > 0;
+        if (!status.finnhub && !status.sec) throw new Error('Main data sources returned no result.');
+        const score = buildScore({ metrics, secFacts, newsAnalysis, peers });
+        output.className = '';
+        output.innerHTML = `
+          ${companyHeader({ symbol, profile, quote, metrics, score })}
+          <div class="dashboard-grid">
+            <div class="dashboard-column">
+              ${scorecardLoading()}
+              ${financialCharts(secFacts)}
+              ${peerTable(symbol, metrics, peers)}
+            </div>
+            <div class="dashboard-column">
+              ${financialSnapshot(secFacts, metrics)}
+              ${valuation(metrics, peers, secFacts)}
+              ${entryLadder(quote, metrics, peers, score)}
+            </div>
+            <div class="insight-grid">
+              ${riskNewsPanel(filing, newsAnalysis)}
+              ${aiConclusionLoading()}
+            </div>
+          </div>
+        `;
+        loadStockAiAnalysis(symbol);
+      } catch (error) {
+        output.className = 'message';
+        output.innerHTML = `<strong>${esc(t('researchFailed'))}</strong><br>${esc(error.message || error)}`;
+      } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.textContent = t('analyze');
+      }
+    }
+
+    applyStaticCopy();
+
+    analyzeBtn.addEventListener('click', analyze);
+    symbolInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') analyze();
+    });
+    symbolInput.addEventListener('input', () => syncPresetState());
+    root.querySelectorAll('[data-symbol]').forEach((button) => {
+      button.addEventListener('click', () => {
+        symbolInput.value = button.dataset.symbol;
+        syncPresetState(button.dataset.symbol);
+        analyze();
+      });
+    });
+    root.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-trend-toggle]');
+      if (!button) return;
+      const panelEl = button.closest('.sec-trends-panel');
+      if (!panelEl) return;
+      const period = button.dataset.trendToggle;
+      panelEl.querySelectorAll('[data-trend-toggle]').forEach((item) => {
+        item.classList.toggle('is-active', item === button);
+      });
+      panelEl.querySelectorAll('[data-chart-period]').forEach((section) => {
+        section.hidden = section.dataset.chartPeriod !== period;
+      });
+    });
+    analyze();
+  
+  }
+  window.initStockResearch = function(force){
+    const host = document.getElementById('stockresearch-root');
+    if(!host) return;
+    if(!stockResearchRoot){
+      stockResearchRoot = host.attachShadow({mode:'open'});
+    }
+    if(stockResearchInitialized && !force) return;
+    stockResearchInitialized = true;
+    stockResearchRoot.innerHTML = '<style>' + STOCK_RESEARCH_CSS + '</style>' + STOCK_RESEARCH_HTML;
+    bootStockResearch(stockResearchRoot);
+  };
+})();
+</script>
+</body></html>
