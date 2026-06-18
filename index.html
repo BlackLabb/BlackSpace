@@ -187,9 +187,6 @@ table{border-collapse:collapse;width:100%}
 /* ── SIDEBAR ─────────────────────────────────────────────────────────────────── */
 .sidebar{width:64px;height:100dvh;background:rgba(255,255,255,.72);border-right:1px solid var(--divider);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px)}
 [data-theme="dark"] .sidebar{background:rgba(28,28,30,.85)}
-.sidebar-logo{display:flex;align-items:center;justify-content:center;padding:18px 0 14px;font-size:16px;font-weight:700;letter-spacing:-.03em;color:var(--text)}
-.sidebar-logo-text{display:none}
-.logo-icon{width:32px;height:32px;background:#0a0a0f;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .nav{padding:8px 6px;flex:1;display:flex;flex-direction:column;gap:4px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;align-items:center}
 .nav::-webkit-scrollbar{display:none}
 .nav-btn{display:flex;align-items:center;justify-content:center;gap:0;padding:10px;border-radius:10px;font-size:13px;font-weight:500;color:var(--muted);width:44px;height:44px;text-align:center;transition:background var(--trans),color var(--trans);position:relative}
@@ -214,7 +211,7 @@ table{border-collapse:collapse;width:100%}
 .sidebar-user-btn{display:none}
 .uname{display:none}
 .urole{display:none}
-.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#34aadc);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;cursor:pointer;transition:box-shadow var(--trans),opacity var(--trans)}
+.avatar{width:44px;height:32px;border-radius:16px;background:linear-gradient(135deg,var(--primary),#34aadc);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;letter-spacing:.02em;color:#fff;flex-shrink:0;cursor:pointer;transition:box-shadow var(--trans),opacity var(--trans)}
 .avatar:hover{opacity:.9;box-shadow:0 0 0 2px var(--primary)}
 .avatar::after{content:'Edit Profile';position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);background:var(--text);color:var(--surface);font-size:11px;font-weight:600;padding:4px 8px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:200}
 .sidebar-user:hover .avatar::after{opacity:1}
@@ -281,7 +278,7 @@ table{border-collapse:collapse;width:100%}
 .kpi-sub.neg{color:var(--error)}
 .kpi-sub.pos{color:var(--success)}
 #dash-kpis.dash-silver-grid{display:block;margin-bottom:20px}
-.dash-silver-card{position:relative;overflow:hidden;min-height:300px;padding:30px;border:1px solid rgba(255,255,255,.86);border-radius:28px;background:linear-gradient(110deg,rgba(255,255,255,.96) 0%,rgba(247,248,249,.92) 30%,rgba(216,221,225,.86) 62%,rgba(243,245,247,.92) 100%);box-shadow:0 22px 50px rgba(15,23,42,.12),inset 0 1px 0 rgba(255,255,255,.92);color:#1d1d1f}
+.dash-silver-card{position:relative;overflow:hidden;min-height:300px;padding:30px;border:1px solid rgba(255,255,255,.82);border-radius:28px;background:linear-gradient(110deg,rgba(242,244,246,.98) 0%,rgba(232,235,238,.95) 30%,rgba(207,213,218,.9) 62%,rgba(230,233,236,.95) 100%);box-shadow:0 22px 50px rgba(15,23,42,.12),inset 0 1px 0 rgba(255,255,255,.86);color:#1d1d1f}
 .dash-silver-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 9% 12%,rgba(255,255,255,.82) 0 34px,transparent 35px),linear-gradient(112deg,transparent 0 28%,rgba(255,255,255,.56) 36%,transparent 50%),radial-gradient(circle at 102% 94%,rgba(160,168,176,.34) 0 120px,transparent 121px);pointer-events:none}
 .dash-silver-logo{position:relative;z-index:1;width:64px;height:64px;border-radius:18px;overflow:hidden;background:#0b0d10;box-shadow:0 18px 36px rgba(0,0,0,.18)}
 .dash-silver-logo video{width:100%;height:100%;object-fit:cover;display:block}
@@ -291,8 +288,8 @@ table{border-collapse:collapse;width:100%}
 .dash-silver-value{margin-top:6px;font-size:40px;font-weight:850;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.04em;color:#16181d}
 .dash-silver-sub{margin-top:6px;font-size:12px;font-weight:700;color:#77808a;line-height:1.25}
 .dash-silver-metrics{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:22px}
-.dash-silver-metric{min-height:112px;display:flex;flex-direction:column;justify-content:flex-start;padding:20px 18px;border:1px solid rgba(255,255,255,.72);border-radius:14px;background:rgba(255,255,255,.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.66)}
-.dash-silver-row{display:flex;align-items:center;justify-content:space-between;min-height:15px}
+.dash-silver-metric{min-height:112px;display:flex;flex-direction:column;justify-content:flex-start;padding:20px 18px;border:1px solid rgba(255,255,255,.68);border-radius:14px;background:rgba(226,230,234,.54);box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+.dash-silver-row{display:flex;align-items:center;justify-content:space-between;height:22px;flex:0 0 22px}
 .dash-silver-edit{display:flex;align-items:center;justify-content:center;width:22px;height:22px;margin:-4px -3px 0 8px;color:#98a1aa;border-radius:6px;transition:background var(--trans),color var(--trans)}
 .dash-silver-edit:hover{background:rgba(255,255,255,.5);color:#1d1d1f}
 .dash-silver-mini{margin-top:8px;font-size:28px;font-weight:850;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.035em;color:#1b1d22}
@@ -769,13 +766,6 @@ table{border-collapse:collapse;width:100%}
   box-shadow:0 4px 12px rgba(0,113,227,.25);
 }
 .ai-card-title{font-size:14px;font-weight:600;letter-spacing:-.02em}
-.ai-card-badge{
-  margin-left:auto;
-  font-size:10px;font-weight:700;letter-spacing:.04em;
-  padding:3px 8px;border-radius:var(--rFull);
-  background:linear-gradient(135deg,var(--primary),#34aadc);
-  color:#fff;opacity:.9;
-}
 .ai-card-body{font-size:13px;color:var(--muted);line-height:1.7;min-height:48px}
 .ai-card-body p{margin-bottom:6px}
 .ai-card-body p:last-child{margin-bottom:0}
@@ -1655,12 +1645,6 @@ table{border-collapse:collapse;width:100%}
 
 <!-- SIDEBAR -->
 <div id="app-wrapper" style="display:none;width:100%;height:100dvh;overflow:hidden;display:none;flex-direction:row"><aside class="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-icon">
-            <img src="BlackSpace.png" width="32" height="32" alt="BlackSpace" style="border-radius:8px">
-    </div>
-    <span class="sidebar-logo-text">BlackSpace</span>
-  </div>
   <nav class="nav" id="nav">
     <button class="nav-btn active" data-view="dashboard" data-tip="Dashboard">
       <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 10v10h5v-6h4v6h5V10"></path></svg>
@@ -1873,10 +1857,9 @@ table{border-collapse:collapse;width:100%}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             </div>
             <div>
-              <div class="ai-card-title" data-i18n="card-ai-title">AI 財務分析</div>
+              <div class="ai-card-title" data-i18n="card-ai-title">財務分析</div>
               <div style="font-size:11px;color:var(--muted);margin-top:1px" data-i18n="card-ai-sub">基於你的真實數據</div>
             </div>
-            <span class="ai-card-badge">AI</span>
           </div>
           <div class="ai-card-body" id="dash-ai-body">
             <div class="ai-loading">
@@ -2285,7 +2268,7 @@ table{border-collapse:collapse;width:100%}
 
       <div class="form-field">
         <label class="form-lbl" data-i18n="lbl-avatar-letters">Avatar Letters</label>
-        <input type="text" id="p-avatar" class="form-inp" placeholder="e.g. MC" maxlength="3">
+        <input type="text" id="p-avatar" class="form-inp" placeholder="e.g. BLKS" maxlength="4">
       </div>
     </div>
     <div class="modal-foot">
@@ -2591,7 +2574,7 @@ let profile = {
 };
 function renderProfile(){
   $('profile-name').textContent = profile.name || 'Your Name';
-  $('profile-avatar').textContent = (profile.avatar || 'YN').toUpperCase().slice(0,3);
+  $('profile-avatar').textContent = (profile.avatar || 'YN').toUpperCase().slice(0,4);
 }
 
 // ── CONFIRM DIALOG ────────────────────────────────────────
@@ -2901,10 +2884,10 @@ function renderDashboard(){
   +   '<div class="dash-silver-brand">BlackSpace</div>'
   +   '<div class="dash-silver-total"><div class="dash-silver-label">'+t('lbl-total')+'</div><div class="dash-silver-value">'+(_showTotal ? dashMask(_fm(_grandTotal)) : '?')+'</div><div class="dash-silver-sub">'+t('sub-bank-inv')+'</div></div>'
   +   '<div class="dash-silver-metrics">'
-  +     '<div class="dash-silver-metric"><div class="dash-silver-label">'+t('lbl-total-spent')+'</div><div class="dash-silver-mini">'+dashMask(fmt(total))+'</div><div class="dash-silver-sub">'+t('sub-all-time')+'</div></div>'
-  +     '<div class="dash-silver-metric"><div class="dash-silver-label">'+t('lbl-avg-monthly')+'</div><div class="dash-silver-mini">'+dashMask(fmt(_avgMonthly))+'</div><div class="dash-silver-sub">'+t('sub-excl-income')+'</div></div>'
+  +     '<div class="dash-silver-metric"><div class="dash-silver-row"><div class="dash-silver-label">'+t('lbl-total-spent')+'</div></div><div class="dash-silver-mini">'+dashMask(fmt(total))+'</div><div class="dash-silver-sub">'+t('sub-all-time')+'</div></div>'
+  +     '<div class="dash-silver-metric"><div class="dash-silver-row"><div class="dash-silver-label">'+t('lbl-avg-monthly')+'</div></div><div class="dash-silver-mini">'+dashMask(fmt(_avgMonthly))+'</div><div class="dash-silver-sub">'+t('sub-excl-income')+'</div></div>'
   +     '<div class="dash-silver-metric"><div class="dash-silver-row"><div class="dash-silver-label">'+t('lbl-bank')+'</div><button id="edit-bank-btn" class="dash-silver-edit" title="Set bank balance" aria-label="Set bank balance">'+_bankEditIcon+'</button></div><div class="dash-silver-mini">'+dashMask(fmt(dashBank))+'</div><div class="dash-silver-sub">'+t('sub-manual')+'</div></div>'
-  +     '<div class="dash-silver-metric"><div class="dash-silver-label">'+t('lbl-investments')+'</div><div class="dash-silver-mini">'+(_hasInvData ? dashMask(_fm(_invGross)) : '?')+'</div><div class="dash-silver-sub">'+t('sub-cash-mktval')+'</div></div>'
+  +     '<div class="dash-silver-metric"><div class="dash-silver-row"><div class="dash-silver-label">'+t('lbl-investments')+'</div></div><div class="dash-silver-mini">'+(_hasInvData ? dashMask(_fm(_invGross)) : '?')+'</div><div class="dash-silver-sub">'+t('sub-cash-mktval')+'</div></div>'
   +   '</div>'
   + '</section>';
 
@@ -3283,7 +3266,7 @@ const I18N = {
     'card-spending':'消費類別','card-bva':'預算對比實際',
     // Dashboard v2
     'card-monthly-trend':'月度支出趨勢','card-cat-annual':'年度分類佔比','card-cat-monthly':'月度分類佔比',
-    'card-ai-title':'AI 財務分析','card-ai-sub':'基於你的真實數據','card-ai-refresh':'重新分析',
+    'card-ai-title':'財務分析','card-ai-sub':'基於你的真實數據','card-ai-refresh':'重新分析',
     // Transactions card on Monthly view
     'card-transactions':'交易記錄',
     // Monthly view sub-label
@@ -3362,7 +3345,7 @@ const I18N = {
     'ph-search-tx':'Search transactions…','ph-search-all':'Search…',
     'card-spending':'Spending by Category','card-bva':'Budget vs Actual',
     'card-monthly-trend':'Monthly Spending Trend','card-cat-annual':'Annual Category Breakdown','card-cat-monthly':'Monthly Category Breakdown',
-    'card-ai-title':'AI Financial Insights','card-ai-sub':'Based on your real data','card-ai-refresh':'Re-analyze',
+    'card-ai-title':'Financial Insights','card-ai-sub':'Based on your real data','card-ai-refresh':'Re-analyze',
     'card-transactions':'Transactions',
     'sub-monthly-breakdown':'Detailed monthly breakdown',
     'btn-export':'Export','btn-import':'Import',
@@ -3604,10 +3587,10 @@ $('profile-cancel').addEventListener('click', closeProfileModal);
 $('profile-overlay').addEventListener('click', e=>{ if(e.target===$('profile-overlay')) closeProfileModal(); });
 $('profile-submit').addEventListener('click', ()=>{
   const name = $('p-name').value.trim();
-  const avatar = $('p-avatar').value.trim().toUpperCase().slice(0,3);
+  const avatar = $('p-avatar').value.trim().toUpperCase().slice(0,4);
   profile = {
     name: name || 'Your Name',
-    avatar: avatar || (name ? name.split(/\s+/).map(x=>x[0]).join('').slice(0,3).toUpperCase() : 'YN')
+    avatar: avatar || (name ? name.split(/\s+/).map(x=>x[0]).join('').slice(0,4).toUpperCase() : 'YN')
   };
   renderProfile();
   saveUserData();
