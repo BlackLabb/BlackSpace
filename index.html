@@ -207,7 +207,7 @@ table{border-collapse:collapse;width:100%}
 .nav-btn:hover::after{opacity:1}
 .bottom-nav-btn[data-view="news"]{display:none!important}
 .nav-divider{height:1px;background:var(--divider);margin:4px 8px;width:32px}
-.sidebar-user{padding:10px 0 12px;border-top:1px solid var(--divider);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
+.sidebar-user{padding:10px 0 12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
 .sidebar-user-btn{display:none}
 .uname{display:none}
 .urole{display:none}
@@ -278,8 +278,7 @@ table{border-collapse:collapse;width:100%}
 .kpi-sub.neg{color:var(--error)}
 .kpi-sub.pos{color:var(--success)}
 #dash-kpis.dash-silver-grid{display:block;margin-bottom:20px}
-.dash-silver-card{position:relative;overflow:hidden;min-height:300px;padding:30px;border:1px solid rgba(255,255,255,.82);border-radius:28px;background:linear-gradient(110deg,rgba(242,244,246,.98) 0%,rgba(232,235,238,.95) 30%,rgba(207,213,218,.9) 62%,rgba(230,233,236,.95) 100%);box-shadow:0 22px 50px rgba(15,23,42,.12),inset 0 1px 0 rgba(255,255,255,.86);color:#1d1d1f}
-.dash-silver-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 9% 12%,rgba(255,255,255,.82) 0 34px,transparent 35px),linear-gradient(112deg,transparent 0 28%,rgba(255,255,255,.56) 36%,transparent 50%),radial-gradient(circle at 102% 94%,rgba(160,168,176,.34) 0 120px,transparent 121px);pointer-events:none}
+.dash-silver-card{position:relative;overflow:hidden;min-height:300px;padding:30px;border:1px solid rgba(255,255,255,.82);border-radius:28px;background:#d9dde1;box-shadow:0 22px 50px rgba(15,23,42,.12),inset 0 1px 0 rgba(255,255,255,.72);color:#1d1d1f}
 .dash-silver-logo{position:relative;z-index:1;width:64px;height:64px;border-radius:18px;overflow:hidden;background:#0b0d10;box-shadow:0 18px 36px rgba(0,0,0,.18)}
 .dash-silver-logo video{width:100%;height:100%;object-fit:cover;display:block}
 .dash-silver-brand{position:absolute;z-index:1;top:30px;right:30px;font-size:14px;font-weight:800;letter-spacing:-.03em;color:#1d1d1f}
@@ -2266,10 +2265,6 @@ table{border-collapse:collapse;width:100%}
         <input type="text" id="p-name" class="form-inp" placeholder="e.g. Mark Chan">
       </div>
 
-      <div class="form-field">
-        <label class="form-lbl" data-i18n="lbl-avatar-letters">Avatar Letters</label>
-        <input type="text" id="p-avatar" class="form-inp" placeholder="e.g. BLKS" maxlength="4">
-      </div>
     </div>
     <div class="modal-foot">
       <button class="btn-ghost" id="profile-cancel" data-i18n="btn-cancel">Cancel</button>
@@ -3240,7 +3235,7 @@ const I18N = {
     // Confirm
     'modal-confirm-del':'確認刪除',
     // Profile modal
-    'modal-profile':'編輯個人資料','lbl-name':'姓名','lbl-avatar-letters':'縮寫字母',
+    'modal-profile':'編輯個人資料','lbl-name':'姓名',
     // Range modal
     'modal-range':'設定月份範圍','note-range':'設定 Monthly 頁面的日期範圍。',
     'lbl-start-year':'起始年','lbl-start-month':'起始月','lbl-end-year':'結束年','lbl-end-month':'結束月','btn-apply':'套用',
@@ -3331,7 +3326,7 @@ const I18N = {
     'lbl-rec-amount':'Monthly Amount ($)','lbl-rec-day':'Day of Month','note-recurring':'A transaction will be auto-added every month on the specified date.',
     'modal-edit-cat':'Edit Category',
     'modal-confirm-del':'Confirm Delete',
-    'modal-profile':'Edit Profile','lbl-name':'Name','lbl-avatar-letters':'Avatar Letters',
+    'modal-profile':'Edit Profile','lbl-name':'Name',
     'modal-range':'Set Month Range','note-range':'Define the date range for the Monthly tab.',
     'lbl-start-year':'Start Year','lbl-start-month':'Start Month','lbl-end-year':'End Year','lbl-end-month':'End Month','btn-apply':'Apply',
     'modal-income':'Set Monthly Income','lbl-monthly-income':'Monthly Income ($)',
@@ -3576,7 +3571,6 @@ $('f-income').addEventListener('keydown', e=>{ if(e.key==='Enter') $('income-sub
 // ── PROFILE MODAL ─────────────────────────────────────────
 function openProfileModal(){
   $('p-name').value = profile.name || '';
-  $('p-avatar').value = profile.avatar || '';
   $('profile-overlay').classList.add('open');
   $('p-name').focus();
 }
@@ -3587,10 +3581,9 @@ $('profile-cancel').addEventListener('click', closeProfileModal);
 $('profile-overlay').addEventListener('click', e=>{ if(e.target===$('profile-overlay')) closeProfileModal(); });
 $('profile-submit').addEventListener('click', ()=>{
   const name = $('p-name').value.trim();
-  const avatar = $('p-avatar').value.trim().toUpperCase().slice(0,4);
   profile = {
     name: name || 'Your Name',
-    avatar: avatar || (name ? name.split(/\s+/).map(x=>x[0]).join('').slice(0,4).toUpperCase() : 'YN')
+    avatar: name ? name.replace(/\s+/g,'').slice(0,4).toUpperCase() : 'YN'
   };
   renderProfile();
   saveUserData();
