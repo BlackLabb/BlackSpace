@@ -6293,6 +6293,9 @@ const API = 'https://blackspace.markchanchun.workers.dev';
           const scorePanel = root.querySelector('.score-panel');
           if (aiScore && scorePanel) scorePanel.outerHTML = scorecard(aiScore, 'DeepSeek v4 Pro');
           if (!aiScore && scorePanel) scorePanel.outerHTML = scorecardUnavailable();
+          const aiEntry = aiEntryLadder(aiConclusion);
+          const entryPanel = root.querySelector('.entry-panel');
+          if (aiEntry && entryPanel) entryPanel.outerHTML = aiEntry;
         } catch (_) {
           const scorePanel = root.querySelector('.score-panel');
           if (scorePanel) scorePanel.outerHTML = scorecardUnavailable();
@@ -6301,6 +6304,15 @@ const API = 'https://blackspace.markchanchun.workers.dev';
         }
       }
   
+      function aiEntryLadder(aiConclusion) {
+        const data = aiConclusion?.analysis || aiConclusion;
+        const entry = data?.stagedEntry;
+        if (!entry || !Array.isArray(entry.halfPlan) || entry.halfPlan.length !== 2 || !Array.isArray(entry.quarterPlan) || entry.quarterPlan.length !== 4) return '';
+        const rows = (items) => items.map((row, index) => `<div class="ladder-row"><span>${esc(t('step'))} ${index + 1}</span><b>${esc(String(row.allocation))}%</b><strong>${esc(fmtMoney(row.low))} - ${esc(fmtMoney(row.high))}</strong>${row.reason ? `<small style="grid-column:1/-1;color:var(--muted);line-height:1.4">${esc(row.reason)}</small>` : ''}</div>`).join('');
+        const ladderBlock = (title, items) => `<div class="ladder"><h4>${esc(title)}</h4>${rows(items)}</div>`;
+        return `<section class="panel entry-panel"><div class="panel-head"><div><h3>${esc(t('stagedEntry'))}</h3><p class="panel-note">${esc(entry.basis || t('stagedEntryNote'))}</p></div><span class="tag">DeepSeek AI</span></div><div class="ladder-grid">${ladderBlock(t('halfPlan'), entry.halfPlan)}${ladderBlock(t('quarterPlan'), entry.quarterPlan)}</div></section>`;
+      }
+
       function entryLadder(quote, metrics, peers, score) {
         const price = num(quote?.c);
         if (!price) return panel(t('stagedEntry'), 'Calculated', `<div class="empty">${esc(t('noLivePrice'))}</div>`);
@@ -7122,12 +7134,24 @@ const API = 'https://blackspace.markchanchun.workers.dev';
         const scorePanel = root.querySelector('.score-panel');
         if (aiScore && scorePanel) scorePanel.outerHTML = scorecard(aiScore, 'DeepSeek v4 Pro');
         if (!aiScore && scorePanel) scorePanel.outerHTML = scorecardUnavailable();
+        const aiEntry = aiEntryLadder(aiConclusion);
+        const entryPanel = root.querySelector('.entry-panel');
+        if (aiEntry && entryPanel) entryPanel.outerHTML = aiEntry;
       } catch (_) {
         const scorePanel = root.querySelector('.score-panel');
         if (scorePanel) scorePanel.outerHTML = scorecardUnavailable();
         const latestPanel = root.querySelector('.ai-analysis-panel');
         if (latestPanel) latestPanel.outerHTML = aiConclusionPanel(null);
       }
+    }
+
+    function aiEntryLadder(aiConclusion) {
+      const data = aiConclusion?.analysis || aiConclusion;
+      const entry = data?.stagedEntry;
+      if (!entry || !Array.isArray(entry.halfPlan) || entry.halfPlan.length !== 2 || !Array.isArray(entry.quarterPlan) || entry.quarterPlan.length !== 4) return '';
+      const rows = (items) => items.map((row, index) => `<div class="ladder-row"><span>${esc(t('step'))} ${index + 1}</span><b>${esc(String(row.allocation))}%</b><strong>${esc(fmtMoney(row.low))} - ${esc(fmtMoney(row.high))}</strong>${row.reason ? `<small style="grid-column:1/-1;color:var(--muted);line-height:1.4">${esc(row.reason)}</small>` : ''}</div>`).join('');
+      const ladderBlock = (title, items) => `<div class="ladder"><h4>${esc(title)}</h4>${rows(items)}</div>`;
+      return `<section class="panel entry-panel"><div class="panel-head"><div><h3>${esc(t('stagedEntry'))}</h3><p class="panel-note">${esc(entry.basis || t('stagedEntryNote'))}</p></div><span class="tag">DeepSeek AI</span></div><div class="ladder-grid">${ladderBlock(t('halfPlan'), entry.halfPlan)}${ladderBlock(t('quarterPlan'), entry.quarterPlan)}</div></section>`;
     }
 
     function entryLadder(quote, metrics, peers, score) {
