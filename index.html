@@ -5795,7 +5795,7 @@ const API = 'https://blackspace.markchanchun.workers.dev';
         if ($('pageSubtitle')) $('pageSubtitle').textContent = '';
         $('tickerLabel').textContent = t('ticker');
         analyzeBtn.textContent = t('analyze');
-        $('presetRow').setAttribute('aria-label', t('quickSymbols'));
+        if ($('presetRow')) $('presetRow').setAttribute('aria-label', t('quickSymbols'));
         output.textContent = t('initialMessage');
       }
   
@@ -6623,7 +6623,7 @@ const API = 'https://blackspace.markchanchun.workers.dev';
       if ($('pageSubtitle')) $('pageSubtitle').textContent = '';
       $('tickerLabel').textContent = t('ticker');
       analyzeBtn.textContent = t('analyze');
-      $('presetRow').setAttribute('aria-label', t('quickSymbols'));
+      if ($('presetRow')) $('presetRow').setAttribute('aria-label', t('quickSymbols'));
       output.textContent = t('initialMessage');
     }
 
