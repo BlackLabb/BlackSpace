@@ -6330,19 +6330,6 @@ const API = 'https://blackspace.markchanchun.workers.dev';
         `;
       }
   
-      function alignValuationWithPeer(root) {
-        const grid = root.querySelector('.dashboard-grid');
-        if (!grid) return;
-        const columns = grid.querySelectorAll(':scope > .dashboard-column');
-        if (columns.length < 2) return;
-        const peer = columns[0].querySelector('.wide-table')?.closest('.panel');
-        const panels = columns[1].querySelectorAll(':scope > .panel');
-        const valuation = panels[1];
-        if (!peer || !valuation) return;
-        const delta = peer.getBoundingClientRect().top - valuation.getBoundingClientRect().top;
-        valuation.style.marginTop = `${Math.max(0, Math.round(delta))}px`;
-      }
-
       async function analyze() {
         const symbol = cleanSymbol();
         if (!symbol) {
@@ -6390,19 +6377,15 @@ const API = 'https://blackspace.markchanchun.workers.dev';
                 ${scorecardLoading()}
                 ${financialCharts(secFacts)}
                 ${peerTable(symbol, metrics, peers)}
+                ${riskNewsPanel(filing, newsAnalysis)}
               </div>
               <div class="dashboard-column">
                 ${financialSnapshot(secFacts, metrics)}
                 ${valuation(metrics, peers, secFacts)}
-                
-              </div>
-              <div class="insight-grid">
-                ${riskNewsPanel(filing, newsAnalysis)}
                 ${aiConclusionLoading()}
               </div>
             </div>
           `;
-          alignValuationWithPeer(root);
           loadStockAiAnalysis(symbol);
         } catch (error) {
           output.className = 'message';
@@ -7184,19 +7167,6 @@ const API = 'https://blackspace.markchanchun.workers.dev';
       `;
     }
 
-    function alignValuationWithPeer(root) {
-      const grid = root.querySelector('.dashboard-grid');
-      if (!grid) return;
-      const columns = grid.querySelectorAll(':scope > .dashboard-column');
-      if (columns.length < 2) return;
-      const peer = columns[0].querySelector('.wide-table')?.closest('.panel');
-      const panels = columns[1].querySelectorAll(':scope > .panel');
-      const valuation = panels[1];
-      if (!peer || !valuation) return;
-      const delta = peer.getBoundingClientRect().top - valuation.getBoundingClientRect().top;
-      valuation.style.marginTop = `${Math.max(0, Math.round(delta))}px`;
-    }
-
     async function analyze() {
       const symbol = cleanSymbol();
       syncPresetState(symbol);
@@ -7244,19 +7214,15 @@ const API = 'https://blackspace.markchanchun.workers.dev';
               ${scorecardLoading()}
               ${financialCharts(secFacts)}
               ${peerTable(symbol, metrics, peers)}
+              ${riskNewsPanel(filing, newsAnalysis)}
             </div>
             <div class="dashboard-column">
               ${financialSnapshot(secFacts, metrics)}
               ${valuation(metrics, peers, secFacts)}
-              
-            </div>
-            <div class="insight-grid">
-              ${riskNewsPanel(filing, newsAnalysis)}
               ${aiConclusionLoading()}
             </div>
           </div>
         `;
-        alignValuationWithPeer(root);
         loadStockAiAnalysis(symbol);
       } catch (error) {
         output.className = 'message';
