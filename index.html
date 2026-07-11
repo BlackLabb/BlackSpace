@@ -5634,6 +5634,18 @@ window.addEventListener('resize', () => {
     @media (max-width: 1100px) {
       .dashboard-grid { display: flex; flex-direction: column; gap: 4px; }
       .dashboard-column { display: contents; }
+      .dashboard-grid > .dashboard-column > .panel {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        align-self: stretch;
+      }
+      .dashboard-grid > .dashboard-column:first-child > .panel:has(.wide-table) .table-wrap {
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        touch-action: pan-x pan-y;
+      }
       .dashboard-grid > .dashboard-column:first-child > .score-panel { order: 1; }
       .dashboard-grid > .dashboard-column:nth-child(2) > .panel:nth-child(1) { order: 2; }
       .dashboard-grid > .dashboard-column:first-child > .sec-trends-panel { order: 3; }
