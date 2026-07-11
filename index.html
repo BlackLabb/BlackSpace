@@ -580,6 +580,34 @@ table{border-collapse:collapse;width:100%}
   .add-btn-label { display: none; }
   .month-strip { padding: 8px 16px; }
   .content { padding: 12px; }
+  .content { overflow-x: hidden; overscroll-behavior-x: none; }
+  .view.active,
+  .kpi-grid,
+  .dash-grid,
+  .dash-v2-grid,
+  .dash-v2-charts { min-width: 0; max-width: 100%; }
+  .kpi-grid > *,
+  .dash-grid > *,
+  .dash-v2-grid > *,
+  .dash-v2-charts > * { min-width: 0; max-width: 100%; }
+  #view-monthly .dash-grid .card,
+  #view-dashboard .dash-v2-grid .card { overflow-x: hidden; }
+  #view-monthly .bar-chart,
+  #view-monthly .x-axis,
+  #view-monthly .bva-list { min-width: 0; max-width: 100%; }
+  #view-monthly .card-hdr { min-width: 0; }
+  #view-monthly .card-title,
+  #view-monthly .card-date { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #view-news { width: 100%; min-width: 0; max-width: 100%; overflow-x: hidden; touch-action: pan-y; }
+  #view-news > *,
+  #view-news .news-layout > *,
+  #view-news .news-control-grid > * { min-width: 0; max-width: 100%; }
+  #view-news .news-controls,
+  #view-news .news-summary,
+  #view-news .news-layout,
+  #view-news .news-card { width: 100%; max-width: 100%; }
+  #view-news .news-input,
+  #view-news .news-select { min-width: 0; max-width: 100%; }
   .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
   .kpi-val { font-size: 22px; }
   .dash-grid { grid-template-columns: 1fr; }
