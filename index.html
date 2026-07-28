@@ -819,14 +819,15 @@ table{border-collapse:collapse;width:100%}
 /* FUND FLOW ESTIMATE */
 .fund-flow-card{margin-top:12px;overflow:hidden}
 .fund-flow-table-wrap{overflow-x:auto}
-.fund-flow-table{min-width:1120px}
+.fund-flow-table{min-width:900px}
 .fund-flow-table th{padding:10px 12px;text-align:left;border-bottom:1px solid var(--divider);font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
 .fund-flow-table td{padding:12px;border-bottom:1px solid var(--divider);font-size:12px;vertical-align:middle;white-space:nowrap}
 .fund-flow-table tbody tr:last-child td{border-bottom:0}
 .fund-flow-value,.fund-flow-day{font-family:'JetBrains Mono',monospace;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)}
 .fund-flow-streak{font-weight:700;color:var(--text)}
-.fund-flow-direction,.fund-flow-status{font-size:11px;font-weight:700;color:var(--text)}
-.fund-flow-trade-note{max-width:260px;white-space:normal!important;line-height:1.45!important;color:var(--muted)}
+.fund-flow-streak.positive,.fund-flow-direction.positive{color:var(--success)}
+.fund-flow-streak.negative,.fund-flow-direction.negative{color:var(--error)}
+.fund-flow-direction{font-size:11px;font-weight:700;color:var(--text)}
 .fund-flow-etf-name{display:inline-block;margin-left:10px}
 .fund-flow-estimate-badge{display:inline-flex;padding:4px 8px;border:1px solid var(--border);border-radius:var(--rFull);font-size:10px;color:var(--warn);white-space:nowrap}
 .fund-flow-ai{margin-top:12px;padding:18px 20px}
@@ -1950,8 +1951,8 @@ table{border-collapse:collapse;width:100%}
           </div>
           <div class="fund-flow-table-wrap">
             <table class="fund-flow-table">
-              <thead><tr><th data-i18n="fund-flow-etf">ETF / 主題</th><th data-i18n="fund-flow-day">1日資金流（M，估算）</th><th data-i18n="fund-flow-day-pct">1日資金流 (%)</th><th data-i18n="fund-flow-five-pct">5日累計資金流 (%)</th><th data-i18n="fund-flow-streak">連續流向</th><th data-i18n="fund-flow-direction">方向</th><th data-i18n="fund-flow-status">狀態</th><th data-i18n="fund-flow-note-col">交易備註</th></tr></thead>
-              <tbody id="fund-flow-tbody"><tr><td colspan="8" data-i18n="fund-flow-loading">正在載入估算資料…</td></tr></tbody>
+              <thead><tr><th data-i18n="fund-flow-etf">ETF / 主題</th><th data-i18n="fund-flow-day">1日資金流（M，估算）</th><th data-i18n="fund-flow-day-pct">1日資金流 (%)</th><th data-i18n="fund-flow-five-pct">5日累計資金流 (%)</th><th data-i18n="fund-flow-streak">連續流向</th><th data-i18n="fund-flow-direction">方向</th></tr></thead>
+              <tbody id="fund-flow-tbody"><tr><td colspan="6" data-i18n="fund-flow-loading">正在載入估算資料…</td></tr></tbody>
             </table>
           </div>
         </section>
@@ -3064,37 +3065,36 @@ let fundFlowRenderToken = 0;
 function fundFlowEsc(value){ return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])); }
 function fundFlowFormat(value, suffix=''){ return Number.isFinite(Number(value)) ? `${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(1)}${suffix}` : '--'; }
 function fundFlowDirectionLabel(row){
-  if(row.streakDirection === 'inflow') return curLang === 'zh' ? '估算流入' : 'Estimated inflow';
-  if(row.streakDirection === 'outflow') return curLang === 'zh' ? '估算流出' : 'Estimated outflow';
-  return curLang === 'zh' ? '估算中性' : 'Estimated neutral';
+  if(row.streakDirection === 'inflow') return curLang === 'zh' ? '流入' : 'Inflow';
+  if(row.streakDirection === 'outflow') return curLang === 'zh' ? '流出' : 'Outflow';
+  return '--';
 }
-function fundFlowStatusLabel(row){
-  return curLang === 'zh' ? '觀察' : 'Observe';
-}
-function fundFlowFallbackNote(row){
-  const flow = fundFlowFormat(row.flowM,'M');
-  const five = fundFlowFormat(row.fivePct,'%');
-  const streak = row.streakDays ? `${row.streakDays}${curLang === 'zh' ? '日' : 'd'}` : '--';
-  if(curLang === 'zh') return `${row.symbol} 目前為${flow}單日估算、5日累計${five}，${streak}${row.streakDirection === 'inflow' ? '流入' : row.streakDirection === 'outflow' ? '流出' : '中性'}；先觀察訊號是否延續，不把代理值視為官方流量。`;
-  return `${row.symbol} shows ${flow} estimated one-day flow and ${five} over five days, with a ${streak} ${row.streakDirection || 'neutral'} streak; monitor follow-through and do not treat the proxy as official flow.`;
-}
-function renderFundFlowRows(items, notes={}){
+function renderFundFlowRows(items){
   const tbody = $('fund-flow-tbody');
   if(!tbody) return;
   tbody.innerHTML = items.map(row => {
-    const streak = row.streakDays ? `${row.streakDays}${curLang === 'zh' ? '日' : 'd'}${row.streakDirection === 'inflow' ? (curLang === 'zh' ? '流入' : 'inflow') : row.streakDirection === 'outflow' ? (curLang === 'zh' ? '流出' : 'outflow') : (curLang === 'zh' ? '中性' : 'neutral')}` : '--';
-    const note = notes[row.symbol] || fundFlowFallbackNote(row);
+    const directionClass = row.streakDirection === 'inflow' ? 'positive' : row.streakDirection === 'outflow' ? 'negative' : '';
+    const streak = row.streakDays ? `${row.streakDays}${curLang === 'zh' ? '日' : 'd'}${row.streakDirection === 'inflow' ? (curLang === 'zh' ? '流入' : 'inflow') : row.streakDirection === 'outflow' ? (curLang === 'zh' ? '流出' : 'outflow') : '--'}` : '--';
     const sector = curLang === 'zh' ? (FUND_FLOW_SECTOR_ZH[row.symbol] || row.sector) : row.sector;
-    return `<tr><td><strong>${fundFlowEsc(row.symbol)}</strong><span class="fund-flow-etf-name">${fundFlowEsc(sector)}</span></td><td class="fund-flow-day">${fundFlowFormat(row.flowM,'M')}</td><td class="fund-flow-value">${fundFlowFormat(row.flowPct,'%')}</td><td class="fund-flow-value">${fundFlowFormat(row.fivePct,'%')}</td><td class="fund-flow-streak">${streak}</td><td><span class="fund-flow-direction">${fundFlowEsc(fundFlowDirectionLabel(row))}</span></td><td><span class="fund-flow-status">${fundFlowEsc(fundFlowStatusLabel(row))}</span></td><td class="fund-flow-trade-note">${fundFlowEsc(note)}</td></tr>`;
+    return `<tr><td><strong>${fundFlowEsc(row.symbol)}</strong><span class="fund-flow-etf-name">${fundFlowEsc(sector)}</span></td><td class="fund-flow-day">${fundFlowFormat(row.flowM,'M')}</td><td class="fund-flow-value">${fundFlowFormat(row.flowPct,'%')}</td><td class="fund-flow-value">${fundFlowFormat(row.fivePct,'%')}</td><td class="fund-flow-streak ${directionClass}">${streak}</td><td><span class="fund-flow-direction ${directionClass}">${fundFlowEsc(fundFlowDirectionLabel(row))}</span></td></tr>`;
   }).join('');
 }
 function renderFundFlowAiFallback(){
   const list = $('fund-flow-ai-list');
   if(!list) return;
-  const bullets = curLang === 'zh'
-    ? ['估算流入訊號較集中於前列主題，但數值只反映價格方向與成交量代理。','估算流出訊號代表近期代理方向轉弱，先觀察 5 日累計與連續日數是否延續。','交易判讀宜等待訊號延續或反轉的確認，不把代理估算當成官方資金流。']
-    : ['Estimated inflow signals are concentrated in the leading themes, but the values only reflect a price-volume proxy.','Estimated outflow signals show weaker recent proxy direction; monitor five-day accumulation and streak continuity.','Wait for continuation or reversal confirmation and do not treat the estimate as official fund flow.'];
-  list.innerHTML = bullets.map(item => `<li>${fundFlowEsc(item)}</li>`).join('');
+  const sections = curLang === 'zh'
+    ? [['整體流向','目前只根據 1 日、5 日累計及連續日數的價格—成交量代理，將流向視為觀察訊號，不是官方 ETF 資金流。'],['較強流入','優先留意表內連續流入日數較長、且 1 日與 5 日代理同向的主題；這只代表目前訊號較一致。'],['較弱／流出','留意連續流出或 1 日與 5 日方向不一致的主題，這些位置的代理訊號較弱或可能正在轉折。'],['一致性與轉折','若 1 日方向與 5 日累計及連續日數同步，訊號相對一致；若單日反向，先觀察後續資料是否確認反轉。'],['風險與限制','代理由價格方向與成交量推算，不能證明申購贖回、淨資產流入或實際持倉變化，也不包含外部基本面資訊。'],['觀察計劃','下一步可比較連續日數、1 日百分比及 5 日累計是否延續，再以分段、條件式觀察取代單日追價或確定性判斷。']]
+    : [['Overall flow','This view uses only one-day, five-day cumulative, and streak price-volume proxies; treat the flow as an observation signal, not official ETF flow.'],['Stronger inflows','Prioritize themes with longer inflow streaks and aligned one-day and five-day proxy direction; this indicates consistency only.'],['Weaker / outflows','Watch themes with outflow streaks or conflicting one-day and five-day direction, where the proxy signal is weaker or may be turning.'],['Consistency / turning points','When one-day direction, five-day accumulation, and streak agree, the proxy is more consistent; a one-day reversal needs follow-through before it is treated as a turn.'],['Risk / limits','The proxy is inferred from price direction and volume. It cannot prove creations, redemptions, net asset flows, or position changes, and it excludes outside fundamentals.'],['Observation plan','Compare streak length, one-day percentage, and five-day cumulative flow over the next update; use conditional observation instead of chasing a single-day move.']];
+  list.innerHTML = sections.map(([label,text]) => `<li><strong>${fundFlowEsc(label)}</strong> ${fundFlowEsc(text)}</li>`).join('');
+}
+function renderFundFlowAiAnalysis(analysis){
+  const list = $('fund-flow-ai-list');
+  if(!list || !analysis) return false;
+  const keys = ['overall','stronger','weaker','consistency','risk','plan'];
+  const labels = curLang === 'zh' ? ['整體流向','較強流入','較弱／流出','一致性與轉折','風險與限制','觀察計劃'] : ['Overall flow','Stronger inflows','Weaker / outflows','Consistency / turning points','Risk / limits','Observation plan'];
+  if(keys.some(key => typeof analysis[key] !== 'string' || !analysis[key].trim())) return false;
+  list.innerHTML = keys.map((key,index) => `<li><strong>${fundFlowEsc(labels[index])}</strong> ${fundFlowEsc(analysis[key])}</li>`).join('');
+  return true;
 }
 async function renderFundFlowAi(items, token){
   const list = $('fund-flow-ai-list');
@@ -3103,17 +3103,14 @@ async function renderFundFlowAi(items, token){
     const response = await fetch(`${FUND_FLOW_API}/fund-flow-analysis`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ lang:curLang, items }) });
     const data = await response.json();
     if(token !== fundFlowRenderToken) return;
-    if(!response.ok || !Array.isArray(data.bullets) || !data.bullets.length) throw new Error(data.error || 'AI unavailable');
-    const notes = Object.fromEntries((Array.isArray(data.notes) ? data.notes : []).filter(item => item?.symbol && item?.text).map(item => [item.symbol, item.text]));
-    renderFundFlowRows(items, notes);
-    list.innerHTML = data.bullets.slice(0,3).map(item => `<li>${fundFlowEsc(item)}</li>`).join('');
+    if(!response.ok || !renderFundFlowAiAnalysis(data.analysis)) throw new Error(data.error || 'AI unavailable');
   }catch(error){ console.warn('Fund Flow AI unavailable:', error); renderFundFlowAiFallback(); }
 }
 async function renderFundFlow(){
   const tbody = $('fund-flow-tbody');
   if(!tbody) return;
   const token = ++fundFlowRenderToken;
-  tbody.innerHTML = `<tr><td colspan="8">${fundFlowEsc(t('fund-flow-loading'))}</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="6">${fundFlowEsc(t('fund-flow-loading'))}</td></tr>`;
   renderFundFlowAiFallback();
   try{
     const symbols = FUND_FLOW_SYMBOLS.map(([symbol]) => symbol).join(',');
@@ -3126,7 +3123,7 @@ async function renderFundFlow(){
     renderFundFlowAi(data.items, token);
   }catch(error){
     console.warn('Fund Flow data unavailable:', error);
-    tbody.innerHTML = `<tr><td colspan="8">${fundFlowEsc(curLang === 'zh' ? '估算資料暫時未能載入。' : 'Estimated data is temporarily unavailable.')}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6">${fundFlowEsc(curLang === 'zh' ? '估算資料暫時未能載入。' : 'Estimated data is temporarily unavailable.')}</td></tr>`;
   }
 }
 
@@ -3516,12 +3513,12 @@ Object.assign(I18N.en, {
 Object.assign(I18N.zh, {
   'title-fundflow':'資金流向','sub-fundflow':'估算 ETF 資金流代理','app-sub-fundflow':'估算資金流',
   'fund-flow-estimate-badge':'估算代理 · 非官方資金流','fund-flow-title':'主題強弱 ETF 資金流向',
-  'fund-flow-etf':'ETF / 主題','fund-flow-day':'1日資金流（M，估算）','fund-flow-day-pct':'1日資金流 (%)','fund-flow-five-pct':'5日累計資金流 (%)','fund-flow-streak':'連續流向','fund-flow-direction':'方向','fund-flow-status':'狀態','fund-flow-note-col':'分析備註','fund-flow-loading':'正在載入估算資料…','fund-flow-ai-title':'AI 分析','fund-flow-ai-loading':'資料載入後，將由伺服器端 AI 產生估算資金流摘要.'
+  'fund-flow-etf':'ETF / 主題','fund-flow-day':'1日資金流（M，估算）','fund-flow-day-pct':'1日資金流 (%)','fund-flow-five-pct':'5日累計資金流 (%)','fund-flow-streak':'連續流向','fund-flow-direction':'方向','fund-flow-loading':'正在載入估算資料…','fund-flow-ai-title':'AI 分析','fund-flow-ai-loading':'資料載入後，將由伺服器端 AI 產生估算資金流摘要.'
 });
 Object.assign(I18N.en, {
   'title-fundflow':'Fund Flow','sub-fundflow':'Estimated ETF fund-flow proxy','app-sub-fundflow':'Estimated fund flow',
   'fund-flow-estimate-badge':'ESTIMATE · NOT OFFICIAL FUND FLOW','fund-flow-title':'ETF Theme Strength Fund Flow',
-  'fund-flow-etf':'ETF / Theme','fund-flow-day':'1-day flow (M, est.)','fund-flow-day-pct':'1-day flow (%)','fund-flow-five-pct':'5-day cumulative flow (%)','fund-flow-streak':'Flow streak','fund-flow-direction':'Direction','fund-flow-status':'Status','fund-flow-note-col':'Analysis note','fund-flow-loading':'Loading estimated data…','fund-flow-ai-title':'AI Analysis','fund-flow-ai-loading':'The server-side AI will summarize the estimated flow picture after data loads.'
+  'fund-flow-etf':'ETF / Theme','fund-flow-day':'1-day flow (M, est.)','fund-flow-day-pct':'1-day flow (%)','fund-flow-five-pct':'5-day cumulative flow (%)','fund-flow-streak':'Flow streak','fund-flow-direction':'Direction','fund-flow-loading':'Loading estimated data…','fund-flow-ai-title':'AI Analysis','fund-flow-ai-loading':'The server-side AI will summarize the estimated flow picture after data loads.'
 });
 
 function t(key){ return (I18N[curLang]||I18N['en'])[key] || (I18N['en'][key] || key); }
