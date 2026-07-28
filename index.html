@@ -663,9 +663,6 @@ table{border-collapse:collapse;width:100%}
 .news-input,.news-select{height:44px;width:100%;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);padding:0 13px;outline:none;font-family:inherit}
 .news-input:focus,.news-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primaryHL)}
 .news-refresh{height:44px;padding:0 16px;border-radius:12px;background:var(--primary);color:#fff;font-weight:800;display:inline-flex;align-items:center;gap:8px;justify-content:center}
-.news-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
-.news-chip{height:32px;padding:0 11px;border-radius:10px;background:var(--surfaceOff);color:var(--text);font-family:var(--mono);font-size:12px;font-weight:800}
-.news-chip.active{background:var(--primaryHL);color:var(--primary)}
 .news-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
 .news-metric{padding:14px 16px;position:relative;overflow:hidden}
 .news-metric:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--primary)}
@@ -818,6 +815,29 @@ table{border-collapse:collapse;width:100%}
 #dash-ai-refresh:active{transform:scale(.97)}
 #dash-ai-refresh.refreshing svg{animation:aiSpin .6s ease-in-out}
 @keyframes aiSpin{from{transform:rotate(0)}to{transform:rotate(-360deg)}}
+
+/* FUND FLOW ESTIMATE */
+.fund-flow-card{margin-top:12px;overflow:hidden}
+.fund-flow-note{margin:0 0 16px;font-size:12px;line-height:1.65;color:var(--muted)}
+.fund-flow-table-wrap{overflow-x:auto}
+.fund-flow-table{min-width:1120px}
+.fund-flow-table th{padding:10px 12px;text-align:left;border-bottom:1px solid var(--divider);font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
+.fund-flow-table td{padding:12px;border-bottom:1px solid var(--divider);font-size:12px;vertical-align:middle;white-space:nowrap}
+.fund-flow-table tbody tr:last-child td{border-bottom:0}
+.fund-flow-value,.fund-flow-day{font-family:'JetBrains Mono',monospace;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)}
+.fund-flow-streak{font-weight:700;color:var(--text)}
+.fund-flow-direction{font-size:11px;font-weight:700}
+.fund-flow-direction.positive,.fund-flow-status.positive{color:var(--success)}
+.fund-flow-direction.negative,.fund-flow-status.negative{color:var(--error)}
+.fund-flow-direction.neutral,.fund-flow-status.neutral{color:var(--muted)}
+.fund-flow-status{font-size:11px;font-weight:700}
+.fund-flow-trade-note{max-width:260px;white-space:normal!important;line-height:1.45!important;color:var(--muted)}
+.fund-flow-estimate-badge{display:inline-flex;padding:4px 8px;border:1px solid var(--border);border-radius:var(--rFull);font-size:10px;color:var(--warn);white-space:nowrap}
+.fund-flow-ai{margin-top:12px;padding:18px 20px}
+.fund-flow-ai h2{margin:0;font-size:15px}
+.fund-flow-ai ul{margin:12px 0 0;padding-left:20px;color:var(--muted);font-size:12px;line-height:1.7}
+@media(min-width:721px){.fund-flow-table th:nth-child(4),.fund-flow-table td:nth-child(4){padding-right:6px}.fund-flow-table th:nth-child(5),.fund-flow-table td:nth-child(5){padding-left:6px}}
+@media(max-width:700px){.fund-flow-card{padding:16px}.fund-flow-table-wrap{overflow-x:auto}.fund-flow-ai{padding:16px}}
 
 /* ── DONUT CHART ─────────────────────────────────────────────────── */
 .donut-wrap{display:flex;align-items:center;gap:24px}
@@ -1699,6 +1719,10 @@ table{border-collapse:collapse;width:100%}
           <span class="mini-app-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"></path><path d="M8 8h7"></path><path d="M8 12h8"></path><path d="M8 16h5"></path></svg></span>
           <span class="mini-app-copy"><span data-i18n="title-news">Investment News</span><span class="mini-app-sub" data-i18n="app-sub-news">Company news</span></span>
         </button>
+        <button class="mini-app-item" type="button" data-mini-view="fundflow" role="menuitem">
+          <span class="mini-app-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"></path><path d="M4 19h16"></path><path d="m7 15 3-4 3 2 5-7"></path><path d="m15 6 3 0 0 3"></path></svg></span>
+          <span class="mini-app-copy"><span data-i18n="title-fundflow">資金流向</span><span class="mini-app-sub" data-i18n="app-sub-fundflow">估算資金流</span></span>
+        </button>
         <button class="mini-app-item" type="button" data-mini-view="stockresearch" role="menuitem">
           <span class="mini-app-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="m7 15 4-4 3 3 5-7"></path><circle cx="11" cy="11" r="1"></circle></svg></span>
           <span class="mini-app-copy"><span data-i18n="title-stockresearch">Stock Research</span><span class="mini-app-sub" data-i18n="app-sub-stockresearch">Company research</span></span>
@@ -1917,7 +1941,32 @@ table{border-collapse:collapse;width:100%}
       </div>
       <div class="cats-grid" id="cats-grid"></div>
       </div>
-      <!-- STOCK RESEARCH -->
+<!-- FUND FLOW VIEW -->
+      <div class="view" id="view-fundflow">
+        <div class="page-hdr">
+          <div class="page-title" data-i18n="title-fundflow">資金流向</div>
+          <span class="fund-flow-estimate-badge" data-i18n="fund-flow-estimate-badge">估算代理 · 非官方資金流</span>
+        </div>
+        <section class="card fund-flow-card">
+          <div class="card-hdr">
+            <div class="card-title" data-i18n="fund-flow-title">主題強弱 ETF 資金流向</div>
+            <span class="card-date" id="fund-flow-updated">--:--</span>
+          </div>
+          <p class="fund-flow-note" data-i18n="fund-flow-note">本頁使用價格方向與成交量計算資金流代理估算，不是 ETF 官方申購贖回或淨資產流入資料。數值僅供觀察，不代表即時官方資金流或投資建議。</p>
+          <div class="fund-flow-table-wrap">
+            <table class="fund-flow-table">
+              <thead><tr><th data-i18n="fund-flow-etf">ETF / 主題</th><th data-i18n="fund-flow-day">1日資金流（M，估算）</th><th data-i18n="fund-flow-day-pct">1日資金流 (%)</th><th data-i18n="fund-flow-five-pct">5日累計資金流 (%)</th><th data-i18n="fund-flow-streak">連續流向</th><th data-i18n="fund-flow-direction">方向</th><th data-i18n="fund-flow-status">狀態</th><th data-i18n="fund-flow-note-col">交易備註</th></tr></thead>
+              <tbody id="fund-flow-tbody"><tr><td colspan="8" data-i18n="fund-flow-loading">正在載入估算資料…</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="card fund-flow-ai" id="fund-flow-ai">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><h2 data-i18n="fund-flow-ai-title">AI 分析</h2><span class="fund-flow-estimate-badge" data-i18n="fund-flow-demo-label">DEEPSEEK V4 PRO · 估算分析</span></div>
+          <ul id="fund-flow-ai-list"><li data-i18n="fund-flow-ai-loading">資料載入後，將由伺服器端 AI 產生估算資金流摘要。</li></ul>
+        </section>
+      </div>
+
+<!-- STOCK RESEARCH -->
       <div class="view" id="view-stockresearch">
         <div class="stockresearch-host" id="stockresearch-root"></div>
       </div>
@@ -3006,6 +3055,79 @@ function renderDashboard(){
   $('dash-kpis').innerHTML += annualHtml;
 }
 
+const FUND_FLOW_API = 'https://blackspace.markchanchun.workers.dev';
+const FUND_FLOW_SYMBOLS = [
+  ['SMH','Semiconductors'],['MAGS','Mega Cap Tech'],['XLK','Technology'],['XLI','Industrials'],['XLV','Health Care'],
+  ['XLP','Consumer Staples'],['XLY','Consumer Discretionary'],['XLC','Communication Services'],['XLF','Financials'],
+  ['XLB','Materials'],['XLRE','Real Estate'],['XLU','Utilities'],['XLE','Energy'],
+];
+let fundFlowRenderToken = 0;
+function fundFlowEsc(value){ return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])); }
+function fundFlowFormat(value, suffix=''){ return Number.isFinite(Number(value)) ? `${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(1)}${suffix}` : '--'; }
+function fundFlowDirectionLabel(row){
+  if(row.streakDirection === 'inflow') return curLang === 'zh' ? '偏強' : 'Stronger';
+  if(row.streakDirection === 'outflow') return curLang === 'zh' ? '偏弱' : 'Weaker';
+  return curLang === 'zh' ? '中性' : 'Neutral';
+}
+function fundFlowStatusLabel(row){
+  if(row.streakDirection === 'inflow') return curLang === 'zh' ? '估算流入' : 'Est. inflow';
+  if(row.streakDirection === 'outflow') return curLang === 'zh' ? '估算流出' : 'Est. outflow';
+  return curLang === 'zh' ? '觀察中' : 'Watch';
+}
+function fundFlowNote(row){
+  if(row.streakDirection === 'inflow') return curLang === 'zh' ? '估算代理偏強，避免單日追價' : 'Proxy is stronger; avoid chasing one-day moves';
+  if(row.streakDirection === 'outflow') return curLang === 'zh' ? '估算代理偏弱，先控制倉位' : 'Proxy is weaker; keep position size controlled';
+  return curLang === 'zh' ? '等待方向延續再觀察' : 'Wait for directional follow-through';
+}
+function renderFundFlowRows(items){
+  const tbody = $('fund-flow-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = items.map(row => {
+    const dirClass = row.streakDirection === 'inflow' ? 'positive' : row.streakDirection === 'outflow' ? 'negative' : 'neutral';
+    const streak = row.streakDays ? `${row.streakDays}${curLang === 'zh' ? '日' : 'd'}${row.streakDirection === 'inflow' ? (curLang === 'zh' ? '流入' : 'inflow') : row.streakDirection === 'outflow' ? (curLang === 'zh' ? '流出' : 'outflow') : (curLang === 'zh' ? '中性' : 'neutral')}` : '--';
+    return `<tr><td><strong>${fundFlowEsc(row.symbol)}</strong><span class="etf-name">${fundFlowEsc(row.sector)}</span></td><td class="fund-flow-day">${fundFlowFormat(row.flowM,'M')}</td><td class="fund-flow-value">${fundFlowFormat(row.flowPct,'%')}</td><td class="fund-flow-value">${fundFlowFormat(row.fivePct,'%')}</td><td class="fund-flow-streak">${streak}</td><td><span class="fund-flow-direction ${dirClass}">${fundFlowEsc(fundFlowDirectionLabel(row))}</span></td><td><span class="fund-flow-status ${dirClass}">${fundFlowEsc(fundFlowStatusLabel(row))}</span></td><td class="fund-flow-trade-note">${fundFlowEsc(fundFlowNote(row))}</td></tr>`;
+  }).join('');
+}
+function renderFundFlowAiFallback(){
+  const list = $('fund-flow-ai-list');
+  if(!list) return;
+  const bullets = curLang === 'zh'
+    ? ['估算流入較集中於前列主題，但這是價格方向與成交量代理，不是官方淨流入。','估算流出區域代表近期代理訊號轉弱，仍需配合價格、成交量與基本面確認。','交易上宜分段、控制倉位，避免把代理估算當成確定的申購贖回訊號。']
+    : ['Estimated inflows are concentrated in the leading themes, but this is a price-volume proxy, not official net flow.','Outflow areas show weaker recent proxy signals and still need confirmation from price, volume, and fundamentals.','Trade cautiously with staged sizing; do not treat the estimate as confirmed creation/redemption activity.'];
+  list.innerHTML = bullets.map(item => `<li>${fundFlowEsc(item)}</li>`).join('');
+}
+async function renderFundFlowAi(items, token){
+  const list = $('fund-flow-ai-list');
+  if(!list) return;
+  try{
+    const response = await fetch(`${FUND_FLOW_API}/fund-flow-analysis`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ lang:curLang, items }) });
+    const data = await response.json();
+    if(token !== fundFlowRenderToken) return;
+    if(!response.ok || !Array.isArray(data.bullets) || !data.bullets.length) throw new Error(data.error || 'AI unavailable');
+    list.innerHTML = data.bullets.slice(0,3).map(item => `<li>${fundFlowEsc(item)}</li>`).join('');
+  }catch(error){ console.warn('Fund Flow AI unavailable:', error); renderFundFlowAiFallback(); }
+}
+async function renderFundFlow(){
+  const tbody = $('fund-flow-tbody');
+  if(!tbody) return;
+  const token = ++fundFlowRenderToken;
+  tbody.innerHTML = `<tr><td colspan="8">${fundFlowEsc(t('fund-flow-loading'))}</td></tr>`;
+  renderFundFlowAiFallback();
+  try{
+    const symbols = FUND_FLOW_SYMBOLS.map(([symbol]) => symbol).join(',');
+    const response = await fetch(`${FUND_FLOW_API}/fund-flow?symbols=${encodeURIComponent(symbols)}`, { signal:AbortSignal.timeout(20000) });
+    const data = await response.json();
+    if(token !== fundFlowRenderToken) return;
+    if(!response.ok || !Array.isArray(data.items)) throw new Error(data.error || 'Fund Flow unavailable');
+    renderFundFlowRows(data.items);
+    $('fund-flow-updated').textContent = new Date().toLocaleTimeString(curLang === 'zh' ? 'zh-HK' : 'en-US',{hour:'2-digit',minute:'2-digit'});
+    renderFundFlowAi(data.items, token);
+  }catch(error){
+    console.warn('Fund Flow data unavailable:', error);
+    tbody.innerHTML = `<tr><td colspan="8">${fundFlowEsc(curLang === 'zh' ? '估算資料暫時未能載入。' : 'Estimated data is temporarily unavailable.')}</td></tr>`;
+  }
+}
+
 // ── VIEW SWITCHING ────────────────────────────────────────
 const VIEW_KEYS = {
   monthly:      {title:'title-monthly',      sub:'sub-monthly'},
@@ -3014,6 +3136,7 @@ const VIEW_KEYS = {
   categories:   {title:'title-categories',   sub:'sub-categories'},
   investments:  {title:'title-investments',  sub:'sub-investments'},
   news:         {title:'title-news',         sub:'sub-news'},
+  fundflow:     {title:'title-fundflow',     sub:'sub-fundflow'},
   stockresearch:{title:'title-stockresearch',sub:'sub-stockresearch'},
 };
 // Keep VIEW_META as fallback for code that references it
@@ -3022,7 +3145,7 @@ const VIEW_META = {
   dashboard:{title:'Dashboard',sub:'Overview summary'},
   categories:{title:'Categories',sub:'Manage spending categories'},investments:{title:'Investments',sub:'Live portfolio tracker'},
   news:{title:'Investment News',sub:'Company-focused market news'},
-  stockresearch:{title:'Stock Research',sub:'Company valuation and AI research'},
+  fundflow:{title:'Fund Flow',sub:'Estimated ETF fund-flow proxy'},stockresearch:{title:'Stock Research',sub:'Company valuation and AI research'},
 };
 function setView(v){
   if(v==='goals' || v==='blackinvest') v='dashboard';
@@ -3047,6 +3170,7 @@ function setView(v){
   if(v==='categories') renderCategories();
   if(v==='investments'){ renderInvestments(); fetchAllPrices(); }
   if(v==='news') renderNews();
+  if(v==='fundflow') renderFundFlow();
   if(v==='stockresearch' && window.initStockResearch) window.initStockResearch();
   document.querySelectorAll('.bottom-nav-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.view===v);
@@ -3235,7 +3359,7 @@ const I18N = {
     'pw-err-same':'新密碼不能與舊密碼相同。','pw-err-wrong':'舊密碼不正確。','pw-err-weak':'新密碼太弱。',
     'pw-err-recent':'為安全起見，請先登出並重新登入後再試。','pw-err-too-many':'嘗試次數過多，請稍後再試。','pw-err-unknown':'更新失敗，請稍後再試。',
     'pw-success':'密碼已更新。',
-    'btn-refresh':'查看',
+    'btn-refresh':'重新整理',
     'empty-holdings':'尚無持倉，立即新增第一筆投資！',
     // Goals
     'btn-add-goal':'新增目標','empty-goals':'尚無目標','empty-goals-sub':'建立儲蓄目標以追蹤進度。',
@@ -3335,7 +3459,7 @@ const I18N = {
     'pw-err-same':'New password cannot be the same as the old one.','pw-err-wrong':'Current password is incorrect.','pw-err-weak':'New password is too weak.',
     'pw-err-recent':'For security, please sign out and sign back in, then try again.','pw-err-too-many':'Too many attempts. Please try again later.','pw-err-unknown':'Update failed. Please try again.',
     'pw-success':'Password updated.',
-    'btn-refresh':'View',
+    'btn-refresh':'Refresh',
     'empty-holdings':'No positions yet. Add your first investment!',
     'btn-add-goal':'Add Goal','empty-goals':'No goals yet','empty-goals-sub':'Create a savings goal to track your progress.',
     'lbl-saved':'saved',
@@ -3385,6 +3509,19 @@ Object.assign(I18N.en, {
   'title-stockresearch':'Stock Research',
   'sub-stockresearch':'Company valuation and AI research',
   'app-sub-stockresearch':'Company research'
+});
+
+Object.assign(I18N.zh, {
+  'title-fundflow':'資金流向','sub-fundflow':'估算 ETF 資金流代理','app-sub-fundflow':'估算資金流',
+  'fund-flow-estimate-badge':'估算代理 · 非官方資金流','fund-flow-title':'主題強弱 ETF 資金流向',
+  'fund-flow-note':'本頁使用價格方向與成交量計算資金流代理估算，不是 ETF 官方申購贖回或淨資產流入資料。數值僅供觀察，不代表即時官方資金流或投資建議。',
+  'fund-flow-etf':'ETF / 主題','fund-flow-day':'1日資金流（M，估算）','fund-flow-day-pct':'1日資金流 (%)','fund-flow-five-pct':'5日累計資金流 (%)','fund-flow-streak':'連續流向','fund-flow-direction':'方向','fund-flow-status':'狀態','fund-flow-note-col':'交易備註','fund-flow-loading':'正在載入估算資料…','fund-flow-ai-title':'AI 分析','fund-flow-demo-label':'DEEPSEEK V4 PRO · 估算分析','fund-flow-ai-loading':'資料載入後，將由伺服器端 AI 產生估算資金流摘要.'
+});
+Object.assign(I18N.en, {
+  'title-fundflow':'Fund Flow','sub-fundflow':'Estimated ETF fund-flow proxy','app-sub-fundflow':'Estimated fund flow',
+  'fund-flow-estimate-badge':'ESTIMATE · NOT OFFICIAL FUND FLOW','fund-flow-title':'ETF Theme Strength Fund Flow',
+  'fund-flow-note':'This page estimates a fund-flow proxy from price direction and trading volume. It is not official ETF creation/redemption or net asset-flow data. For observation only, not investment advice.',
+  'fund-flow-etf':'ETF / Theme','fund-flow-day':'1-day flow (M, est.)','fund-flow-day-pct':'1-day flow (%)','fund-flow-five-pct':'5-day cumulative flow (%)','fund-flow-streak':'Flow streak','fund-flow-direction':'Direction','fund-flow-status':'Status','fund-flow-note-col':'Trade note','fund-flow-loading':'Loading estimated data…','fund-flow-ai-title':'AI Analysis','fund-flow-demo-label':'DEEPSEEK V4 PRO · ESTIMATE','fund-flow-ai-loading':'The server-side AI will summarize the estimated flow picture after data loads.'
 });
 
 function t(key){ return (I18N[curLang]||I18N['en'])[key] || (I18N['en'][key] || key); }
@@ -3522,6 +3659,7 @@ function applyLang(){
   if(curView==='dashboard') renderDashboard();
   if(curView==='investments') renderInvestments();
   if(curView==='news') renderNews();
+  if(curView==='fundflow') renderFundFlow();
   if(curView==='stockresearch' && window.initStockResearch) window.initStockResearch(true);
   if(curView==='categories') renderCategories();
 
@@ -4461,14 +4599,6 @@ function renderNewsCard(item){
   const tags = item.tickers.map(t=>`<span class="news-tag">${newsEsc(t)}</span>`).join('');
   return `<article class="card news-card"><div class="news-inner"><div class="news-rail ${tone}"></div><div class="news-body"><div class="news-meta"><span class="news-source">${newsEsc(item.source)}</span><span>${time}</span><span class="news-badge ${tone}">${label} ${item.sentiment.toFixed(2)}</span></div><h3>${newsEsc(item.title)}</h3><p class="news-desc">${newsEsc(item.summary)}</p><div class="news-footer"><div class="news-tags">${tags}</div><a class="news-open" href="${newsEsc(item.url)}" target="_blank" rel="noopener">${t('news-open')} ↗</a></div></div></div></article>`;
 }
-document.addEventListener('click', e=>{
-  const chip = e.target.closest('#news-watchlist .news-chip');
-  if(!chip) return;
-  document.querySelectorAll('#news-watchlist .news-chip').forEach(btn=>btn.classList.remove('active'));
-  chip.classList.add('active');
-  $('news-ticker-input').value = chip.textContent.trim();
-  renderNews();
-});
 let newsInputTimer = null;
 document.addEventListener('input', e=>{
   if(e.target && e.target.id==='news-ticker-input'){
@@ -5627,12 +5757,19 @@ window.addEventListener('resize', () => {
 
 <script>
 (function(){
-  const STOCK_RESEARCH_CSS = "\n    :host {\n      --bg: #f5f5f7;\n      --surface: #ffffff;\n      --surface2: #fafafa;\n      --surfaceOff: #f2f2f7;\n      --surfaceDyn: #e8e8ed;\n      --divider: #e5e5ea;\n      --border: #d1d1d6;\n      --text: #1d1d1f;\n      --muted: #6e6e73;\n      --faint: #aeaeb2;\n      --primary: #0071e3;\n      --primaryHov: #0077ed;\n      --primaryHL: #e3f0ff;\n      --panel: var(--surface);\n      --panel-soft: var(--surface2);\n      --ink: var(--text);\n      --line: var(--border);\n      --blue: var(--primary);\n      --blue-soft: var(--primaryHL);\n      --green: #10b981;\n      --red: #ef4444;\n      --amber: #f59e0b;\n      --shadow: 0 2px 8px rgba(0,0,0,.06),0 0 0 0.5px rgba(0,0,0,.04);\n      --r: 0.625rem;\n      --rLg: 0.875rem;\n      --rXl: 1.25rem;\n      --rFull: 9999px;\n      --mono: 'JetBrains Mono','SF Mono',Menlo,Consolas,monospace;\n    }\n\n    * { box-sizing: border-box; }\n\n    html,\n    body {\n      scrollbar-width: none;\n    }\n\n    html::-webkit-scrollbar,\n    body::-webkit-scrollbar {\n      display: none;\n    }\n\n    body {\n      margin: 0;\n      min-height: 100vh;\n      background: transparent;\n      color: var(--ink);\n      font-family: \"Noto Sans TC\", -apple-system, BlinkMacSystemFont, \"Helvetica Neue\", Arial, sans-serif;\n      line-height: 1.5;\n    }\n\n    button, input { font: inherit; }\n    button {\n      appearance: none;\n      -webkit-appearance: none;\n      border: none;\n      background: none;\n      color: inherit;\n      font-family: inherit;\n    }\n    input {\n      appearance: none;\n      -webkit-appearance: none;\n      font-family: inherit;\n    }\n\n    .app {\n      width: min(1500px, calc(100% - 32px));\n      margin: 0 auto;\n      padding: 0 0 40px;\n    }\n\n    .tx-card {\n      background: var(--surface);\n      border: 1px solid var(--divider);\n      border-radius: var(--rXl);\n      overflow: hidden;\n      box-shadow: var(--shadow);\n    }\n\n    .news-controls {\n      padding: 16px;\n      margin-bottom: 14px;\n    }\n\n    .news-control-grid {\n      display: grid;\n      grid-template-columns: minmax(360px, 0.7fr) auto minmax(0, 1fr);\n      gap: 12px;\n      align-items: end;\n    }\n\n    .news-field {\n      display: flex;\n      flex-direction: column;\n      gap: 7px;\n    }\n\n    .kpi-lbl {\n      font-size: 11px;\n      font-weight: 600;\n      text-transform: uppercase;\n      letter-spacing: .06em;\n      color: var(--muted);\n      margin-bottom: 8px;\n    }\n\n    .news-input {\n      height: 44px;\n      width: 100%;\n      border: 1px solid var(--border);\n      border-radius: 12px;\n      background: var(--surface);\n      color: var(--text);\n      padding: 0 13px;\n      outline: none;\n      font-family: inherit;\n    }\n\n    .news-input:focus {\n      border-color: var(--primary);\n      box-shadow: 0 0 0 3px var(--primaryHL);\n    }\n\n    .news-refresh {\n      height: 44px;\n      padding: 0 16px;\n      border-radius: 12px;\n      background: var(--primary);\n      color: #fff;\n      font-weight: 800;\n      display: inline-flex;\n      align-items: center;\n      gap: 8px;\n      justify-content: center;\n    }\n\n    .news-refresh:disabled {\n      cursor: wait;\n    }\n\n    .news-chips {\n      display: flex;\n      gap: 8px;\n      flex-wrap: wrap;\n      align-items: end;\n      margin-top: 0;\n    }\n\n    .news-chip {\n      min-width: 54px;\n      height: 32px;\n      padding: 0 11px;\n      border: 1px solid transparent;\n      border-radius: 10px;\n      background: var(--surfaceOff);\n      color: var(--text);\n      font-family: \"Noto Sans TC\", -apple-system, BlinkMacSystemFont, \"Helvetica Neue\", Arial, sans-serif;\n      font-size: 12px;\n      font-weight: 800;\n    }\n\n    .news-chip.active {\n      border-color: var(--primary);\n      background: var(--primaryHL);\n      color: var(--primary);\n    }\n\n    .stock-search-spacer {\n      display: none;\n    }\n\n    .message {\n      padding: 18px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel);\n      color: var(--muted);\n      box-shadow: var(--shadow);\n    }\n\n    .company-card {\n      position: relative;\n      display: grid;\n      grid-template-columns: minmax(0, 1fr) minmax(560px, 1.25fr);\n      gap: 6px;\n      padding: 12px;\n      margin-bottom: 4px;\n      background: var(--panel);\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      box-shadow: var(--shadow);\n    }\n\n    .company-main {\n      display: grid;\n      grid-template-columns: 82px minmax(0, 1fr);\n      gap: 16px;\n      align-items: center;\n      min-width: 0;\n    }\n\n    .logo-box {\n      display: grid;\n      place-items: center;\n      width: 82px;\n      height: 82px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n      color: var(--blue);\n      font-size: 28px;\n      font-weight: 900;\n    }\n\n    .logo-box img {\n      width: 64px;\n      height: 64px;\n      object-fit: contain;\n    }\n\n    .company-main h2 {\n      margin: 0;\n      font-size: 30px;\n      line-height: 1.1;\n    }\n\n    .company-main p {\n      margin: 8px 0 0;\n      max-width: 780px;\n      color: var(--muted);\n      font-size: 14px;\n    }\n\n    .tag-row {\n      display: flex;\n      flex-wrap: wrap;\n      justify-content: flex-end;\n      gap: 8px;\n      margin: 0;\n    }\n\n    .tag {\n      padding: 4px 8px;\n      border: 1px solid var(--line);\n      border-radius: 999px;\n      background: var(--panel-soft);\n      color: var(--muted);\n      font-size: 12px;\n      font-weight: 700;\n    }\n\n    .quote-box {\n      display: grid;\n      grid-template-columns: repeat(3, 150px);\n      gap: 8px;\n      align-content: center;\n      justify-content: end;\n    }\n\n    .quote-item {\n      min-height: 82px;\n      padding: 12px 8px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n    }\n\n    .company-side {\n      display: grid;\n      gap: 8px;\n      align-content: start;\n    }\n\n    .price-card {\n      text-align: center;\n    }\n\n    .mobile-price-card {\n      display: none;\n    }\n\n    .quote-item small {\n      display: block;\n      color: var(--muted);\n      font-size: 10px;\n      font-weight: 800;\n      text-transform: uppercase;\n    }\n\n    .quote-item strong {\n      display: block;\n      margin-top: 6px;\n      font-size: 22px;\n      line-height: 1.1;\n    }\n\n    .range-value {\n      display: grid;\n      justify-items: center;\n      gap: 0;\n      margin-top: 6px;\n      color: var(--text);\n      font-size: 22px;\n      font-weight: 800;\n      line-height: 1.02;\n    }\n\n    .positive, .up { color: var(--green); }\n    .negative, .down { color: var(--red); }\n\n    .dashboard-grid {\n      display: grid;\n      grid-template-columns: 1.18fr 0.82fr;\n      gap: 4px;\n      align-items: start;\n    }\n\n    .dashboard-column {\n      display: grid;\n      gap: 4px;\n      align-content: start;\n    }\n\n    .panel {\n      min-width: 0;\n      padding: 12px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel);\n      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);\n    }\n\n    .wide,\n    .panel.wide { grid-column: 1 / -1; }\n    .dashboard-grid > .panel { grid-column: 1 / -1; }\n\n    .insight-grid {\n      grid-column: 1 / -1;\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 4px;\n      align-items: start;\n    }\n\n    .entry-panel .ladder-grid {\n      grid-template-columns: 1fr;\n      gap: 0;\n      align-content: space-between;\n      flex: 1;\n    }\n\n    .entry-panel {\n      display: flex;\n      flex-direction: column;\n      height: 463px;\n    }\n\n    .score-panel {\n      display: flex;\n      flex-direction: column;\n      align-self: stretch;\n    }\n\n    .panel-head {\n      display: flex;\n      justify-content: space-between;\n      align-items: flex-start;\n      gap: 6px;\n      margin-bottom: 8px;\n    }\n\n    .panel h3 {\n      margin: 0;\n      font-size: 18px;\n      line-height: 1.2;\n    }\n\n    .panel-note {\n      margin: 4px 0 0;\n      color: var(--muted);\n      font-size: 12px;\n    }\n\n    .trend-toggle {\n      display: inline-flex;\n      gap: 3px;\n      padding: 3px;\n      border: 1px solid var(--line);\n      border-radius: 999px;\n      background: var(--panel-soft);\n    }\n\n    .trend-toggle button {\n      min-width: 76px;\n      border: 0;\n      border-radius: 999px;\n      background: transparent;\n      color: var(--muted);\n      cursor: pointer;\n      font: inherit;\n      font-size: 12px;\n      font-weight: 800;\n      line-height: 1;\n      padding: 8px 12px;\n    }\n\n    .trend-toggle button.is-active {\n      background: var(--blue);\n      color: #fff;\n      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);\n    }\n\n    .chart-period[hidden] {\n      display: none;\n    }\n\n    .score-row {\n      display: grid;\n      grid-template-columns: 170px minmax(0, 1fr);\n      gap: 8px;\n      align-items: center;\n    }\n\n    .score-panel .score-row {\n      flex: 1;\n      align-content: center;\n      min-height: 190px;\n    }\n\n    .score-ring {\n      display: grid;\n      place-items: center;\n      justify-self: center;\n      position: relative;\n      width: 150px;\n      height: 150px;\n      border-radius: 50%;\n    }\n\n    .score-ring-svg {\n      position: absolute;\n      inset: 0;\n      width: 100%;\n      height: 100%;\n      overflow: visible;\n    }\n\n    .score-ring-track,\n    .score-ring-progress {\n      fill: none;\n      stroke-width: 20;\n    }\n\n    .score-ring-track {\n      stroke: #e7eef8;\n    }\n\n    .score-ring-progress {\n      stroke: var(--score-color, var(--blue));\n      stroke-linecap: butt;\n      transform: rotate(-90deg);\n      transform-origin: 75px 75px;\n    }\n\n    .score-ring > div {\n      display: flex;\n      flex-direction: column;\n      align-items: center;\n      justify-content: center;\n      gap: 6px;\n      position: relative;\n      z-index: 1;\n      width: 112px;\n      height: 112px;\n      padding: 0 12px;\n      border-radius: 50%;\n      background: var(--panel);\n      text-align: center;\n    }\n\n    .score-ring strong {\n      display: block;\n      font-size: 34px;\n      line-height: 1;\n    }\n\n    .score-ring span {\n      display: block;\n      max-width: 82px;\n      color: var(--muted);\n      font-size: 11px;\n      font-weight: 800;\n      line-height: 1.15;\n      text-transform: uppercase;\n      white-space: normal;\n      overflow-wrap: anywhere;\n    }\n\n    .score-list {\n      display: grid;\n      gap: 10px;\n    }\n\n    .score-line {\n      display: grid;\n      grid-template-columns: 120px minmax(0, 1fr) 42px;\n      gap: 10px;\n      align-items: center;\n      font-size: 13px;\n    }\n\n    .score-line b {\n      color: var(--score-color, var(--text));\n    }\n\n    .track {\n      height: 8px;\n      overflow: hidden;\n      border-radius: 999px;\n      background: #e7eef8;\n    }\n\n    .track i {\n      display: block;\n      height: 100%;\n      width: var(--w);\n      border-radius: inherit;\n      background: var(--score-color, var(--blue));\n    }\n\n    .metric-grid {\n      display: grid;\n      grid-template-columns: repeat(3, minmax(120px, 1fr));\n      gap: 4px;\n    }\n\n    .metric-box {\n      min-height: 76px;\n      padding: 12px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n    }\n\n    .metric-box span {\n      display: block;\n      color: var(--muted);\n      font-size: 11px;\n      font-weight: 800;\n      text-transform: uppercase;\n    }\n\n    .metric-box strong {\n      display: block;\n      margin-top: 8px;\n      font-size: 20px;\n      line-height: 1.1;\n    }\n\n    .chart-grid {\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 4px;\n    }\n\n    .mini-chart {\n      padding: 10px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n    }\n\n    .mini-chart h4 {\n      margin: 0 0 12px;\n      font-size: 13px;\n    }\n\n    .bars {\n      display: grid;\n      grid-template-columns: repeat(var(--bar-count), minmax(34px, 1fr));\n      gap: 9px;\n      align-items: stretch;\n      height: 150px;\n      overflow-x: auto;\n      overflow-y: visible;\n      padding-top: 20px;\n      scrollbar-width: none;\n    }\n\n    .bars::-webkit-scrollbar {\n      display: none;\n    }\n\n    .bar-col {\n      display: grid;\n      grid-template-rows: minmax(0, 1fr) 16px;\n      gap: 7px;\n      height: 100%;\n      min-width: 0;\n      text-align: center;\n    }\n\n    .bar-plot {\n      display: flex;\n      align-items: flex-end;\n      height: 100%;\n    }\n\n    .bar {\n      position: relative;\n      width: 100%;\n      min-height: 4px;\n      border-radius: 6px 6px 2px 2px;\n      background: var(--blue);\n    }\n\n    .bar.negative { background: var(--red); }\n\n    .bar span {\n      position: absolute;\n      left: 0;\n      right: 0;\n      top: -18px;\n      color: var(--muted);\n      font-size: 10px;\n      font-weight: 800;\n      line-height: 1;\n      text-align: center;\n      white-space: nowrap;\n      overflow: hidden;\n      text-overflow: clip;\n    }\n\n    .bar-year {\n      z-index: 1;\n      color: var(--muted);\n      font-size: 11px;\n      font-weight: 800;\n      line-height: 16px;\n    }\n\n    .table-wrap {\n      overflow-x: auto;\n      scrollbar-width: none;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n    }\n\n    .table-wrap::-webkit-scrollbar,\n    .preset-row::-webkit-scrollbar {\n      display: none;\n    }\n\n    table {\n      width: 100%;\n      border-collapse: collapse;\n      background: var(--panel);\n      font-size: 13px;\n    }\n\n    th, td {\n      padding: 11px 12px;\n      border-bottom: 1px solid var(--line);\n      text-align: right;\n      white-space: nowrap;\n    }\n\n    th:first-child, td:first-child {\n      text-align: left;\n      font-weight: 800;\n    }\n\n    th {\n      background: var(--panel-soft);\n      color: var(--muted);\n      font-size: 11px;\n      text-transform: uppercase;\n    }\n\n    tr:last-child td { border-bottom: 0; }\n\n    .wide-table {\n      min-width: 650px;\n    }\n\n    .text {\n      margin: 0;\n      color: #334155;\n      font-size: 14px;\n    }\n\n    .list {\n      display: grid;\n      gap: 6px;\n      margin: 0;\n      padding: 0;\n      list-style: none;\n    }\n\n    .list li {\n      position: relative;\n      padding-left: 16px;\n      color: #334155;\n      font-family: Arial, sans-serif;\n      font-size: 14px;\n    }\n\n    .list li::before {\n      content: \"\";\n      position: absolute;\n      left: 0;\n      top: 0.72em;\n      width: 6px;\n      height: 6px;\n      border-radius: 50%;\n      background: var(--blue);\n    }\n\n    .ai-summary {\n      display: grid;\n      gap: 10px;\n    }\n\n    .ai-summary p {\n      margin: 0;\n      color: #334155;\n      font-size: 14px;\n    }\n\n    .ai-summary strong {\n      color: var(--ink);\n    }\n\n    .ladder-grid {\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 4px;\n    }\n\n    .ladder {\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      overflow: hidden;\n      background: var(--panel);\n    }\n\n    .ladder h4 {\n      margin: 0;\n      padding: 12px;\n      border-bottom: 1px solid var(--line);\n      background: var(--panel-soft);\n      font-size: 13px;\n    }\n\n    .ladder-row {\n      display: grid;\n      grid-template-columns: 64px 90px minmax(100px, 1fr);\n      gap: 10px;\n      padding: 11px 12px;\n      border-bottom: 1px solid var(--line);\n      font-size: 13px;\n    }\n\n    .ladder-row:last-child { border-bottom: 0; }\n\n    .ladder-row span {\n      color: var(--muted);\n      font-weight: 800;\n    }\n\n    .empty {\n      padding: 14px;\n      border: 1px dashed var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n      color: var(--muted);\n      font-size: 13px;\n    }\n\n\n    .message,\n    .company-card,\n    .quote-item,\n    .panel,\n    .metric-box,\n    .mini-chart,\n    .table-wrap,\n    .ladder,\n    .empty,\n    .logo-box {\n      border: 1px solid var(--divider);\n      border-radius: 20px;\n      background: var(--surface);\n      box-shadow: none;\n    }\n\n    .trend-toggle {\n      border-color: var(--border);\n      background: var(--surface);\n    }\n\n    @media (max-width: 1100px) {\n      .company-card, .dashboard-grid, .insight-grid, .ladder-grid { grid-template-columns: 1fr; }\n      .tag-row { justify-content: flex-start; }\n      .quote-box {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n        justify-content: stretch;\n      }\n      .entry-panel { height: auto; }\n    }\n\n    @media (max-width: 760px) {\n      .news-control-grid {\n        grid-template-columns: 1fr;\n        gap: 10px;\n      }\n      .news-refresh {\n        width: 100%;\n      }\n      .news-chips {\n        margin-top: 4px;\n      }\n      .app {\n        width: min(100% - 20px, 1500px);\n        padding-top: 14px;\n      }\n      .search-panel {\n        padding: 16px;\n      }\n      .search-control-grid {\n        grid-template-columns: 1fr;\n        gap: 10px;\n      }\n      .stock-search-spacer {\n        display: none;\n      }\n      .search-box {\n        min-height: 0;\n        padding: 0;\n      }\n      .search-box span {\n        font-size: 12px;\n        font-weight: 700;\n      }\n      .search-box input {\n        height: 44px;\n        font-size: 14px;\n        font-weight: 400;\n      }\n      .primary-btn {\n        width: 100%;\n        height: 44px;\n        border-radius: 12px;\n        background: var(--primary, #007aff);\n        box-shadow: none;\n        font-weight: 800;\n      }\n      .preset-row {\n        display: flex;\n        flex-wrap: wrap;\n        gap: 8px;\n        overflow: visible;\n      }\n      .preset-row button {\n        height: 32px;\n        padding: 0 11px;\n        border: 0;\n        border-radius: 10px;\n        background: var(--surfaceOff, #f1f1f6);\n        color: var(--text, var(--ink));\n        font-size: 12px;\n        font-weight: 800;\n      }\n      .news-chip.active,\n      .news-chip:hover {\n        border-color: var(--primary);\n        background: var(--primaryHL);\n        color: var(--primary);\n      }\n      .score-row, .chart-grid { grid-template-columns: 1fr; }\n      .company-card {\n        gap: 8px;\n        padding: 10px;\n      }\n      .company-main {\n        grid-template-columns: 56px minmax(0, 1fr) 164px;\n        gap: 10px;\n        align-items: center;\n      }\n      .logo-box {\n        width: 56px;\n        height: 56px;\n      }\n      .logo-box img {\n        width: 44px;\n        height: 44px;\n      }\n      .company-main h2 { font-size: 22px; }\n      .company-main p {\n        margin-top: 4px;\n        font-size: 12px;\n        line-height: 1.35;\n      }\n      .company-side {\n        display: contents;\n      }\n      .tag-row {\n        display: none;\n      }\n      .mobile-price-card {\n        display: grid;\n        grid-column: auto;\n        grid-template-columns: auto auto minmax(0, auto);\n        column-gap: 6px;\n        align-items: center;\n        align-content: center;\n        justify-self: stretch;\n        width: 164px;\n        height: 36px;\n        min-height: 36px;\n        padding: 3px 10px;\n        border: 1px solid var(--line);\n        border-radius: 999px;\n        background: var(--panel-soft);\n        color: var(--red);\n        text-align: left;\n        overflow: hidden;\n      }\n      .mobile-price-card small {\n        min-width: max-content;\n        color: var(--muted);\n        font-size: 10px;\n        font-weight: 800;\n        line-height: 1;\n        text-transform: none;\n      }\n      .mobile-price-card strong {\n        margin-top: 0;\n        color: var(--ink);\n        font-size: 13px;\n        font-weight: 800;\n        line-height: 1;\n        white-space: nowrap;\n      }\n      .mobile-price-card span {\n        display: block;\n        grid-column: auto;\n        min-width: 0;\n        color: inherit;\n        font-size: 11px;\n        line-height: 1;\n        white-space: nowrap;\n        overflow: hidden;\n        text-overflow: clip;\n      }\n      .desktop-price-card {\n        display: none;\n      }\n      .quote-box {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n        gap: 4px;\n      }\n      .quote-item {\n        min-height: 64px;\n        padding: 9px 8px;\n      }\n      .company-main .mobile-price-card {\n        grid-template-columns: auto minmax(0, 1fr);\n        column-gap: 4px;\n        width: 164px;\n        height: 36px;\n        min-height: 36px;\n        padding: 3px 10px;\n      }\n      .company-main .mobile-price-card small {\n        display: none;\n      }\n      .company-main .mobile-price-card span {\n        justify-self: start;\n        text-align: left;\n      }\n      .quote-item strong,\n      .range-value {\n        font-size: 18px;\n      }\n      .quote-box .quote-item strong {\n        margin-top: 5px;\n        font-size: 18px;\n      }\n      .quote-box .quote-item small {\n        font-size: 11px;\n      }\n      .quote-box .range-value {\n        display: block;\n        white-space: nowrap;\n        font-size: 15px;\n        line-height: 1.1;\n      }\n      .quote-box .range-value span {\n        display: inline;\n      }\n      .metric-grid { grid-template-columns: 1fr 1fr; }\n      .metric-box {\n        min-height: 68px;\n        padding: 10px;\n      }\n      .metric-box strong {\n        font-size: 18px;\n      }\n      .mini-chart {\n        padding: 9px;\n        overflow: hidden;\n        touch-action: pan-y;\n      }\n      .bars {\n        grid-template-columns: repeat(var(--bar-count), minmax(0, 1fr));\n        gap: 5px;\n        height: 148px;\n        overflow: hidden;\n        padding-top: 22px;\n        padding-bottom: 2px;\n        touch-action: none;\n      }\n      .bar-col {\n        grid-template-rows: minmax(0, 1fr) 18px;\n        gap: 6px;\n      }\n      .bar span {\n        top: -17px;\n        font-size: 8px;\n      }\n      .bar-year {\n        display: block;\n        min-height: 18px;\n        font-size: 10px;\n        line-height: 18px;\n        white-space: nowrap;\n        overflow: visible;\n      }\n    }\n\n    @media (max-width: 480px) {\n      .company-main {\n        grid-template-columns: 50px minmax(0, 1fr) 164px;\n        gap: 8px;\n      }\n      .logo-box {\n        width: 50px;\n        height: 50px;\n      }\n      .logo-box img {\n        width: 38px;\n        height: 38px;\n      }\n      .company-main h2 { font-size: 19px; }\n      .company-main p { display: none; }\n      .mobile-price-card {\n        width: 164px;\n      }\n      .mobile-price-card strong {\n        font-size: 14px;\n      }\n      .mobile-price-card span {\n        font-size: 12px;\n      }\n      .quote-box,\n      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }\n      .quote-item strong { font-size: 18px; }\n      .panel { padding: 14px; }\n    }\n  \n:host{display:block;min-height:100%;background:transparent;color:var(--ink);font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;line-height:1.5;}";
-  const STOCK_RESEARCH_HTML = "<main class=\"app\">\n    <section class=\"tx-card news-controls\">\n      <div class=\"news-control-grid\">\n        <label class=\"news-field\" for=\"symbolInput\">\n          <span class=\"kpi-lbl\" id=\"tickerLabel\">Ticker</span>\n          <input class=\"news-input\" id=\"symbolInput\" value=\"\" placeholder=\"AAPL, TSLA, NVDA\" autocomplete=\"off\" spellcheck=\"false\" />\n        </label>\n        <button class=\"news-refresh\" id=\"analyzeBtn\">Analyze</button>\n      </div>\n    </section>\n\n    <div id=\"output\" class=\"message\"></div>\n\n  </main>";
-
+  const STOCK_RESEARCH_CSS = "\n    :host {\n      --bg: #f5f5f7;\n      --surface: #ffffff;\n      --surface2: #fafafa;\n      --surfaceOff: #f2f2f7;\n      --surfaceDyn: #e8e8ed;\n      --divider: #e5e5ea;\n      --border: #d1d1d6;\n      --text: #1d1d1f;\n      --muted: #6e6e73;\n      --faint: #aeaeb2;\n      --primary: #0071e3;\n      --primaryHov: #0077ed;\n      --primaryHL: #e3f0ff;\n      --panel: var(--surface);\n      --panel-soft: var(--surface2);\n      --ink: var(--text);\n      --line: var(--border);\n      --blue: var(--primary);\n      --blue-soft: var(--primaryHL);\n      --green: #10b981;\n      --red: #ef4444;\n      --amber: #f59e0b;\n      --shadow: 0 2px 8px rgba(0,0,0,.06),0 0 0 0.5px rgba(0,0,0,.04);\n      --r: 0.625rem;\n      --rLg: 0.875rem;\n      --rXl: 1.25rem;\n      --rFull: 9999px;\n      --mono: 'JetBrains Mono','SF Mono',Menlo,Consolas,monospace;\n    }\n\n    * { box-sizing: border-box; }\n\n    html,\n    body {\n      scrollbar-width: none;\n    }\n\n    html::-webkit-scrollbar,\n    body::-webkit-scrollbar {\n      display: none;\n    }\n\n    body {\n      margin: 0;\n      min-height: 100vh;\n      background: transparent;\n      color: var(--ink);\n      font-family: \"Noto Sans TC\", -apple-system, BlinkMacSystemFont, \"Helvetica Neue\", Arial, sans-serif;\n      line-height: 1.5;\n    }\n\n    button, input { font: inherit; }\n    button {\n      appearance: none;\n      -webkit-appearance: none;\n      border: none;\n      background: none;\n      color: inherit;\n      font-family: inherit;\n    }\n    input {\n      appearance: none;\n      -webkit-appearance: none;\n      font-family: inherit;\n    }\n\n    .app {\n      width: min(1500px, calc(100% - 32px));\n      margin: 0 auto;\n      padding: 0 0 40px;\n    }\n\n    .tx-card {\n      background: var(--surface);\n      border: 1px solid var(--divider);\n      border-radius: var(--rXl);\n      overflow: hidden;\n      box-shadow: var(--shadow);\n    }\n\n    .news-controls {\n      padding: 16px;\n      margin-bottom: 14px;\n    }\n\n    .news-control-grid {\n      display: grid;\n      grid-template-columns: minmax(360px, 0.7fr) auto minmax(0, 1fr);\n      gap: 12px;\n      align-items: end;\n    }\n\n    .news-field {\n      display: flex;\n      flex-direction: column;\n      gap: 7px;\n    }\n\n    .kpi-lbl {\n      font-size: 11px;\n      font-weight: 600;\n      text-transform: uppercase;\n      letter-spacing: .06em;\n      color: var(--muted);\n      margin-bottom: 8px;\n    }\n\n    .news-input {\n      height: 44px;\n      width: 100%;\n      border: 1px solid var(--border);\n      border-radius: 12px;\n      background: var(--surface);\n      color: var(--text);\n      padding: 0 13px;\n      outline: none;\n      font-family: inherit;\n    }\n\n    .news-input:focus {\n      border-color: var(--primary);\n      box-shadow: 0 0 0 3px var(--primaryHL);\n    }\n\n    .news-refresh {\n      height: 44px;\n      padding: 0 16px;\n      border-radius: 12px;\n      background: var(--primary);\n      color: #fff;\n      font-weight: 800;\n      display: inline-flex;\n      align-items: center;\n      gap: 8px;\n      justify-content: center;\n    }\n\n    .news-refresh:disabled {\n      cursor: wait;\n    }\n\n    .news-chips {\n      display: flex;\n      gap: 8px;\n      flex-wrap: wrap;\n      align-items: end;\n      margin-top: 0;\n    }\n\n    .news-chip {\n      min-width: 54px;\n      height: 32px;\n      padding: 0 11px;\n      border: 1px solid transparent;\n      border-radius: 10px;\n      background: var(--surfaceOff);\n      color: var(--text);\n      font-family: \"Noto Sans TC\", -apple-system, BlinkMacSystemFont, \"Helvetica Neue\", Arial, sans-serif;\n      font-size: 12px;\n      font-weight: 800;\n    }\n\n    .news-chip.active {\n      border-color: var(--primary);\n      background: var(--primaryHL);\n      color: var(--primary);\n    }\n\n    .stock-search-spacer {\n      display: none;\n    }\n\n    .message {\n      padding: 18px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel);\n      color: var(--muted);\n      box-shadow: var(--shadow);\n    }\n\n    .company-card {\n      position: relative;\n      display: grid;\n      grid-template-columns: minmax(0, 1fr) minmax(560px, 1.25fr);\n      gap: 6px;\n      padding: 12px;\n      margin-bottom: 4px;\n      background: var(--panel);\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      box-shadow: var(--shadow);\n    }\n\n    .company-main {\n      display: grid;\n      grid-template-columns: 82px minmax(0, 1fr);\n      gap: 16px;\n      align-items: center;\n      min-width: 0;\n    }\n\n    .logo-box {\n      display: grid;\n      place-items: center;\n      width: 82px;\n      height: 82px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n      color: var(--blue);\n      font-size: 28px;\n      font-weight: 900;\n    }\n\n    .logo-box img {\n      width: 64px;\n      height: 64px;\n      object-fit: contain;\n    }\n\n    .company-main h2 {\n      margin: 0;\n      font-size: 30px;\n      line-height: 1.1;\n    }\n\n    .company-main p {\n      margin: 8px 0 0;\n      max-width: 780px;\n      color: var(--muted);\n      font-size: 14px;\n    }\n\n    .tag-row {\n      display: flex;\n      flex-wrap: wrap;\n      justify-content: flex-end;\n      gap: 8px;\n      margin: 0;\n    }\n\n    .tag {\n      padding: 4px 8px;\n      border: 1px solid var(--line);\n      border-radius: 999px;\n      background: var(--panel-soft);\n      color: var(--muted);\n      font-size: 12px;\n      font-weight: 700;\n    }\n\n    .quote-box {\n      display: grid;\n      grid-template-columns: repeat(3, 150px);\n      gap: 8px;\n      align-content: center;\n      justify-content: end;\n    }\n\n    .quote-item {\n      min-height: 82px;\n      padding: 12px 8px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n    }\n\n    .company-side {\n      display: grid;\n      gap: 8px;\n      align-content: start;\n    }\n\n    .price-card {\n      text-align: center;\n    }\n\n    .mobile-price-card {\n      display: none;\n    }\n\n    .quote-item small {\n      display: block;\n      color: var(--muted);\n      font-size: 10px;\n      font-weight: 800;\n      text-transform: uppercase;\n    }\n\n    .quote-item strong {\n      display: block;\n      margin-top: 6px;\n      font-size: 22px;\n      line-height: 1.1;\n    }\n\n    .range-value {\n      display: grid;\n      justify-items: center;\n      gap: 0;\n      margin-top: 6px;\n      color: var(--text);\n      font-size: 22px;\n      font-weight: 800;\n      line-height: 1.02;\n    }\n\n    .positive, .up { color: var(--green); }\n    .negative, .down { color: var(--red); }\n\n    .dashboard-grid {\n      display: grid;\n      grid-template-columns: 1.18fr 0.82fr;\n      gap: 4px;\n      align-items: start;\n    }\n\n    .dashboard-column {\n      display: grid;\n      gap: 4px;\n      align-content: start;\n    }\n\n    .panel {\n      min-width: 0;\n      padding: 12px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel);\n      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);\n    }\n\n    .wide,\n    .panel.wide { grid-column: 1 / -1; }\n\n    .insight-grid {\n      grid-column: 1 / -1;\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 4px;\n      align-items: start;\n    }\n\n    .entry-panel .ladder-grid {\n      grid-template-columns: 1fr;\n      gap: 0;\n      align-content: space-between;\n      flex: 1;\n    }\n\n    .entry-panel {\n      display: flex;\n      flex-direction: column;\n      height: 463px;\n    }\n\n    .score-panel {\n      display: flex;\n      flex-direction: column;\n      align-self: stretch;\n    }\n\n    .panel-head {\n      display: flex;\n      justify-content: space-between;\n      align-items: flex-start;\n      gap: 6px;\n      margin-bottom: 8px;\n    }\n\n    .panel h3 {\n      margin: 0;\n      font-size: 18px;\n      line-height: 1.2;\n    }\n\n    .panel-note {\n      margin: 4px 0 0;\n      color: var(--muted);\n      font-size: 12px;\n    }\n\n    .trend-toggle {\n      display: inline-flex;\n      gap: 3px;\n      padding: 3px;\n      border: 1px solid var(--line);\n      border-radius: 999px;\n      background: var(--panel-soft);\n    }\n\n    .trend-toggle button {\n      min-width: 76px;\n      border: 0;\n      border-radius: 999px;\n      background: transparent;\n      color: var(--muted);\n      cursor: pointer;\n      font: inherit;\n      font-size: 12px;\n      font-weight: 800;\n      line-height: 1;\n      padding: 8px 12px;\n    }\n\n    .trend-toggle button.is-active {\n      background: var(--blue);\n      color: #fff;\n      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);\n    }\n\n    .chart-period[hidden] {\n      display: none;\n    }\n\n    .score-row {\n      display: grid;\n      grid-template-columns: 170px minmax(0, 1fr);\n      gap: 8px;\n      align-items: center;\n    }\n\n    .score-panel .score-row {\n      flex: 1;\n      align-content: center;\n      min-height: 190px;\n    }\n\n    .score-ring {\n      display: grid;\n      place-items: center;\n      justify-self: center;\n      position: relative;\n      width: 150px;\n      height: 150px;\n      border-radius: 50%;\n    }\n\n    .score-ring-svg {\n      position: absolute;\n      inset: 0;\n      width: 100%;\n      height: 100%;\n      overflow: visible;\n    }\n\n    .score-ring-track,\n    .score-ring-progress {\n      fill: none;\n      stroke-width: 20;\n    }\n\n    .score-ring-track {\n      stroke: #e7eef8;\n    }\n\n    .score-ring-progress {\n      stroke: var(--score-color, var(--blue));\n      stroke-linecap: butt;\n      transform: rotate(-90deg);\n      transform-origin: 75px 75px;\n    }\n\n    .score-ring > div {\n      display: flex;\n      flex-direction: column;\n      align-items: center;\n      justify-content: center;\n      gap: 6px;\n      position: relative;\n      z-index: 1;\n      width: 112px;\n      height: 112px;\n      padding: 0 12px;\n      border-radius: 50%;\n      background: var(--panel);\n      text-align: center;\n    }\n\n    .score-ring strong {\n      display: block;\n      font-size: 34px;\n      line-height: 1;\n    }\n\n    .score-ring span {\n      display: block;\n      max-width: 82px;\n      color: var(--muted);\n      font-size: 11px;\n      font-weight: 800;\n      line-height: 1.15;\n      text-transform: uppercase;\n      white-space: normal;\n      overflow-wrap: anywhere;\n    }\n\n    .score-list {\n      display: grid;\n      gap: 10px;\n    }\n\n    .score-line {\n      display: grid;\n      grid-template-columns: 120px minmax(0, 1fr) 42px;\n      gap: 10px;\n      align-items: center;\n      font-size: 13px;\n    }\n\n    .score-line b {\n      color: var(--score-color, var(--text));\n    }\n\n    .track {\n      height: 8px;\n      overflow: hidden;\n      border-radius: 999px;\n      background: #e7eef8;\n    }\n\n    .track i {\n      display: block;\n      height: 100%;\n      width: var(--w);\n      border-radius: inherit;\n      background: var(--score-color, var(--blue));\n    }\n\n    .metric-grid {\n      display: grid;\n      grid-template-columns: repeat(3, minmax(120px, 1fr));\n      gap: 4px;\n    }\n\n    .metric-box {\n      min-height: 76px;\n      padding: 12px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n    }\n\n    .metric-box span {\n      display: block;\n      color: var(--muted);\n      font-size: 11px;\n      font-weight: 800;\n      text-transform: uppercase;\n    }\n\n    .metric-box strong {\n      display: block;\n      margin-top: 8px;\n      font-size: 20px;\n      line-height: 1.1;\n    }\n\n    .chart-grid {\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 4px;\n    }\n\n    .mini-chart {\n      padding: 10px;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n    }\n\n    .mini-chart h4 {\n      margin: 0 0 12px;\n      font-size: 13px;\n    }\n\n    .bars {\n      display: grid;\n      grid-template-columns: repeat(var(--bar-count), minmax(34px, 1fr));\n      gap: 9px;\n      align-items: stretch;\n      height: 150px;\n      overflow-x: auto;\n      overflow-y: visible;\n      padding-top: 20px;\n      scrollbar-width: none;\n    }\n\n    .bars::-webkit-scrollbar {\n      display: none;\n    }\n\n    .bar-col {\n      display: grid;\n      grid-template-rows: minmax(0, 1fr) 16px;\n      gap: 7px;\n      height: 100%;\n      min-width: 0;\n      text-align: center;\n    }\n\n    .bar-plot {\n      display: flex;\n      align-items: flex-end;\n      height: 100%;\n    }\n\n    .bar {\n      position: relative;\n      width: 100%;\n      min-height: 4px;\n      border-radius: 6px 6px 2px 2px;\n      background: var(--blue);\n    }\n\n    .bar.negative { background: var(--red); }\n\n    .bar span {\n      position: absolute;\n      left: 0;\n      right: 0;\n      top: -18px;\n      color: var(--muted);\n      font-size: 10px;\n      font-weight: 800;\n      line-height: 1;\n      text-align: center;\n      white-space: nowrap;\n      overflow: hidden;\n      text-overflow: clip;\n    }\n\n    .bar-year {\n      z-index: 1;\n      color: var(--muted);\n      font-size: 11px;\n      font-weight: 800;\n      line-height: 16px;\n    }\n\n    .table-wrap {\n      overflow-x: auto;\n      scrollbar-width: none;\n      border: 1px solid var(--line);\n      border-radius: 8px;\n    }\n\n    .table-wrap::-webkit-scrollbar,\n    .preset-row::-webkit-scrollbar {\n      display: none;\n    }\n\n    table {\n      width: 100%;\n      border-collapse: collapse;\n      background: var(--panel);\n      font-size: 13px;\n    }\n\n    th, td {\n      padding: 11px 12px;\n      border-bottom: 1px solid var(--line);\n      text-align: right;\n      white-space: nowrap;\n    }\n\n    th:first-child, td:first-child {\n      text-align: left;\n      font-weight: 800;\n    }\n\n    th {\n      background: var(--panel-soft);\n      color: var(--muted);\n      font-size: 11px;\n      text-transform: uppercase;\n    }\n\n    tr:last-child td { border-bottom: 0; }\n\n    .wide-table {\n      min-width: 650px;\n    }\n\n    .text {\n      margin: 0;\n      color: #334155;\n      font-size: 14px;\n    }\n\n    .list {\n      display: grid;\n      gap: 6px;\n      margin: 0;\n      padding: 0;\n      list-style: none;\n    }\n\n    .list li {\n      position: relative;\n      padding-left: 16px;\n      color: #334155;\n      font-family: Arial, sans-serif;\n      font-size: 14px;\n    }\n\n    .list li::before {\n      content: \"\";\n      position: absolute;\n      left: 0;\n      top: 0.72em;\n      width: 6px;\n      height: 6px;\n      border-radius: 50%;\n      background: var(--blue);\n    }\n\n    .ai-summary {\n      display: grid;\n      gap: 10px;\n    }\n\n    .ai-summary p {\n      margin: 0;\n      color: #334155;\n      font-size: 14px;\n    }\n\n    .ai-summary strong {\n      color: var(--ink);\n    }\n\n    .ladder-grid {\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 4px;\n    }\n\n    .ladder {\n      border: 1px solid var(--line);\n      border-radius: 8px;\n      overflow: hidden;\n      background: var(--panel);\n    }\n\n    .ladder h4 {\n      margin: 0;\n      padding: 12px;\n      border-bottom: 1px solid var(--line);\n      background: var(--panel-soft);\n      font-size: 13px;\n    }\n\n    .ladder-row {\n      display: grid;\n      grid-template-columns: 64px 90px minmax(100px, 1fr);\n      gap: 10px;\n      padding: 11px 12px;\n      border-bottom: 1px solid var(--line);\n      font-size: 13px;\n    }\n\n    .ladder-row:last-child { border-bottom: 0; }\n\n    .ladder-row span {\n      color: var(--muted);\n      font-weight: 800;\n    }\n\n    .empty {\n      padding: 14px;\n      border: 1px dashed var(--line);\n      border-radius: 8px;\n      background: var(--panel-soft);\n      color: var(--muted);\n      font-size: 13px;\n    }\n\n\n    .message,\n    .company-card,\n    .quote-item,\n    .panel,\n    .metric-box,\n    .mini-chart,\n    .table-wrap,\n    .ladder,\n    .empty,\n    .logo-box {\n      border: 1px solid var(--divider);\n      border-radius: 20px;\n      background: var(--surface);\n      box-shadow: none;\n    }\n\n    .trend-toggle {\n      border-color: var(--border);\n      background: var(--surface);\n    }\n\n    @media (max-width: 1100px) {\n      .company-card, .dashboard-grid, .insight-grid, .ladder-grid { grid-template-columns: 1fr; }\n      .tag-row { justify-content: flex-start; }\n      .quote-box {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n        justify-content: stretch;\n      }\n      .entry-panel { height: auto; }\n    }\n\n    @media (max-width: 760px) {\n      .news-control-grid {\n        grid-template-columns: 1fr;\n        gap: 10px;\n      }\n      .news-refresh {\n        width: 100%;\n      }\n      .news-chips {\n        margin-top: 4px;\n      }\n      .app {\n        width: min(100% - 20px, 1500px);\n        padding-top: 14px;\n      }\n      .search-panel {\n        padding: 16px;\n      }\n      .search-control-grid {\n        grid-template-columns: 1fr;\n        gap: 10px;\n      }\n      .stock-search-spacer {\n        display: none;\n      }\n      .search-box {\n        min-height: 0;\n        padding: 0;\n      }\n      .search-box span {\n        font-size: 12px;\n        font-weight: 700;\n      }\n      .search-box input {\n        height: 44px;\n        font-size: 14px;\n        font-weight: 400;\n      }\n      .primary-btn {\n        width: 100%;\n        height: 44px;\n        border-radius: 12px;\n        background: var(--primary, #007aff);\n        box-shadow: none;\n        font-weight: 800;\n      }\n      .preset-row {\n        display: flex;\n        flex-wrap: wrap;\n        gap: 8px;\n        overflow: visible;\n      }\n      .preset-row button {\n        height: 32px;\n        padding: 0 11px;\n        border: 0;\n        border-radius: 10px;\n        background: var(--surfaceOff, #f1f1f6);\n        color: var(--text, var(--ink));\n        font-size: 12px;\n        font-weight: 800;\n      }\n      .news-chip.active,\n      .news-chip:hover {\n        border-color: var(--primary);\n        background: var(--primaryHL);\n        color: var(--primary);\n      }\n      .score-row, .chart-grid { grid-template-columns: 1fr; }\n      .company-card {\n        gap: 8px;\n        padding: 10px;\n      }\n      .company-main {\n        grid-template-columns: 56px minmax(0, 1fr) 164px;\n        gap: 10px;\n        align-items: center;\n      }\n      .logo-box {\n        width: 56px;\n        height: 56px;\n      }\n      .logo-box img {\n        width: 44px;\n        height: 44px;\n      }\n      .company-main h2 { font-size: 22px; }\n      .company-main p {\n        margin-top: 4px;\n        font-size: 12px;\n        line-height: 1.35;\n      }\n      .company-side {\n        display: contents;\n      }\n      .tag-row {\n        display: none;\n      }\n      .mobile-price-card {\n        display: grid;\n        grid-column: auto;\n        grid-template-columns: auto auto minmax(0, auto);\n        column-gap: 6px;\n        align-items: center;\n        align-content: center;\n        justify-self: stretch;\n        width: 164px;\n        height: 36px;\n        min-height: 36px;\n        padding: 3px 10px;\n        border: 1px solid var(--line);\n        border-radius: 999px;\n        background: var(--panel-soft);\n        color: var(--red);\n        text-align: left;\n        overflow: hidden;\n      }\n      .mobile-price-card small {\n        min-width: max-content;\n        color: var(--muted);\n        font-size: 10px;\n        font-weight: 800;\n        line-height: 1;\n        text-transform: none;\n      }\n      .mobile-price-card strong {\n        margin-top: 0;\n        color: var(--ink);\n        font-size: 13px;\n        font-weight: 800;\n        line-height: 1;\n        white-space: nowrap;\n      }\n      .mobile-price-card span {\n        display: block;\n        grid-column: auto;\n        min-width: 0;\n        color: inherit;\n        font-size: 11px;\n        line-height: 1;\n        white-space: nowrap;\n        overflow: hidden;\n        text-overflow: clip;\n      }\n      .desktop-price-card {\n        display: none;\n      }\n      .quote-box {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n        gap: 4px;\n      }\n      .quote-item {\n        min-height: 64px;\n        padding: 9px 8px;\n      }\n      .company-main .mobile-price-card {\n        grid-template-columns: auto minmax(0, 1fr);\n        column-gap: 4px;\n        width: 164px;\n        height: 36px;\n        min-height: 36px;\n        padding: 3px 10px;\n      }\n      .company-main .mobile-price-card small {\n        display: none;\n      }\n      .company-main .mobile-price-card span {\n        justify-self: start;\n        text-align: left;\n      }\n      .quote-item strong,\n      .range-value {\n        font-size: 18px;\n      }\n      .quote-box .quote-item strong {\n        margin-top: 5px;\n        font-size: 18px;\n      }\n      .quote-box .quote-item small {\n        font-size: 11px;\n      }\n      .quote-box .range-value {\n        display: block;\n        white-space: nowrap;\n        font-size: 15px;\n        line-height: 1.1;\n      }\n      .quote-box .range-value span {\n        display: inline;\n      }\n      .metric-grid { grid-template-columns: 1fr 1fr; }\n      .metric-box {\n        min-height: 68px;\n        padding: 10px;\n      }\n      .metric-box strong {\n        font-size: 18px;\n      }\n      .mini-chart {\n        padding: 9px;\n        overflow: hidden;\n        touch-action: pan-y;\n      }\n      .bars {\n        grid-template-columns: repeat(var(--bar-count), minmax(0, 1fr));\n        gap: 5px;\n        height: 148px;\n        overflow: hidden;\n        padding-top: 22px;\n        padding-bottom: 2px;\n        touch-action: none;\n      }\n      .bar-col {\n        grid-template-rows: minmax(0, 1fr) 18px;\n        gap: 6px;\n      }\n      .bar span {\n        top: -17px;\n        font-size: 8px;\n      }\n      .bar-year {\n        display: block;\n        min-height: 18px;\n        font-size: 10px;\n        line-height: 18px;\n        white-space: nowrap;\n        overflow: visible;\n      }\n    }\n\n    @media (max-width: 480px) {\n      .company-main {\n        grid-template-columns: 50px minmax(0, 1fr) 164px;\n        gap: 8px;\n      }\n      .logo-box {\n        width: 50px;\n        height: 50px;\n      }\n      .logo-box img {\n        width: 38px;\n        height: 38px;\n      }\n      .company-main h2 { font-size: 19px; }\n      .company-main p { display: none; }\n      .mobile-price-card {\n        width: 164px;\n      }\n      .mobile-price-card strong {\n        font-size: 14px;\n      }\n      .mobile-price-card span {\n        font-size: 12px;\n      }\n      .quote-box,\n      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }\n      .quote-item strong { font-size: 18px; }\n      .panel { padding: 14px; }\n    }\n  \n:host{display:block;min-height:100%;background:transparent;color:var(--ink);font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;line-height:1.5;}";
+  const STOCK_RESEARCH_HTML = "<main class=\"app\">\n    <section class=\"tx-card news-controls\">\n      <div class=\"news-control-grid\">\n        <label class=\"news-field\" for=\"symbolInput\">\n          <span class=\"kpi-lbl\" id=\"tickerLabel\">Ticker</span>\n          <input class=\"news-input\" id=\"symbolInput\" value=\"NVDA\" autocomplete=\"off\" spellcheck=\"false\" />\n        </label>\n        <button class=\"news-refresh\" id=\"analyzeBtn\">Analyze</button>\n        <nav class=\"news-chips\" id=\"presetRow\" aria-label=\"Quick symbols\">\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"NVDA\">NVDA</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"GOOGL\">GOOGL</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"AAPL\">AAPL</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"MSFT\">MSFT</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"AMZN\">AMZN</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"TSM\">TSM</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"AVGO\">AVGO</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"META\">META</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"TSLA\">TSLA</button>\n        <button class=\"news-chip\" type=\"button\" data-symbol=\"WMT\">WMT</button>\n        </nav>\n      </div>\n    </section>\n\n    <div id=\"output\" class=\"message\"></div>\n\n  </main>";
+  const STOCK_RESEARCH_HTML_NO_PRESETS = STOCK_RESEARCH_HTML
+    .replace(/<nav class="news-chips" id="presetRow"[\s\S]*?<\/nav>/, '')
+    .replace('value="NVDA"', 'value=""')
+    .replace('autocomplete="off"', 'placeholder="AAPL, TSLA, NVDA" autocomplete="off"');
   const STOCK_RESEARCH_CSS_WITH_MOBILE_ORDER = STOCK_RESEARCH_CSS + `
     @media (max-width: 1100px) {
-      .dashboard-grid { display: flex; flex-direction: column; gap: 4px; }
+      .dashboard-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
       .dashboard-column { display: contents; }
       .dashboard-grid > .dashboard-column > .panel {
         width: 100%;
@@ -5640,21 +5777,25 @@ window.addEventListener('resize', () => {
         max-width: 100%;
         align-self: stretch;
       }
-      .dashboard-grid > .dashboard-column:first-child > .panel:has(.wide-table) .table-wrap {
+      .financial-snapshot-panel,
+      .valuation-panel,
+      .peer-panel { width: 100%; }
+      .peer-panel .table-wrap {
         max-width: 100%;
         overflow-x: auto;
         overscroll-behavior-x: contain;
         touch-action: pan-x pan-y;
       }
       .dashboard-grid > .dashboard-column:first-child > .score-panel { order: 1; }
-      .dashboard-grid > .dashboard-column:nth-child(2) > .panel:nth-child(1) { order: 2; }
+      .dashboard-grid > .dashboard-column:nth-child(2) > .financial-snapshot-panel { order: 2; }
       .dashboard-grid > .dashboard-column:first-child > .sec-trends-panel { order: 3; }
-      .dashboard-grid > .dashboard-column:nth-child(2) > .panel:nth-child(2) { order: 4; }
-      .dashboard-grid > .dashboard-column:first-child > .panel:has(.wide-table) { order: 5; }
+      .dashboard-grid > .dashboard-column:nth-child(2) > .valuation-panel { order: 4; }
+      .dashboard-grid > .dashboard-column:first-child > .peer-panel { order: 5; }
       .dashboard-grid > .dashboard-column:nth-child(2) > .ai-analysis-panel { order: 6; }
-      .dashboard-grid > .dashboard-column:first-child > .panel:has(.list) { order: 7; }
+      .dashboard-grid > .dashboard-column:first-child > .risk-news-panel { order: 7; }
     }
   `;
+
   function bootStockResearch(root){
 const API = 'https://blackspace.markchanchun.workers.dev';
       const $ = (id) => root.getElementById(id);
@@ -5759,7 +5900,7 @@ const API = 'https://blackspace.markchanchun.workers.dev';
           analyze: '分析',
           loading: '載入中',
           quickSymbols: '快速股票清單',
-          initialMessage: '請輸入股票代號。',
+          initialMessage: 'Enter at least one ticker.',
           enterTicker: '請輸入股票代號。',
           loadingResearch: (symbol) => `正在載入 ${symbol} 研究資料...`,
           researchFailed: '研究資料載入失敗',
@@ -6142,7 +6283,7 @@ const API = 'https://blackspace.markchanchun.workers.dev';
           [t('grossMargin'), pct(metric(metrics, metricKeys.grossMargin))],
           [t('netMargin'), pct(secNetMargin ?? metric(metrics, metricKeys.netMargin))]
         ];
-        return panel(t('financialSnapshot'), 'SEC + Finnhub', `<div class="metric-grid">${rows.map(([label, value]) => `<div class="metric-box"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('')}</div>`, t('financialSnapshotNote'));
+        return panel(t('financialSnapshot'), 'SEC + Finnhub', `<div class="metric-grid">${rows.map(([label, value]) => `<div class="metric-box"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('')}</div>`, t('financialSnapshotNote'), 'financial-snapshot-panel');
       }
   
       function chart(title, series, color = 'var(--blue)') {
@@ -6232,7 +6373,7 @@ const API = 'https://blackspace.markchanchun.workers.dev';
             ${rows.map(([label, own, peer]) => `<tr><td>${esc(label)}</td><td>${fmtNum(own)}</td><td>${fmtNum(peer)}</td></tr>`).join('')}
             <tr><td>${esc(t('fcfYield'))}</td><td>${pct(fcfYield)}</td><td>-</td></tr>
           </tbody></table></div>
-        `);
+        `, '', 'valuation-panel');
       }
   
       async function fetchPeerItems(symbol) {
@@ -6274,12 +6415,12 @@ const API = 'https://blackspace.markchanchun.workers.dev';
       function peerTable(symbol, metrics, peers) {
         const own = { symbol, pe: positiveMetric(metrics, metricKeys.pe), forwardPe: positiveMetric(metrics, metricKeys.forwardPe), pb: positiveMetric(metrics, metricKeys.pb), roe: metric(metrics, metricKeys.roe), marketCap: metric(metrics, metricKeys.marketCap) };
         const rows = [own, ...peers];
-        if (!peers.length) return panel(t('peerComparison'), 'Finnhub', `<div class="empty">${esc(t('peerUnavailable'))}</div>`);
+        if (!peers.length) return panel(t('peerComparison'), 'Finnhub', `<div class="empty">${esc(t('peerUnavailable'))}</div>`, '', 'peer-panel');
         return panel(t('peerComparison'), 'Finnhub', `
           <div class="table-wrap"><table class="wide-table"><thead><tr><th>${esc(t('symbol'))}</th><th>${esc(t('marketCap'))}</th><th>P/E</th><th>${esc(t('forwardPe'))}</th><th>P/B</th><th>${esc(t('roe'))}</th></tr></thead><tbody>
             ${rows.map((item) => `<tr><td>${esc(item.symbol)}</td><td>${compactMoney(item.marketCap ? item.marketCap * 1000000 : null)}</td><td>${fmtNum(item.pe)}</td><td>${fmtNum(item.forwardPe)}</td><td>${fmtNum(item.pb)}</td><td>${pct(item.roe)}</td></tr>`).join('')}
           </tbody></table></div>
-        `);
+        `, '', 'peer-panel');
       }
   
       function filingRiskItems(filing) {
@@ -6306,8 +6447,8 @@ const API = 'https://blackspace.markchanchun.workers.dev';
   
       function riskNewsPanel(filing, newsAnalysis) {
         const items = [...filingRiskItems(filing), ...newsItems(newsAnalysis)].slice(0, 7);
-        if (!items.length) return panel(t('riskNewsMonitor'), 'SEC + News AI', `<div class="empty">${esc(t('riskNewsUnavailable'))}</div>`);
-        return panel(t('riskNewsMonitor'), 'SEC + News AI', `<ul class="list">${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`, t('riskNewsNote'));
+        if (!items.length) return panel(t('riskNewsMonitor'), 'SEC + News AI', `<div class="empty">${esc(t('riskNewsUnavailable'))}</div>`, '', 'risk-news-panel');
+        return panel(t('riskNewsMonitor'), 'SEC + News AI', `<ul class="list">${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`, t('riskNewsNote'), 'risk-news-panel');
       }
   
       function aiConclusionPanel(aiConclusion) {
@@ -6584,7 +6725,7 @@ const API = 'https://blackspace.markchanchun.workers.dev';
         analyze: '分析',
         loading: '載入中',
         quickSymbols: '快速股票清單',
-        initialMessage: '請輸入股票代號。',
+        initialMessage: 'Enter at least one ticker.',
         enterTicker: '請輸入股票代號。',
         loadingResearch: (symbol) => `正在載入 ${symbol} 研究資料...`,
         researchFailed: '研究資料載入失敗',
@@ -6967,7 +7108,7 @@ const API = 'https://blackspace.markchanchun.workers.dev';
         [t('grossMargin'), pct(metric(metrics, metricKeys.grossMargin))],
         [t('netMargin'), pct(secNetMargin ?? metric(metrics, metricKeys.netMargin))]
       ];
-      return panel(t('financialSnapshot'), 'SEC + Finnhub', `<div class="metric-grid">${rows.map(([label, value]) => `<div class="metric-box"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('')}</div>`, t('financialSnapshotNote'));
+      return panel(t('financialSnapshot'), 'SEC + Finnhub', `<div class="metric-grid">${rows.map(([label, value]) => `<div class="metric-box"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('')}</div>`, t('financialSnapshotNote'), 'financial-snapshot-panel');
     }
 
     function chartValueLabel(value) {
@@ -7069,7 +7210,7 @@ const API = 'https://blackspace.markchanchun.workers.dev';
           ${rows.map(([label, own, peer]) => `<tr><td>${esc(label)}</td><td>${fmtNum(own)}</td><td>${fmtNum(peer)}</td></tr>`).join('')}
           <tr><td>${esc(t('fcfYield'))}</td><td>${pct(fcfYield)}</td><td>-</td></tr>
         </tbody></table></div>
-      `);
+      `, '', 'valuation-panel');
     }
 
     async function fetchPeerItems(symbol) {
@@ -7111,12 +7252,12 @@ const API = 'https://blackspace.markchanchun.workers.dev';
     function peerTable(symbol, metrics, peers) {
       const own = { symbol, pe: positiveMetric(metrics, metricKeys.pe), forwardPe: positiveMetric(metrics, metricKeys.forwardPe), pb: positiveMetric(metrics, metricKeys.pb), roe: metric(metrics, metricKeys.roe), marketCap: metric(metrics, metricKeys.marketCap) };
       const rows = [own, ...peers];
-      if (!peers.length) return panel(t('peerComparison'), 'Finnhub', `<div class="empty">${esc(t('peerUnavailable'))}</div>`);
+      if (!peers.length) return panel(t('peerComparison'), 'Finnhub', `<div class="empty">${esc(t('peerUnavailable'))}</div>`, '', 'peer-panel');
       return panel(t('peerComparison'), 'Finnhub', `
         <div class="table-wrap"><table class="wide-table"><thead><tr><th>${esc(t('symbol'))}</th><th>${esc(t('marketCap'))}</th><th>P/E</th><th>${esc(t('forwardPe'))}</th><th>P/B</th><th>${esc(t('roe'))}</th></tr></thead><tbody>
           ${rows.map((item) => `<tr><td>${esc(item.symbol)}</td><td>${compactMoney(item.marketCap ? item.marketCap * 1000000 : null)}</td><td>${fmtNum(item.pe)}</td><td>${fmtNum(item.forwardPe)}</td><td>${fmtNum(item.pb)}</td><td>${pct(item.roe)}</td></tr>`).join('')}
         </tbody></table></div>
-      `);
+      `, '', 'peer-panel');
     }
 
     function filingRiskItems(filing) {
@@ -7143,8 +7284,8 @@ const API = 'https://blackspace.markchanchun.workers.dev';
 
     function riskNewsPanel(filing, newsAnalysis) {
       const items = [...filingRiskItems(filing), ...newsItems(newsAnalysis)].slice(0, 7);
-      if (!items.length) return panel(t('riskNewsMonitor'), 'SEC + News AI', `<div class="empty">${esc(t('riskNewsUnavailable'))}</div>`);
-      return panel(t('riskNewsMonitor'), 'SEC + News AI', `<ul class="list">${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`, t('riskNewsNote'));
+      if (!items.length) return panel(t('riskNewsMonitor'), 'SEC + News AI', `<div class="empty">${esc(t('riskNewsUnavailable'))}</div>`, '', 'risk-news-panel');
+      return panel(t('riskNewsMonitor'), 'SEC + News AI', `<ul class="list">${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`, t('riskNewsNote'), 'risk-news-panel');
     }
 
     function aiConclusionPanel(aiConclusion) {
@@ -7313,7 +7454,6 @@ const API = 'https://blackspace.markchanchun.workers.dev';
         section.hidden = section.dataset.chartPeriod !== period;
       });
     });
-  
   }
   window.initStockResearch = function(force){
     const host = document.getElementById('stockresearch-root');
@@ -7323,7 +7463,7 @@ const API = 'https://blackspace.markchanchun.workers.dev';
     }
     if(stockResearchInitialized && !force) return;
     stockResearchInitialized = true;
-    stockResearchRoot.innerHTML = '<style>' + STOCK_RESEARCH_CSS_WITH_MOBILE_ORDER + '</style>' + STOCK_RESEARCH_HTML;
+    stockResearchRoot.innerHTML = '<style>' + STOCK_RESEARCH_CSS_WITH_MOBILE_ORDER + '</style>' + STOCK_RESEARCH_HTML_NO_PRESETS;
     bootStockResearch(stockResearchRoot);
   };
 })();
