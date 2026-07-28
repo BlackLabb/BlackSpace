@@ -3684,6 +3684,7 @@ function applyLang(){
     categories:{title:t('title-categories'),sub:t('sub-categories')},
     investments:{title:t('title-investments'),sub:t('sub-investments')},
     news:{title:t('title-news'),sub:t('sub-news')},
+    fundflow:{title:t('title-fundflow'),sub:t('sub-fundflow')},
     stockresearch:{title:t('title-stockresearch'),sub:t('sub-stockresearch')},
   };
   if(vmeta[curView]){
@@ -5776,6 +5777,25 @@ window.addEventListener('resize', () => {
     .replace('value="NVDA"', 'value=""')
     .replace('autocomplete="off"', 'placeholder="AAPL, TSLA, NVDA" autocomplete="off"');
   const STOCK_RESEARCH_CSS_WITH_MOBILE_ORDER = STOCK_RESEARCH_CSS + `
+    .news-controls {
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .news-control-grid {
+      gap: 8px;
+    }
+    .news-field {
+      gap: 4px;
+    }
+    @media (max-width: 760px) {
+      .news-control-grid {
+        gap: 8px;
+      }
+      .news-chips {
+        margin-top: 2px;
+      }
+    }
+
     @media (max-width: 1100px) {
       .dashboard-grid {
         display: flex;
