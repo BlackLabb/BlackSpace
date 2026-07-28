@@ -5780,16 +5780,27 @@ window.addEventListener('resize', () => {
     .news-controls {
       padding: 12px;
       margin-bottom: 10px;
+      width: fit-content;
+      max-width: 100%;
     }
     .news-control-grid {
       gap: 8px;
+      grid-template-columns: minmax(280px, 420px) max-content;
+      width: fit-content;
+      max-width: 100%;
     }
     .news-field {
       gap: 4px;
     }
     @media (max-width: 760px) {
+      .news-controls {
+        width: 100%;
+      }
       .news-control-grid {
         gap: 8px;
+        grid-template-columns: 1fr;
+        width: 100%;
+        max-width: none;
       }
       .news-chips {
         margin-top: 2px;
@@ -5932,7 +5943,7 @@ const API = 'https://blackspace.markchanchun.workers.dev';
           analyze: '分析',
           loading: '載入中',
           quickSymbols: '快速股票清單',
-          initialMessage: 'Enter at least one ticker.',
+          initialMessage: '請至少輸入一個股票代號。',
           enterTicker: '請輸入股票代號。',
           loadingResearch: (symbol) => `正在載入 ${symbol} 研究資料...`,
           researchFailed: '研究資料載入失敗',
@@ -6757,7 +6768,7 @@ const API = 'https://blackspace.markchanchun.workers.dev';
         analyze: '分析',
         loading: '載入中',
         quickSymbols: '快速股票清單',
-        initialMessage: 'Enter at least one ticker.',
+        initialMessage: '請至少輸入一個股票代號。',
         enterTicker: '請輸入股票代號。',
         loadingResearch: (symbol) => `正在載入 ${symbol} 研究資料...`,
         researchFailed: '研究資料載入失敗',
