@@ -819,15 +819,16 @@ table{border-collapse:collapse;width:100%}
 /* FUND FLOW ESTIMATE */
 .fund-flow-card{margin-top:12px;overflow:hidden}
 .fund-flow-table-wrap{overflow-x:auto}
-.fund-flow-table{min-width:780px}
+.fund-flow-table{min-width:680px}
 .fund-flow-table th{padding:10px 12px;text-align:left;border-bottom:1px solid var(--divider);font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
 .fund-flow-table td{padding:12px;border-bottom:1px solid var(--divider);font-size:12px;vertical-align:middle;white-space:nowrap}
 .fund-flow-table tbody tr:last-child td{border-bottom:0}
 .fund-flow-value,.fund-flow-day{font-family:'JetBrains Mono',monospace;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)!important}
+.fund-flow-day.positive{color:var(--success)!important}
+.fund-flow-day.negative{color:var(--error)!important}
 .fund-flow-streak{font-weight:700;color:var(--text)}
-.fund-flow-streak.positive,.fund-flow-direction.positive{color:var(--success)}
-.fund-flow-streak.negative,.fund-flow-direction.negative{color:var(--error)}
-.fund-flow-direction{font-size:11px;font-weight:700;color:var(--text)}
+.fund-flow-streak.positive{color:var(--success)}
+.fund-flow-streak.negative{color:var(--error)}
 .fund-flow-etf-name{display:inline-block;margin-left:10px}
 .fund-flow-price-note{display:inline-flex;padding:4px 8px;border:1px solid var(--border);border-radius:var(--rFull);font-size:10px;color:var(--muted);white-space:nowrap}
 .fund-flow-ai{margin-top:12px;padding:18px 20px}
@@ -1951,8 +1952,8 @@ table{border-collapse:collapse;width:100%}
           </div>
           <div class="fund-flow-table-wrap">
             <table class="fund-flow-table">
-              <thead><tr><th data-i18n="fund-flow-etf">ETF / 主題</th><th data-i18n="fund-flow-one-day">1日變動 (%)</th><th data-i18n="fund-flow-five-day">5日變動 (%)</th><th data-i18n="fund-flow-streak">連續走勢</th><th data-i18n="fund-flow-direction">方向</th></tr></thead>
-              <tbody id="fund-flow-tbody"><tr><td colspan="5" data-i18n="fund-flow-loading">正在載入價格資料…</td></tr></tbody>
+              <thead><tr><th data-i18n="fund-flow-etf">ETF / 主題</th><th data-i18n="fund-flow-one-day">1日變動 (%)</th><th data-i18n="fund-flow-five-day">5日變動 (%)</th><th data-i18n="fund-flow-streak">連續走勢</th></tr></thead>
+              <tbody id="fund-flow-tbody"><tr><td colspan="4" data-i18n="fund-flow-loading">正在載入價格資料…</td></tr></tbody>
             </table>
           </div>
         </section>
@@ -3064,19 +3065,15 @@ const FUND_FLOW_SECTOR_ZH = {
 let fundFlowRenderToken = 0;
 function fundFlowEsc(value){ return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])); }
 function fundFlowFormat(value, suffix=''){ return Number.isFinite(Number(value)) ? `${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(1)}${suffix}` : '--'; }
-function fundFlowDirectionLabel(row){
-  if(row.streakDirection === 'up') return curLang === 'zh' ? '上升' : 'Up';
-  if(row.streakDirection === 'down') return curLang === 'zh' ? '下跌' : 'Down';
-  return '--';
-}
 function renderFundFlowRows(items){
   const tbody = $('fund-flow-tbody');
   if(!tbody) return;
   tbody.innerHTML = items.map(row => {
     const directionClass = row.streakDirection === 'up' ? 'positive' : row.streakDirection === 'down' ? 'negative' : '';
+    const oneDayClass = Number(row.oneDayPct) > 0 ? 'positive' : Number(row.oneDayPct) < 0 ? 'negative' : '';
     const streak = row.streakDays ? `${row.streakDays}${curLang === 'zh' ? '日' : 'd'}${row.streakDirection === 'up' ? (curLang === 'zh' ? '上升' : 'up') : row.streakDirection === 'down' ? (curLang === 'zh' ? '下跌' : 'down') : '--'}` : '--';
     const sector = curLang === 'zh' ? (FUND_FLOW_SECTOR_ZH[row.symbol] || row.sector) : row.sector;
-    return `<tr><td><strong>${fundFlowEsc(row.symbol)}</strong><span class="fund-flow-etf-name">${fundFlowEsc(sector)}</span></td><td class="fund-flow-day">${fundFlowFormat(row.oneDayPct,'%')}</td><td class="fund-flow-value">${fundFlowFormat(row.fiveDayPct,'%')}</td><td class="fund-flow-streak ${directionClass}">${streak}</td><td><span class="fund-flow-direction ${directionClass}">${fundFlowEsc(fundFlowDirectionLabel(row))}</span></td></tr>`;
+    return `<tr><td><strong>${fundFlowEsc(row.symbol)}</strong><span class="fund-flow-etf-name">${fundFlowEsc(sector)}</span></td><td class="fund-flow-day ${oneDayClass}">${fundFlowFormat(row.oneDayPct,'%')}</td><td class="fund-flow-value">${fundFlowFormat(row.fiveDayPct,'%')}</td><td class="fund-flow-streak ${directionClass}">${streak}</td></tr>`;
   }).join('');
 }
 function renderFundFlowAiFallback(){
@@ -3089,7 +3086,7 @@ function renderFundFlowAiFallback(){
 }
 function renderFundFlowAiLoading(){
   const list = $('fund-flow-ai-list');
-  if(list) list.innerHTML = `<li class="fund-flow-ai-state">${fundFlowEsc(curLang === 'zh' ? '正在等待 DeepSeek V4 Pro 分析價格趨勢…' : 'Waiting for DeepSeek V4 Pro to analyze price trends…')}</li>`;
+  if(list) list.innerHTML = `<li class="fund-flow-ai-state">${fundFlowEsc(curLang === 'zh' ? '正在等待分析 ETF 價格趨勢' : 'Loading ETF price-trend analysis…')}</li>`;
 }
 function renderFundFlowAiFailure(error){
   const list = $('fund-flow-ai-list');
@@ -3106,7 +3103,7 @@ function renderFundFlowAiAnalysis(analysis){
   const list = $('fund-flow-ai-list');
   if(!list || !analysis) return false;
   const keys = ['overall','stronger','weaker','consistency','risk','plan'];
-  const labels = curLang === 'zh' ? ['整體流向','較強流入','較弱／流出','一致性與轉折','風險與限制','觀察計劃'] : ['Overall flow','Stronger inflows','Weaker / outflows','Consistency / turning points','Risk / limits','Observation plan'];
+  const labels = curLang === 'zh' ? ['整體趨勢','較強上升','較弱／下跌','一致性與轉折','風險與限制','觀察計劃'] : ['Overall trend','Stronger upward','Weaker / downward','Consistency / turning points','Risk / limits','Observation plan'];
   if(keys.some(key => typeof analysis[key] !== 'string' || !analysis[key].trim())) return false;
   list.innerHTML = keys.map((key,index) => `<li><strong>${fundFlowEsc(labels[index])}</strong> ${fundFlowEsc(analysis[key])}</li>`).join('');
   return true;
@@ -3116,7 +3113,8 @@ async function renderFundFlowAi(items, token){
   if(!list) return;
   renderFundFlowAiLoading();
   try{
-    const response = await fetch(`${FUND_FLOW_API}/fund-flow-analysis`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ lang:curLang, items }), signal:AbortSignal.timeout(60000) });
+    const locale = curLang === 'en' ? 'en' : 'zh-Hant-HK';
+    const response = await fetch(`${FUND_FLOW_API}/fund-flow-analysis`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ locale, lang:curLang === 'en' ? 'en' : 'zh', items }), signal:AbortSignal.timeout(60000) });
     const data = await response.json();
     if(token !== fundFlowRenderToken) return;
     if(!response.ok || !renderFundFlowAiAnalysis(data.analysis)) throw new Error(data.error || 'AI unavailable');
@@ -3126,7 +3124,7 @@ async function renderFundFlow(){
   const tbody = $('fund-flow-tbody');
   if(!tbody) return;
   const token = ++fundFlowRenderToken;
-  tbody.innerHTML = `<tr><td colspan="5">${fundFlowEsc(t('fund-flow-loading'))}</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="4">${fundFlowEsc(t('fund-flow-loading'))}</td></tr>`;
   renderFundFlowAiLoading();
   try{
     const symbols = FUND_FLOW_SYMBOLS.map(([symbol]) => symbol).join(',');
@@ -3139,7 +3137,7 @@ async function renderFundFlow(){
     await renderFundFlowAi(data.items, token);
   }catch(error){
     console.warn('Fund Flow data unavailable:', error);
-    tbody.innerHTML = `<tr><td colspan="5">${fundFlowEsc(curLang === 'zh' ? '價格資料暫時未能載入。' : 'Price data is temporarily unavailable.')}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4">${fundFlowEsc(curLang === 'zh' ? '價格資料暫時未能載入。' : 'Price data is temporarily unavailable.')}</td></tr>`;
     renderFundFlowAiFailure(error?.message || 'Fund Flow unavailable');
   }
 }
@@ -3530,12 +3528,12 @@ Object.assign(I18N.en, {
 Object.assign(I18N.zh, {
   'title-fundflow':'資金流向','sub-fundflow':'ETF 歷史價格趨勢','app-sub-fundflow':'價格變動',
   'fund-flow-price-note':'以歷史收市價計算','fund-flow-title':'主題 ETF 價格趨勢',
-  'fund-flow-etf':'ETF / 主題','fund-flow-one-day':'1日變動 (%)','fund-flow-five-day':'5日變動 (%)','fund-flow-streak':'連續走勢','fund-flow-direction':'方向','fund-flow-loading':'正在載入價格資料…','fund-flow-ai-title':'AI 分析','fund-flow-ai-loading':'資料載入後，將由伺服器端 AI 分析價格趨勢.'
+  'fund-flow-etf':'ETF / 主題','fund-flow-one-day':'1日變動 (%)','fund-flow-five-day':'5日變動 (%)','fund-flow-streak':'連續走勢','fund-flow-loading':'正在載入價格資料…','fund-flow-ai-title':'AI 分析','fund-flow-ai-loading':'資料載入後，將由伺服器端 AI 分析價格趨勢.'
 });
 Object.assign(I18N.en, {
   'title-fundflow':'Fund Flow','sub-fundflow':'ETF historical price trend','app-sub-fundflow':'Price changes',
   'fund-flow-price-note':'BASED ON HISTORICAL CLOSES','fund-flow-title':'ETF Theme Price Trend',
-  'fund-flow-etf':'ETF / Theme','fund-flow-one-day':'1-day change (%)','fund-flow-five-day':'5-day change (%)','fund-flow-streak':'Price streak','fund-flow-direction':'Direction','fund-flow-loading':'Loading price data…','fund-flow-ai-title':'AI Analysis','fund-flow-ai-loading':'The server-side AI will analyze price trends after data loads.'
+  'fund-flow-etf':'ETF / Theme','fund-flow-one-day':'1-day change (%)','fund-flow-five-day':'5-day change (%)','fund-flow-streak':'Price streak','fund-flow-loading':'Loading price data…','fund-flow-ai-title':'AI Analysis','fund-flow-ai-loading':'The server-side AI will analyze price trends after data loads.'
 });
 
 function t(key){ return (I18N[curLang]||I18N['en'])[key] || (I18N['en'][key] || key); }
