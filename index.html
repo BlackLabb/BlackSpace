@@ -291,7 +291,7 @@ table{border-collapse:collapse;width:100%}
 /* ── PAGE HEADER ─────────────────────────────────────────────────────────────── */
 .page-hdr{display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px}
 .page-hdr:not(:has(button)){display:none}
-.page-title{display:none;font-size:22px;font-weight:700;letter-spacing:-.03em}
+.page-title{display:none;font-size:17px;font-weight:700;letter-spacing:-.03em}
 
 /* ── KPI GRID ────────────────────────────────────────────────────────────────── */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
@@ -318,6 +318,7 @@ table{border-collapse:collapse;width:100%}
 .hero-chip-lbl{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 .hero-stack{display:grid;gap:14px}
 .mini-kpi{padding:20px;border-radius:20px;border:1px solid var(--divider);background:var(--surface);box-shadow:var(--shadow)}
+#inv-hero-wrap{margin-bottom:16px}
 #inv-hero-wrap .hero-stack .mini-kpi{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;gap:10px}
 #inv-hero-wrap .hero-row .hero-card{min-height:auto;padding:20px 22px;border-radius:18px}
 #inv-hero-wrap .hero-label{margin-top:0}
@@ -338,7 +339,7 @@ table{border-collapse:collapse;width:100%}
 .kpi-tile .mini-value{font-size:24px;margin:0;line-height:1.1}
 .kpi-tile .mini-sub{margin:0}
 .annual{margin-top:4px;padding-top:18px;border-top:1px solid var(--divider);margin-bottom:18px}
-.section-head{margin-bottom:12px;font-size:22px;font-weight:600;letter-spacing:-0.03em}
+.section-head{margin-bottom:12px;font-size:17px;font-weight:600;letter-spacing:-0.03em}
 .annual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .annual-grid .span-full{grid-column:1/-1}
 .pos{color:var(--success)}
@@ -526,7 +527,7 @@ table{border-collapse:collapse;width:100%}
   .main { width: 100%; }
   .topbar { padding: calc(10px + env(safe-area-inset-top)) 16px 10px; padding-top: calc(10px + constant(safe-area-inset-top)); background: var(--chrome-bg) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
   .mobile-menu-btn { display: none !important; }
-  .page-title-wrap h1 { font-size: 17px; line-height: 1.15; }
+  .page-title-wrap h1 { font-size: 15px; line-height: 1.15; }
   .topbar-left { gap: 0; min-width: 0; }
   input, select, textarea, .pub-field-inp, .search-inp { font-size: 16px !important; }
   input[type="date"] { font-size: 16px !important; padding: 10px 12px !important; height: auto !important; line-height: normal !important; -webkit-appearance: none; appearance: none; }
@@ -1009,7 +1010,7 @@ table{border-collapse:collapse;width:100%}
 .profile-card:hover{background:var(--surfaceOff)}
 .profile-copy strong{display:block;font-size:13px;font-weight:600}
 .profile-copy span{display:block;margin-top:2px;font-size:11px;color:var(--muted)}
-.page-title-wrap h1{margin:0;font-size:clamp(22px,3vw,32px);font-weight:600;letter-spacing:-.03em;line-height:1.1}
+.page-title-wrap h1{margin:0;font-size:clamp(17px,2.4vw,22px);font-weight:600;letter-spacing:-.03em;line-height:1.1}
 .page-title-wrap p{margin:6px 0 0;font-size:13px;color:var(--muted)}
 .top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .pill-btn,.primary-btn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--divider);background:var(--surface);color:var(--text);font-size:13px;font-weight:600;transition:transform .18s var(--ease,cubic-bezier(.22,1,.36,1)),border-color .18s,background .18s}
@@ -2011,41 +2012,6 @@ table{border-collapse:collapse;width:100%}
 
       <!-- Portfolio Summary KPIs -->
       <div id="inv-hero-wrap"></div>
-      <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:16px">
-        <div class="kpi-card" style="position:relative">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div class="kpi-lbl" id="inv-capital-lbl2" style="margin-bottom:0">Capital</div>
-            <button id="edit-capital-btn" title="Set investment capital" style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;color:var(--faint);transition:background var(--trans),color var(--trans)">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-            </button>
-          </div>
-          <div class="kpi-val" id="inv-capital">$0</div>
-          <div class="kpi-sub" id="inv-capital-sub">Total funds allocated</div>
-        </div>
-        <div class="kpi-card">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div class="kpi-lbl" id="inv-cash-lbl" style="margin-bottom:0">Cash Remaining</div>
-            <button id="edit-cash-btn" title="Set cash remaining" style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;color:var(--faint);transition:background var(--trans),color var(--trans)">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-            </button>
-          </div>
-          <div class="kpi-val" id="inv-cash">$0</div>
-          <div class="kpi-sub" id="inv-cash-sub">Manual entry</div>
-        </div>
-      </div>
-      <!-- Total Account Value row -->
-      <div class="kpi-grid" style="grid-template-columns:1fr;margin-bottom:16px">
-        <div class="kpi-card" style="background:var(--primaryHL);border:1px solid rgba(0,113,227,.15)">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div class="kpi-lbl" id="inv-total-acct-lbl">Total Account Value</div>
-              <div class="kpi-val" id="inv-total-acct" style="font-size:26px">—</div>
-              <div class="kpi-sub" id="inv-total-acct-sub">(市值 + 剩餘現金) − 資本</div>
-            </div>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" opacity=".4"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
-          </div>
-        </div>
-      </div>
 
       <!-- Portfolio Allocation Card -->
       <div class="panel card" id="inv-alloc-card" style="display:none;margin-bottom:12px">
@@ -3731,8 +3697,6 @@ function applyLang(){
   setTxt('inv-capital-lbl2',    'lbl-capital');
   setTxt('inv-capital-sub',     'sub-capital');
   setTxt('inv-cash-lbl',        'lbl-cash-rem');
-  setTxt('inv-total-acct-lbl',  'lbl-total-acct');
-  setTxt('inv-total-acct-sub',  'sub-total-acct');
   const holdEl = $('holdings-title'); if(holdEl) holdEl.textContent = curLang==='zh'?'持倉':'Holdings';
   const rfTxt = $('refresh-btn-text'); if(rfTxt) rfTxt.textContent = curLang==='zh'?'重新整理':'Refresh';
   // Also update actual cash modal strings
@@ -4730,20 +4694,20 @@ function renderInvestments(){
 
   let totalCost = 0, totalValue = 0;
   const heroWrap = $('inv-hero-wrap');
+  const _invEditIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
   const renderInvHero = (cost, value) => {
     if(!heroWrap) return;
-    if(!investments.length){ heroWrap.innerHTML = ''; return; }
     const totalPnl = value - cost;
     const totalRet = cost > 0 ? (totalPnl / cost * 100) : 0;
     const mask = v => privacyMode ? '*****' : v;
-    heroWrap.innerHTML = `<div class="hero-row"><section class="hero-card"><div class="hero-label">${t('lbl-inv-mktval')}</div><div class="hero-value masked">${mask('$'+Math.round(value).toLocaleString())}</div><div class="hero-sub"><div class="hero-chip-row"><span class="hero-chip-lbl">${t('lbl-inv-pnl')}</span><span class="chip ${totalPnl>=0?'positive':'negative'}">${mask((totalPnl>=0?'+':'')+'$'+Math.abs(Math.round(totalPnl)).toLocaleString())}</span></div><div class="hero-chip-row"><span class="hero-chip-lbl">${t('lbl-inv-return')}</span><span class="chip ${totalRet>=0?'positive':'negative'}">${mask((totalRet>=0?'+':'')+totalRet.toFixed(2)+'%')}</span></div></div></section><div class="hero-stack"><div class="mini-kpi"><div class="mini-label">${t('lbl-inv-cost')}</div><div class="mini-value masked">${mask('$'+Math.round(cost).toLocaleString())}</div></div><div class="mini-kpi"><div class="mini-label">${t('sub-inv-mktval')}</div><div class="mini-value masked">${mask('$'+Math.round(value).toLocaleString())}</div></div></div></div>`;
+    heroWrap.innerHTML = `<div class="hero-row"><section class="hero-card"><div class="hero-label">${t('lbl-inv-mktval')}</div><div class="hero-value masked">${mask('$'+Math.round(value).toLocaleString())}</div><div class="hero-sub"><div class="hero-chip-row"><span class="hero-chip-lbl">${t('lbl-inv-pnl')}</span><span class="chip ${totalPnl>=0?'positive':'negative'}">${mask((totalPnl>=0?'+':'')+'$'+Math.abs(Math.round(totalPnl)).toLocaleString())}</span></div><div class="hero-chip-row"><span class="hero-chip-lbl">${t('lbl-inv-return')}</span><span class="chip ${totalRet>=0?'positive':'negative'}">${mask((totalRet>=0?'+':'')+totalRet.toFixed(2)+'%')}</span></div></div></section><div class="hero-stack"><div class="mini-kpi"><div class="mini-top"><div class="mini-label" id="inv-capital-lbl2">${t('lbl-capital')}</div><button type="button" id="edit-capital-btn" class="edit-btn" title="Set investment capital" aria-label="Set investment capital">${_invEditIcon}</button></div><div class="mini-value masked" id="inv-capital">$0</div><div class="mini-sub" id="inv-capital-sub">${t('sub-capital')}</div></div><div class="mini-kpi"><div class="mini-top"><div class="mini-label" id="inv-cash-lbl">${t('lbl-cash-rem')}</div><button type="button" id="edit-cash-btn" class="edit-btn" title="Set cash remaining" aria-label="Set cash remaining">${_invEditIcon}</button></div><div class="mini-value masked" id="inv-cash">$0</div><div class="mini-sub" id="inv-cash-sub">${curLang==='zh'?'手動輸入':'Manual entry'}</div></div></div></div>`;
   };
 
   const tbody = $('inv-tbody');
   if(!investments.length){
     tbody.innerHTML = `<tr><td colspan="7" class="empty-row">${curLang==='zh'?'尚無持倉，立即新增第一筆投資！':'No positions yet. Add your first investment!'}</td></tr>`;
-    renderCapitalKPIs(0);
     renderInvHero(0, 0);
+    renderCapitalKPIs(0);
     return;
   }
 
@@ -4829,8 +4793,8 @@ function renderInvestments(){
   const totalRet = totalCost > 0 ? (totalPnl / totalCost * 100) : 0;
   const hasValue = investments.length > 0;
 
-  renderCapitalKPIs(totalCost);
   renderInvHero(totalCost, totalValue);
+  renderCapitalKPIs(totalCost);
   renderAllocationChart(totalValue, totalCost);
 }
 
@@ -4928,25 +4892,16 @@ function renderCapitalKPIs(totalCost){
   const cap  = invCapital;
   const cash = invActualCash || 0;
   const fmt2 = n => (n<0?'-':'')+'$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
-  $('inv-capital').textContent = fmt2(cap);
-  $('inv-cash').textContent    = fmt2(cash);
-  $('inv-cash').className      = 'kpi-val';
-  $('inv-cash-sub').textContent = curLang==='zh'?'手動輸入':'Manual entry';
-
-  // Total Account Value = (Market Value + Cash Remaining) - Capital
-  const totalValue = investments.reduce((s,i)=> s + (i.livePrice!=null ? i.qty*i.livePrice*(FX_TO_HKD[i.currency]||7.78) : i.qty*i.avgCost*(FX_TO_HKD[i.currency]||7.78)), 0);
-  const totalAcct = (totalValue + cash) - cap;
-  const acctEl = $('inv-total-acct');
-  if(cap > 0 || cash !== 0 || investments.length > 0){
-    acctEl.textContent = fmt2(totalAcct);
-    acctEl.className = 'kpi-val ' + (totalAcct>=0?'inv-pos':'inv-neg');
-  } else {
-    acctEl.textContent = '—';
-    acctEl.className = 'kpi-val';
+  const mask = v => privacyMode ? '*****' : v;
+  const capEl = $('inv-capital');
+  const cashEl = $('inv-cash');
+  if(capEl) capEl.textContent = mask(fmt2(cap));
+  if(cashEl){
+    cashEl.textContent = mask(fmt2(cash));
+    cashEl.className = 'mini-value masked';
   }
-  // Update sub-label with formula reminder
-  const subEl = $('inv-total-acct-sub');
-  if(subEl) subEl.textContent = curLang==='zh' ? '(市值 + 剩餘現金) − 資本' : '(Market Value + Cash Remaining) − Capital';
+  const cashSub = $('inv-cash-sub');
+  if(cashSub) cashSub.textContent = curLang==='zh'?'手動輸入':'Manual entry';
 }
 
 // ── MODAL ──────────────────────────────────────────────────────────────────────
@@ -4971,7 +4926,10 @@ function openCapitalModal(){
   setTimeout(()=>$('f-capital').focus(), 50);
 }
 function closeCapitalModal(){ $('capital-overlay').classList.remove('open'); }
-$('edit-capital-btn').addEventListener('click', openCapitalModal);
+$('inv-hero-wrap').addEventListener('click', e => {
+  if(e.target.closest('#edit-capital-btn')) openCapitalModal();
+  else if(e.target.closest('#edit-cash-btn')) openCashModal();
+});
 $('capital-close').addEventListener('click', closeCapitalModal);
 $('capital-cancel').addEventListener('click', closeCapitalModal);
 $('capital-submit').addEventListener('click', ()=>{
@@ -4991,7 +4949,6 @@ function openCashModal(){
   setTimeout(()=>$('f-cash').focus(), 50);
 }
 function closeCashModal(){ $('cash-overlay').classList.remove('open'); }
-$('edit-cash-btn').addEventListener('click', openCashModal);
 $('cash-close').addEventListener('click', closeCashModal);
 $('cash-cancel').addEventListener('click', closeCashModal);
 $('cash-submit').addEventListener('click', ()=>{
@@ -5893,18 +5850,17 @@ window.addEventListener('resize', () => {
       padding: 16px;
       margin-bottom: 14px;
       width: 100%;
-      max-width: 560px;
       box-sizing: border-box;
     }
     .news-control-grid {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       align-items: flex-end;
       gap: 12px;
       width: 100%;
     }
     .news-field {
-      flex: 1 1 280px;
+      flex: 1 1 auto;
       min-width: 0;
       gap: 6px;
     }
