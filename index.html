@@ -1392,7 +1392,7 @@ table{border-collapse:collapse;width:100%}
         if(appHold) appHold.style.display = 'none';
         hideLoading();
         const splashStart = window._pubSplashStartAt || Date.now();
-        const waitMs = Math.max(0, 3000 - (Date.now() - splashStart));
+        const waitMs = Math.max(0, 1500 - (Date.now() - splashStart));
         if(waitMs > 0) await new Promise(r => setTimeout(r, waitMs));
         window._pubAutoLoginHold = false;
         _pubSplashDone = true;
