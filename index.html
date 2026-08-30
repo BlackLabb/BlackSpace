@@ -357,55 +357,43 @@ table{border-collapse:collapse;width:100%}
     min-height:0!important;
     height:auto;
     padding:12px 14px;
-    border-radius:16px;
-    display:grid;
-    grid-template-columns:38px minmax(0,1fr);
-    grid-template-rows:auto auto auto;
-    column-gap:10px;
-    row-gap:0;
-    align-items:start;
+    border-radius:14px;
+    border:1px solid var(--divider);
+    background:var(--surface);
+    box-shadow:var(--shadow);
+    display:block;
   }
-  #dash-kpis .hero-mark{
-    width:38px;
-    height:38px;
-    grid-column:1;
-    grid-row:1 / span 3;
-    align-self:center;
-    box-shadow:0 0 0 3px var(--primaryHL);
-  }
+  #dash-kpis .hero-mark{display:none}
   #dash-kpis .hero-brand{display:none}
+  #dash-kpis .hero-card::after{display:none}
   #dash-kpis .hero-label{
-    grid-column:2;
-    grid-row:1;
-    margin-top:0;
+    margin:0 0 10px;
     font-size:10px;
     letter-spacing:.12em;
   }
   #dash-kpis .hero-value{
-    grid-column:2;
-    grid-row:2;
-    margin-top:2px;
-    font-size:clamp(22px,6.5vw,28px);
+    margin:0;
+    font-size:20px;
+    font-weight:600;
+    line-height:1;
   }
   #dash-kpis .hero-sub{
-    grid-column:2;
-    grid-row:3;
-    margin-top:4px;
+    margin:6px 0 0;
     font-size:11px;
     line-height:1.35;
+    color:var(--muted);
   }
-  #dash-kpis .hero-card::after{width:88px;height:88px;inset:auto -20% -55% auto;opacity:.7}
   #dash-kpis .hero-row{margin-bottom:10px;gap:10px}
   #dash-kpis .mini-kpi{padding:12px 14px;border-radius:14px}
   #dash-kpis .mini-value{font-size:20px}
   #dash-kpis .mini-label{font-size:10px}
-  #dash-kpis .mini-sub{font-size:11px}
+  #dash-kpis .mini-sub{margin-top:6px;font-size:11px}
+  #dash-kpis .mini-top{margin-bottom:10px}
 }
 @media(max-width:560px){
   .hero-value{font-size:34px}
   #dash-kpis .hero-row .hero-card{padding:11px 12px;border-radius:14px}
-  #dash-kpis .hero-mark{width:34px;height:34px}
-  #dash-kpis .hero-value{font-size:22px}
+  #dash-kpis .hero-value{font-size:19px}
   #dash-kpis .mini-kpi{padding:11px 12px}
   #dash-kpis .mini-value{font-size:19px}
   .hero-card{padding:22px}
