@@ -296,8 +296,8 @@ table{border-collapse:collapse;width:100%}
 /* ── KPI GRID ────────────────────────────────────────────────────────────────── */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
 .kpi-card{background:var(--surface);border:none;border-radius:var(--rXl);padding:18px 20px;box-shadow:var(--shadow)}
-.kpi-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px}
-.kpi-val{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;margin-bottom:5px;letter-spacing:-.03em}
+.kpi-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:12px}
+.kpi-val{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:4px;margin-bottom:8px;letter-spacing:-.03em}
 .kpi-sub{font-size:11px;color:var(--muted)}
 .kpi-sub.neg{color:var(--error)}
 .kpi-sub.pos{color:var(--success)}
@@ -319,6 +319,13 @@ table{border-collapse:collapse;width:100%}
 .hero-stack{display:grid;gap:14px}
 .mini-kpi{padding:20px;border-radius:20px;border:1px solid var(--divider);background:var(--surface);box-shadow:var(--shadow)}
 #inv-hero-wrap .hero-stack .mini-kpi{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;gap:10px}
+#inv-hero-wrap .hero-row .hero-card{min-height:auto;padding:20px 22px;border-radius:18px}
+#inv-hero-wrap .hero-label{margin-top:0}
+#inv-hero-wrap .hero-value{margin-top:8px;font-size:clamp(28px,3.6vw,40px)}
+#inv-hero-wrap .hero-sub{margin-top:10px}
+#inv-hero-wrap .hero-card::after{width:160px;height:160px}
+#inv-hero-wrap .mini-kpi{padding:16px 18px;border-radius:16px}
+#inv-hero-wrap .mini-value{font-size:24px}
 .mini-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .mini-label{font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)}
 .mini-value{font-size:28px;font-weight:600;letter-spacing:-0.04em;line-height:1}
@@ -326,8 +333,10 @@ table{border-collapse:collapse;width:100%}
 .mini-kpi .edit-btn{opacity:1;color:var(--muted)}
 .mini-kpi .edit-btn:hover{background:rgba(255,255,255,0.05);color:var(--text)}
 .kpi-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:18px}
-.kpi-tile{padding:18px;border-radius:18px;border:1px solid var(--divider);background:var(--surface);box-shadow:var(--shadow)}
-.kpi-tile .mini-value{font-size:24px}
+.kpi-tile{padding:18px;border-radius:18px;border:1px solid var(--divider);background:var(--surface);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+.kpi-tile .mini-label{margin:0}
+.kpi-tile .mini-value{font-size:24px;margin:0;line-height:1.1}
+.kpi-tile .mini-sub{margin:0}
 .annual{margin-top:4px;padding-top:18px;border-top:1px solid var(--divider);margin-bottom:18px}
 .section-head{margin-bottom:12px;font-size:22px;font-weight:600;letter-spacing:-0.03em}
 .annual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -578,7 +587,6 @@ table{border-collapse:collapse;width:100%}
   .inv-mobile-pnl { display: block; font-size: 11px; margin-top: 3px; }
   .page-hdr .page-title { display: none; }
   .page-hdr { justify-content: flex-end; }
-  #inv-kpis { grid-template-columns: repeat(2, 1fr) !important; }
   .topbar-right { gap: 4px; }
   #view-investments { overflow-x: hidden; }
   #view-investments .tx-card { overflow-x: auto; }
@@ -2003,12 +2011,6 @@ table{border-collapse:collapse;width:100%}
 
       <!-- Portfolio Summary KPIs -->
       <div id="inv-hero-wrap"></div>
-      <div class="kpi-grid" id="inv-kpis" style="grid-template-columns:repeat(2,1fr);margin-bottom:12px">
-        <div class="kpi-card"><div class="kpi-lbl" id="inv-total-cost-lbl">Total Cost</div><div class="kpi-val" id="inv-total-cost">$0</div><div class="kpi-sub" id="inv-cost-sub">Amount invested</div></div>
-        <div class="kpi-card"><div class="kpi-lbl" id="inv-market-val-lbl">Market Value</div><div class="kpi-val" id="inv-market-val">$0</div><div class="kpi-sub" id="inv-mktval-sub">Current value</div></div>
-        <div class="kpi-card"><div class="kpi-lbl" id="inv-pnl-lbl">Total P&amp;L</div><div class="kpi-val" id="inv-pnl">$0</div><div class="kpi-sub" id="inv-pnl-sub">Overall</div></div>
-        <div class="kpi-card"><div class="kpi-lbl" id="inv-return-lbl">Return</div><div class="kpi-val" id="inv-return">0%</div><div class="kpi-sub" id="inv-price-time">Live prices</div></div>
-      </div>
       <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:16px">
         <div class="kpi-card" style="position:relative">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
@@ -3726,14 +3728,6 @@ function applyLang(){
   setTxt('card-bva-title',      'card-bva');
 
   // Static labels in Investments HTML
-  setTxt('inv-total-cost-lbl',   'lbl-inv-cost');
-  setTxt('inv-market-val-lbl',   'lbl-inv-mktval');
-  setTxt('inv-pnl-lbl',          'lbl-inv-pnl');
-  setTxt('inv-return-lbl',       'lbl-inv-return');
-  setTxt('inv-cost-sub',        'sub-inv-cost');
-  setTxt('inv-mktval-sub',      'sub-inv-mktval');
-  setTxt('inv-pnl-sub',         'sub-inv-overall');
-  setTxt('inv-price-time',      'sub-live');
   setTxt('inv-capital-lbl2',    'lbl-capital');
   setTxt('inv-capital-sub',     'sub-capital');
   setTxt('inv-cash-lbl',        'lbl-cash-rem');
@@ -4741,18 +4735,13 @@ function renderInvestments(){
     if(!investments.length){ heroWrap.innerHTML = ''; return; }
     const totalPnl = value - cost;
     const totalRet = cost > 0 ? (totalPnl / cost * 100) : 0;
-    const acctVal = (value + Math.max(invActualCash || 0, 0)) - invCapital;
     const mask = v => privacyMode ? '*****' : v;
-    heroWrap.innerHTML = `<div class="hero-row"><section class="hero-card"><div class="hero-label">${t('lbl-inv-mktval')}</div><div class="hero-value masked">${mask('$'+Math.round(value).toLocaleString())}</div><div class="hero-sub"><div class="hero-chip-row"><span class="hero-chip-lbl">${t('lbl-inv-pnl')}</span><span class="chip ${totalPnl>=0?'positive':'negative'}">${mask((totalPnl>=0?'+':'')+'$'+Math.abs(Math.round(totalPnl)).toLocaleString())}</span></div><div class="hero-chip-row"><span class="hero-chip-lbl">${t('lbl-inv-return')}</span><span class="chip ${totalRet>=0?'positive':'negative'}">${mask((totalRet>=0?'+':'')+totalRet.toFixed(2)+'%')}</span></div></div></section><div class="hero-stack"><div class="mini-kpi"><div class="mini-label">${t('lbl-inv-cost')}</div><div class="mini-value masked">${mask('$'+Math.round(cost).toLocaleString())}</div></div><div class="mini-kpi"><div class="mini-label">${t('lbl-total-acct')}</div><div class="mini-value masked">${mask((acctVal>=0?'+':'')+'$'+Math.abs(Math.round(acctVal)).toLocaleString())}</div></div></div></div>`;
+    heroWrap.innerHTML = `<div class="hero-row"><section class="hero-card"><div class="hero-label">${t('lbl-inv-mktval')}</div><div class="hero-value masked">${mask('$'+Math.round(value).toLocaleString())}</div><div class="hero-sub"><div class="hero-chip-row"><span class="hero-chip-lbl">${t('lbl-inv-pnl')}</span><span class="chip ${totalPnl>=0?'positive':'negative'}">${mask((totalPnl>=0?'+':'')+'$'+Math.abs(Math.round(totalPnl)).toLocaleString())}</span></div><div class="hero-chip-row"><span class="hero-chip-lbl">${t('lbl-inv-return')}</span><span class="chip ${totalRet>=0?'positive':'negative'}">${mask((totalRet>=0?'+':'')+totalRet.toFixed(2)+'%')}</span></div></div></section><div class="hero-stack"><div class="mini-kpi"><div class="mini-label">${t('lbl-inv-cost')}</div><div class="mini-value masked">${mask('$'+Math.round(cost).toLocaleString())}</div></div><div class="mini-kpi"><div class="mini-label">${t('sub-inv-mktval')}</div><div class="mini-value masked">${mask('$'+Math.round(value).toLocaleString())}</div></div></div></div>`;
   };
 
   const tbody = $('inv-tbody');
   if(!investments.length){
     tbody.innerHTML = `<tr><td colspan="7" class="empty-row">${curLang==='zh'?'尚無持倉，立即新增第一筆投資！':'No positions yet. Add your first investment!'}</td></tr>`;
-    $('inv-total-cost').textContent = '$0';
-    $('inv-market-val').textContent = '$0';
-    $('inv-pnl').textContent = '$0';
-    $('inv-return').textContent = '0%';
     renderCapitalKPIs(0);
     renderInvHero(0, 0);
     return;
@@ -4840,12 +4829,6 @@ function renderInvestments(){
   const totalRet = totalCost > 0 ? (totalPnl / totalCost * 100) : 0;
   const hasValue = investments.length > 0;
 
-  $('inv-total-cost').textContent = totalCost.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
-  $('inv-market-val').textContent = hasValue ? totalValue.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}) : '—';
-  $('inv-pnl').textContent        = hasValue ? (totalPnl>=0?'+':'')+('$'+Math.abs(totalPnl).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})) : '—';
-  $('inv-pnl').className          = 'kpi-val ' + (totalPnl>=0?'inv-pos':'inv-neg');
-  $('inv-return').textContent     = hasValue ? (totalRet>=0?'+':'')+totalRet.toFixed(2)+'%' : '—';
-  $('inv-return').className       = 'kpi-val ' + (totalRet>=0?'inv-pos':'inv-neg');
   renderCapitalKPIs(totalCost);
   renderInvHero(totalCost, totalValue);
   renderAllocationChart(totalValue, totalCost);
