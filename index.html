@@ -6204,11 +6204,54 @@ window.addEventListener('resize', () => {
       .financial-snapshot-panel,
       .valuation-panel,
       .peer-panel { width: 100%; }
-      .peer-panel .table-wrap {
+      .peer-panel .table-wrap,
+      .panel-table-scroll {
         max-width: 100%;
         overflow-x: auto;
         overscroll-behavior-x: contain;
         touch-action: pan-x pan-y;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      .peer-panel .table-wrap::-webkit-scrollbar,
+      .panel-table-scroll::-webkit-scrollbar {
+        display: none;
+        height: 0;
+        width: 0;
+      }
+      .panel-scroll-nav {
+        display: none;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+      .panel-has-scroll .panel-scroll-nav {
+        display: inline-flex;
+      }
+      .panel-scroll-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surfaceOff);
+        color: var(--text);
+        cursor: pointer;
+      }
+      .panel-scroll-btn svg {
+        width: 16px;
+        height: 16px;
+        stroke: currentColor;
+      }
+      .panel-scroll-btn:active:not(:disabled) {
+        transform: scale(.96);
+      }
+      .panel-scroll-btn:disabled {
+        opacity: .35;
+        cursor: default;
       }
       .dashboard-grid > .dashboard-column:first-child > .score-panel { order: 1; }
       .dashboard-grid > .dashboard-column:nth-child(2) > .financial-snapshot-panel { order: 2; }
@@ -6245,6 +6288,31 @@ window.addEventListener('resize', () => {
       .trend-toggle button.is-active{background:var(--primary);color:${btnText}}
     ` : '';
     return STOCK_RESEARCH_CSS_WITH_MOBILE_ORDER + stockResearchThemeCss(theme) + fixes;
+  }
+
+  function initStockResearchPanelScroll(root, labels){
+    root.querySelectorAll('.panel-has-scroll').forEach(panel => {
+      const wrap = panel.querySelector('[data-panel-scroll-wrap]');
+      const leftBtn = panel.querySelector('[data-scroll-dir="left"]');
+      const rightBtn = panel.querySelector('[data-scroll-dir="right"]');
+      if(!wrap || !leftBtn || !rightBtn) return;
+      const sync = () => {
+        const max = Math.max(0, wrap.scrollWidth - wrap.clientWidth);
+        leftBtn.disabled = max <= 0 || wrap.scrollLeft <= 4;
+        rightBtn.disabled = max <= 0 || wrap.scrollLeft >= max - 4;
+      };
+      leftBtn.setAttribute('aria-label', labels.left);
+      rightBtn.setAttribute('aria-label', labels.right);
+      if(!leftBtn.dataset.scrollBound){
+        leftBtn.dataset.scrollBound = '1';
+        rightBtn.dataset.scrollBound = '1';
+        const step = () => Math.max(120, Math.round(wrap.clientWidth * 0.72));
+        leftBtn.addEventListener('click', () => wrap.scrollBy({ left:-step(), behavior:'smooth' }));
+        rightBtn.addEventListener('click', () => wrap.scrollBy({ left:step(), behavior:'smooth' }));
+        wrap.addEventListener('scroll', sync, { passive:true });
+      }
+      sync();
+    });
   }
 
   function bootStockResearch(root){
@@ -6309,6 +6377,8 @@ const API = 'https://blackspace.markchanchun.workers.dev';
           forwardPe: 'Forward P/E',
           fcfYield: 'FCF Yield',
           peerComparison: 'Peer Comparison',
+          scrollLeft: 'Scroll left',
+          scrollRight: 'Scroll right',
           symbol: 'Symbol',
           peerUnavailable: 'Peer route unavailable or no peers returned.',
           riskNewsMonitor: 'Risk & News Monitor',
@@ -6384,6 +6454,8 @@ const API = 'https://blackspace.markchanchun.workers.dev';
           forwardPe: '預期 P/E',
           fcfYield: '自由現金流收益率',
           peerComparison: '同業比較',
+          scrollLeft: '向左滑動',
+          scrollRight: '向右滑動',
           symbol: '代號',
           peerUnavailable: '同業資料路由不可用，或未返回同業名單。',
           riskNewsMonitor: '風險與新聞監察',
@@ -6610,11 +6682,21 @@ const API = 'https://blackspace.markchanchun.workers.dev';
         `;
       }
   
-      function panel(title, source, body, note = '', className = '') {
+      function panel(title, source, body, note = '', className = '', scrollable = false) {
+        const scrollNav = scrollable ? `
+            <div class="panel-scroll-nav">
+              <button type="button" class="panel-scroll-btn" data-scroll-dir="left" aria-label="${esc(t('scrollLeft'))}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+              </button>
+              <button type="button" class="panel-scroll-btn" data-scroll-dir="right" aria-label="${esc(t('scrollRight'))}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+              </button>
+            </div>` : '';
         return `
-          <section class="panel ${esc(className)}">
+          <section class="panel ${esc(className)}${scrollable ? ' panel-has-scroll' : ''}">
             <div class="panel-head">
               <div><h3>${esc(title)}</h3>${note ? `<p class="panel-note">${esc(note)}</p>` : ''}</div>
+              ${scrollNav}
             </div>
             ${body}
           </section>
@@ -6860,10 +6942,10 @@ const API = 'https://blackspace.markchanchun.workers.dev';
         const rows = [own, ...peers];
         if (!peers.length) return panel(t('peerComparison'), 'Finnhub', `<div class="empty">${esc(t('peerUnavailable'))}</div>`, '', 'peer-panel');
         return panel(t('peerComparison'), 'Finnhub', `
-          <div class="table-wrap"><table class="wide-table"><thead><tr><th>${esc(t('symbol'))}</th><th>${esc(t('marketCap'))}</th><th>P/E</th><th>${esc(t('forwardPe'))}</th><th>P/B</th><th>${esc(t('roe'))}</th></tr></thead><tbody>
+          <div class="table-wrap panel-table-scroll" data-panel-scroll-wrap><table class="wide-table"><thead><tr><th>${esc(t('symbol'))}</th><th>${esc(t('marketCap'))}</th><th>P/E</th><th>${esc(t('forwardPe'))}</th><th>P/B</th><th>${esc(t('roe'))}</th></tr></thead><tbody>
             ${rows.map((item) => `<tr><td>${esc(item.symbol)}</td><td>${compactMoney(item.marketCap ? item.marketCap * 1000000 : null)}</td><td>${fmtNum(item.pe)}</td><td>${fmtNum(item.forwardPe)}</td><td>${fmtNum(item.pb)}</td><td>${pct(item.roe)}</td></tr>`).join('')}
           </tbody></table></div>
-        `, '', 'peer-panel');
+        `, '', 'peer-panel', true);
       }
   
       function filingRiskItems(filing) {
@@ -7023,6 +7105,8 @@ const API = 'https://blackspace.markchanchun.workers.dev';
               </div>
             </div>
           `;
+          initStockResearchPanelScroll(root, { left: t('scrollLeft'), right: t('scrollRight') });
+          requestAnimationFrame(() => initStockResearchPanelScroll(root, { left: t('scrollLeft'), right: t('scrollRight') }));
           loadStockAiAnalysis(symbol);
         } catch (error) {
           output.className = 'message';
@@ -7126,6 +7210,8 @@ const API = 'https://blackspace.markchanchun.workers.dev';
         forwardPe: 'Forward P/E',
         fcfYield: 'FCF Yield',
         peerComparison: 'Peer Comparison',
+        scrollLeft: 'Scroll left',
+        scrollRight: 'Scroll right',
         symbol: 'Symbol',
         peerUnavailable: 'Peer route unavailable or no peers returned.',
         riskNewsMonitor: 'Risk & News Monitor',
@@ -7201,6 +7287,8 @@ const API = 'https://blackspace.markchanchun.workers.dev';
         forwardPe: '預期 P/E',
         fcfYield: '自由現金流收益率',
         peerComparison: '同業比較',
+        scrollLeft: '向左滑動',
+        scrollRight: '向右滑動',
         symbol: '代號',
         peerUnavailable: '同業資料路由不可用，或未返回同業名單。',
         riskNewsMonitor: '風險與新聞監察',
@@ -7427,11 +7515,21 @@ const API = 'https://blackspace.markchanchun.workers.dev';
       `;
     }
 
-    function panel(title, source, body, note = '', className = '') {
+    function panel(title, source, body, note = '', className = '', scrollable = false) {
+      const scrollNav = scrollable ? `
+          <div class="panel-scroll-nav">
+            <button type="button" class="panel-scroll-btn" data-scroll-dir="left" aria-label="${esc(t('scrollLeft'))}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+            </button>
+            <button type="button" class="panel-scroll-btn" data-scroll-dir="right" aria-label="${esc(t('scrollRight'))}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+            </button>
+          </div>` : '';
       return `
-        <section class="panel ${esc(className)}">
+        <section class="panel ${esc(className)}${scrollable ? ' panel-has-scroll' : ''}">
           <div class="panel-head">
             <div><h3>${esc(title)}</h3>${note ? `<p class="panel-note">${esc(note)}</p>` : ''}</div>
+            ${scrollNav}
           </div>
           ${body}
         </section>
@@ -7689,10 +7787,10 @@ const API = 'https://blackspace.markchanchun.workers.dev';
       const rows = [own, ...peers];
       if (!peers.length) return panel(t('peerComparison'), 'Finnhub', `<div class="empty">${esc(t('peerUnavailable'))}</div>`, '', 'peer-panel');
       return panel(t('peerComparison'), 'Finnhub', `
-        <div class="table-wrap"><table class="wide-table"><thead><tr><th>${esc(t('symbol'))}</th><th>${esc(t('marketCap'))}</th><th>P/E</th><th>${esc(t('forwardPe'))}</th><th>P/B</th><th>${esc(t('roe'))}</th></tr></thead><tbody>
+        <div class="table-wrap panel-table-scroll" data-panel-scroll-wrap><table class="wide-table"><thead><tr><th>${esc(t('symbol'))}</th><th>${esc(t('marketCap'))}</th><th>P/E</th><th>${esc(t('forwardPe'))}</th><th>P/B</th><th>${esc(t('roe'))}</th></tr></thead><tbody>
           ${rows.map((item) => `<tr><td>${esc(item.symbol)}</td><td>${compactMoney(item.marketCap ? item.marketCap * 1000000 : null)}</td><td>${fmtNum(item.pe)}</td><td>${fmtNum(item.forwardPe)}</td><td>${fmtNum(item.pb)}</td><td>${pct(item.roe)}</td></tr>`).join('')}
         </tbody></table></div>
-      `, '', 'peer-panel');
+      `, '', 'peer-panel', true);
     }
 
     function filingRiskItems(filing) {
@@ -7852,6 +7950,8 @@ const API = 'https://blackspace.markchanchun.workers.dev';
             </div>
           </div>
         `;
+        initStockResearchPanelScroll(root, { left: t('scrollLeft'), right: t('scrollRight') });
+        requestAnimationFrame(() => initStockResearchPanelScroll(root, { left: t('scrollLeft'), right: t('scrollRight') }));
         loadStockAiAnalysis(symbol);
       } catch (error) {
         output.className = 'message';
