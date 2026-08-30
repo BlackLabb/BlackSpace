@@ -2,9 +2,9 @@
 	<script>
 	// ⛔ Restore saved theme BEFORE first paint (fix iOS PWA white status bar)
 	(function(){
-	  var t='light';
-	  try { localStorage.setItem('bs_theme', t); } catch(_){}
-	  var c='#f5f5f7';
+	  var t='dark';
+	  try { var s=localStorage.getItem('bs_theme'); if(s==='light'||s==='dark'||s==='trader') t=s; } catch(_){}
+	  var c=t==='light'?'#f5f5f7':t==='trader'?'#000000':'#070708';
 	  document.documentElement.setAttribute('data-theme',t);
 	  document.write('<meta name="theme-color" content="'+c+'">');
 	})();
@@ -49,7 +49,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="BlackSpace.png">
 <link rel="icon" type="image/png" sizes="32x32" href="BlackSpace.png">
 <link rel="icon" type="image/png" sizes="16x16" href="BlackSpace.png">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root,[data-theme="light"]{
   /* Apple-inspired palette — clean whites, cool grays, blue accent */
@@ -66,13 +66,13 @@
   --trans:200ms cubic-bezier(.25,.46,.45,.94);
 }
 [data-theme="dark"]{
-  --bg:#000000;--surface:#1c1c1e;--surface2:#2c2c2e;--surfaceOff:#2c2c2e;--surfaceDyn:#3a3a3c;
-  --divider:#3a3a3c;--border:#3a3a3c;
-  --text:#f5f5f7;--muted:#98989d;--faint:#636366;
-  --primary:#0a84ff;--primaryHov:#409cff;--primaryHL:#001d3d;
-  --success:#30d158;--error:#ff453a;--warn:#ff9f0a;
-  --orange:#ff9f0a;--gold:#ffd60a;--blue:#0a84ff;--purple:#bf5af2;--notif:#ff453a;
-  --shadow:0 2px 8px rgba(0,0,0,.4);--shadowLg:0 8px 32px rgba(0,0,0,.5);--shadowXl:0 20px 60px rgba(0,0,0,.7);
+  --bg:#070708;--surface:#121216;--surface2:#0d0d10;--surfaceOff:#121216;--surfaceDyn:#1a1a1f;
+  --divider:rgba(255,255,255,0.08);--border:rgba(255,255,255,0.14);
+  --text:#f3f1ec;--muted:#8d8980;--faint:#5c5954;
+  --primary:#d4b56a;--primaryHov:#e8cf8d;--primaryHL:rgba(212,181,106,0.12);
+  --success:#6fae82;--error:#d06b6b;--warn:#ff9f0a;
+  --orange:#ff9f0a;--gold:#d4b56a;--blue:#7aa7d9;--purple:#a78fd4;--notif:#d06b6b;
+  --shadow:0 24px 80px rgba(0,0,0,0.45);--shadowLg:0 24px 80px rgba(0,0,0,0.55);--shadowXl:0 24px 80px rgba(0,0,0,0.65);
 }
 
 /* ── TRADER theme — blur.io-inspired pure black, mono font, neon accents ── */
@@ -103,9 +103,17 @@
 [data-theme="trader"] .kpi-card::before { background:var(--primary)!important; }
 /* Trader: numbers in mono font */
 [data-theme="trader"] .kpi-val,
+[data-theme="trader"] .hero-value,
+[data-theme="trader"] .mini-value,
 [data-theme="trader"] .stat-val,
 [data-theme="trader"] .donut-center-val,
+[data-theme="trader"] .donut-legend-amt,
 [data-theme="trader"] .tx-amount,
+[data-theme="trader"] .tx-amt,
+[data-theme="trader"] .bva-amt,
+[data-theme="trader"] .bar-amt,
+[data-theme="trader"] .fund-flow-value,
+[data-theme="trader"] .fund-flow-day,
 [data-theme="trader"] td.amt,
 [data-theme="trader"] th.amt,
 [data-theme="trader"] .inv-pos,
@@ -168,9 +176,11 @@
 /* Trader: landing page stays light (don't override the marketing site) */
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--app-height:100dvh;--keyboard-safe-bottom:0px}
+:root{--app-height:100dvh;--keyboard-safe-bottom:0px;--num-font:'Inter','Noto Sans TC',-apple-system,BlinkMacSystemFont,sans-serif}
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation;height:100%;min-height:100%;background:var(--bg)}
 body{height:var(--app-height);min-height:var(--app-height);font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:var(--text);background:var(--bg);display:flex;overflow:hidden;letter-spacing:-.01em;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+[data-theme="dark"] body{background:radial-gradient(circle at 12% -10%,rgba(212,181,106,0.12),transparent 34%),radial-gradient(circle at 88% 0%,rgba(122,167,217,0.08),transparent 28%),linear-gradient(180deg,#0d0d10,#070708)}
+.kpi-val,.dash-silver-value,.dash-silver-mini,.hero-value,.mini-value,.tx-amt,.bva-amt,.bar-amt,.fund-flow-value,.fund-flow-day,.donut-legend-amt,td.amt,th.amt,.inv-pos,.inv-neg{font-family:var(--num-font);font-variant-numeric:tabular-nums}
 #app-wrapper{height:var(--app-height);min-height:var(--app-height);background:var(--bg)}
 body::before,body::after{content:'';position:fixed;left:0;right:0;background:var(--bg);pointer-events:none;z-index:45}
 body::before{top:0;height:env(safe-area-inset-top);height:constant(safe-area-inset-top)}
@@ -185,26 +195,26 @@ input,select{font:inherit;color:inherit}
 table{border-collapse:collapse;width:100%}
 
 /* ── SIDEBAR ─────────────────────────────────────────────────────────────────── */
-.sidebar{width:64px;height:100dvh;background:rgba(255,255,255,.72);border-right:1px solid var(--divider);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px)}
-[data-theme="dark"] .sidebar{background:rgba(28,28,30,.85)}
-.nav{padding:8px 6px;flex:1;display:flex;flex-direction:column;gap:4px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;align-items:center}
+.sidebar{width:248px;height:100dvh;background:rgba(255,255,255,.72);border-right:1px solid var(--divider);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);padding:22px 16px 18px;gap:18px}
+[data-theme="dark"] .sidebar{background:rgba(18,18,22,0.72);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%)}
+.nav{padding:0;flex:1;display:flex;flex-direction:column;gap:4px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;align-items:stretch}
 .nav::-webkit-scrollbar{display:none}
-.nav-btn{display:flex;align-items:center;justify-content:center;gap:0;padding:10px;border-radius:10px;font-size:13px;font-weight:500;color:var(--muted);width:44px;height:44px;text-align:center;transition:background var(--trans),color var(--trans);position:relative}
+.nav-btn{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:14px;font-size:13px;font-weight:500;color:var(--muted);width:100%;text-align:left;transition:background var(--trans),color var(--trans),transform var(--trans);position:relative}
 .nav-btn:hover{background:var(--surfaceOff);color:var(--text)}
+[data-theme="dark"] .nav-btn:hover{background:rgba(255,255,255,0.04);transform:translateX(2px)}
 .nav-btn.active{background:var(--primary);color:#fff;font-weight:600}
-.nav-btn-label{display:none}
+.nav-btn-label{font-size:13px;font-weight:500;white-space:nowrap}
 .mini-apps-wrap{position:relative}
-.mini-apps-menu{position:fixed;left:64px;min-width:220px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadowLg);padding:8px;opacity:0;visibility:hidden;transform:translateY(-6px) scale(.97);transition:opacity var(--trans),transform var(--trans),visibility var(--trans);z-index:9999;pointer-events:none}
+.mini-apps-menu{position:fixed;left:248px;min-width:220px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadowLg);padding:8px;opacity:0;visibility:hidden;transform:translateY(-6px) scale(.97);transition:opacity var(--trans),transform var(--trans),visibility var(--trans);z-index:9999;pointer-events:none}
 .mini-apps-menu.open{opacity:1;visibility:visible;transform:translateY(0) scale(1);pointer-events:auto}
 .mini-app-item{width:100%;display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;color:var(--text);font-size:13px;font-weight:700;text-align:left;transition:background var(--trans),color var(--trans)}
 .mini-app-item:hover{background:var(--surfaceOff);color:var(--primary)}
 .mini-app-ico{width:30px;height:30px;border-radius:9px;background:var(--primaryHL);color:var(--primary);display:flex;align-items:center;justify-content:center;flex:none}
 .mini-app-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
 .mini-app-sub{font-size:11px;font-weight:600;color:var(--muted)}
-.nav-icon{width:18px;height:18px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-/* Tooltip on hover */
-.nav-btn::after{content:attr(data-tip);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);background:var(--text);color:var(--surface);font-size:11px;font-weight:600;padding:4px 8px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:200}
-.nav-btn:hover::after{opacity:1}
+.nav-icon{width:18px;height:18px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+/* Tooltip on hover — hidden when sidebar labels are visible */
+.nav-btn::after{display:none}
 .bottom-nav-btn[data-view="news"]{display:none!important}
 .nav-divider{height:1px;background:var(--divider);margin:4px 8px;width:32px}
 .sidebar-user{padding:10px 0 12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
@@ -219,7 +229,7 @@ table{border-collapse:collapse;width:100%}
 /* ── MAIN ────────────────────────────────────────────────────────────────────── */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 .topbar{position:relative;z-index:40;padding:12px 24px;border-bottom:1px solid var(--divider);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);flex-shrink:0;gap:12px}
-[data-theme="dark"] .topbar{background:rgba(28,28,30,.85)}
+[data-theme="dark"] .topbar{background:rgba(18,18,22,0.72);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%)}
 .topbar-left h1{font-size:17px;font-weight:700;line-height:1.2;letter-spacing:-.03em}
 .topbar-sub{font-size:11px;color:var(--muted);margin-top:1px;letter-spacing:0}
 .topbar-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
@@ -249,7 +259,7 @@ table{border-collapse:collapse;width:100%}
 
 /* ── MONTH TABS ──────────────────────────────────────────────────────────────── */
 .month-strip{display:flex;gap:4px;padding:10px 24px;overflow-x:auto;scrollbar-width:none;background:rgba(255,255,255,.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--divider);flex-shrink:0}
-[data-theme="dark"] .month-strip{background:rgba(28,28,30,.85)}
+[data-theme="dark"] .month-strip{background:rgba(18,18,22,0.72);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%)}
 .month-strip::-webkit-scrollbar{display:none}
 .month-tab{padding:5px 14px;border-radius:var(--rFull);font-size:12px;font-weight:500;white-space:nowrap;color:var(--muted);border:1px solid transparent;transition:all var(--trans);flex-shrink:0}
 .month-tab:hover{background:var(--surfaceOff);color:var(--text)}
@@ -277,23 +287,38 @@ table{border-collapse:collapse;width:100%}
 .kpi-sub{font-size:11px;color:var(--muted)}
 .kpi-sub.neg{color:var(--error)}
 .kpi-sub.pos{color:var(--success)}
-#dash-kpis.dash-silver-grid{display:block;margin-bottom:20px}
-.dash-silver-card{position:relative;overflow:hidden;min-height:300px;padding:30px;border:1px solid rgba(255,255,255,.92);border-radius:28px;background:linear-gradient(112deg,#eceeef 0%,#fafafa 28%,#e9ecee 48%,#cdd2d6 78%,#e2e5e7 100%);box-shadow:0 22px 50px rgba(15,23,42,.11),inset 0 1px 0 rgba(255,255,255,.96),inset 0 -1px 0 rgba(130,138,145,.12);color:#1d1d1f}
-.dash-silver-logo{position:relative;z-index:1;width:64px;height:64px;border-radius:18px;overflow:hidden;background:#0b0d10;box-shadow:0 18px 36px rgba(0,0,0,.18)}
-.dash-silver-logo video{width:100%;height:100%;object-fit:cover;display:block}
-.dash-silver-brand{position:absolute;z-index:1;top:30px;right:30px;font-size:14px;font-weight:800;letter-spacing:-.03em;color:#1d1d1f}
-.dash-silver-total{position:relative;z-index:1;margin-top:28px;max-width:360px}
-.dash-silver-label{font-size:12px;font-weight:800;color:#6e7781;letter-spacing:.01em;line-height:1.2}
-.dash-silver-value{margin-top:6px;font-size:40px;font-weight:850;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.04em;color:#16181d}
-.dash-silver-sub{margin-top:6px;font-size:12px;font-weight:700;color:#77808a;line-height:1.25}
-.dash-silver-metrics{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:22px}
-.dash-silver-metric{min-height:112px;display:flex;flex-direction:column;justify-content:flex-start;padding:20px 18px;border:1px solid rgba(255,255,255,.76);border-radius:14px;background:rgba(255,255,255,.38);box-shadow:inset 0 1px 0 rgba(255,255,255,.56)}
-.dash-silver-row{display:flex;align-items:center;justify-content:space-between;height:22px;flex:0 0 22px}
-.dash-silver-edit{display:flex;align-items:center;justify-content:center;width:22px;height:22px;margin:-4px -3px 0 8px;color:#98a1aa;border-radius:6px;transition:background var(--trans),color var(--trans)}
-.dash-silver-edit:hover{background:rgba(255,255,255,.5);color:#1d1d1f}
-.dash-silver-mini{margin-top:8px;font-size:28px;font-weight:850;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.035em;color:#1b1d22}
-@media(max-width:900px){.dash-silver-card{padding:24px;min-height:0}.dash-silver-metrics{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:560px){.dash-silver-card{padding:20px;border-radius:24px}.dash-silver-logo{width:56px;height:56px}.dash-silver-brand{top:22px;right:22px}.dash-silver-value{font-size:34px}.dash-silver-metrics{gap:8px}.dash-silver-metric{min-height:104px;padding:16px 14px}.dash-silver-mini{font-size:24px}}
+#dash-kpis{display:block;margin-bottom:20px}
+
+/* ── Dashboard redesign layout ── */
+.hero-row{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(240px,0.85fr);gap:14px;margin-bottom:14px}
+.hero-row .hero-card{min-height:260px}
+.hero-card{position:relative;overflow:hidden;padding:28px;border-radius:22px;border:1px solid var(--border);background:radial-gradient(circle at top right,rgba(212,181,106,0.14),transparent 34%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01)),var(--surface);box-shadow:var(--shadow)}
+.hero-card::after{content:"";position:absolute;inset:auto -10% -40% auto;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(212,181,106,0.28),transparent 70%);pointer-events:none}
+.hero-mark{position:relative;z-index:1;width:56px;height:56px;border-radius:50%;overflow:hidden;border:1px solid var(--border);background:#0b0b0b;box-shadow:0 0 0 4px var(--primaryHL)}
+.hero-mark video{width:100%;height:100%;object-fit:cover;display:block}
+.hero-brand{position:absolute;z-index:1;top:28px;right:28px;font-size:18px;font-weight:600;opacity:0.72;letter-spacing:-0.03em}
+.hero-label{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);position:relative;z-index:1;margin-top:20px}
+.hero-value{margin-top:10px;font-size:clamp(34px,5vw,52px);font-weight:600;letter-spacing:-0.05em;line-height:1;position:relative;z-index:1}
+.hero-sub{margin-top:12px;color:var(--muted);font-size:13px;position:relative;z-index:1}
+.hero-stack{display:grid;gap:14px}
+.mini-kpi{padding:20px;border-radius:20px;border:1px solid var(--divider);background:var(--surface);box-shadow:var(--shadow)}
+.mini-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.mini-label{font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)}
+.mini-value{font-size:28px;font-weight:600;letter-spacing:-0.04em;line-height:1}
+.mini-sub{margin-top:6px;font-size:12px;color:var(--muted)}
+.mini-kpi .edit-btn{opacity:1;color:var(--muted)}
+.mini-kpi .edit-btn:hover{background:rgba(255,255,255,0.05);color:var(--text)}
+.kpi-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.kpi-tile{padding:18px;border-radius:18px;border:1px solid var(--divider);background:var(--surface);box-shadow:var(--shadow)}
+.kpi-tile .mini-value{font-size:24px}
+.annual{margin-top:4px;padding-top:18px;border-top:1px solid var(--divider);margin-bottom:18px}
+.section-head{margin-bottom:12px;font-size:22px;font-weight:600;letter-spacing:-0.03em}
+.annual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.annual-grid .span-full{grid-column:1/-1}
+.pos{color:var(--success)}
+.neg{color:var(--error)}
+@media(max-width:1080px){.hero-row{grid-template-columns:1fr}}
+@media(max-width:560px){.hero-value{font-size:34px}.hero-card{padding:22px}.hero-brand{top:22px;right:22px}}
 
 
 /* ── DASHBOARD GRID ──────────────────────────────────────────────────────────── */
@@ -753,14 +778,19 @@ table{border-collapse:collapse;width:100%}
 .goal-card:hover{box-shadow:var(--shadowLg);transform:translateY(-1px)}
 
 /* ── SIDEBAR v2 ──────────────────────────────────────────────────── */
-.sidebar{width:68px;transition:width .25s cubic-bezier(.25,.46,.45,.94)}
-.nav-btn.active{
+.sidebar{width:248px;transition:width .25s cubic-bezier(.25,.46,.45,.94)}
+[data-theme="light"] .nav-btn.active{
   background:linear-gradient(135deg,var(--primary),#34aadc);
   box-shadow:0 4px 12px rgba(0,113,227,.3);
+  color:#fff;
 }
 [data-theme="dark"] .nav-btn.active{
-  box-shadow:0 4px 12px rgba(10,132,255,.35);
+  background:linear-gradient(90deg,var(--primaryHL),transparent);
+  color:var(--text);
+  box-shadow:inset 0 0 0 1px rgba(212,181,106,0.18);
 }
+[data-theme="dark"] .nav-btn.active svg{color:var(--primary)}
+[data-theme="dark"] .nav-btn.active .nav-btn-label{color:var(--text)}
 
 /* ── TOPBAR v2 ───────────────────────────────────────────────────── */
 .topbar{min-height:60px}
@@ -788,6 +818,16 @@ table{border-collapse:collapse;width:100%}
   display:flex;align-items:center;justify-content:center;
   color:#fff;flex-shrink:0;
   box-shadow:0 4px 12px rgba(0,113,227,.25);
+}
+[data-theme="dark"] .ai-card{
+  border:1px solid rgba(212,181,106,0.18);
+  background:linear-gradient(180deg,var(--primaryHL),transparent),var(--surface);
+}
+[data-theme="dark"] .ai-card::before{background:none}
+[data-theme="dark"] .ai-card-icon{
+  background:linear-gradient(135deg,var(--primary),#e8cf8d);
+  color:#171512;
+  box-shadow:0 8px 24px rgba(212,181,106,0.28);
 }
 .ai-card-title{font-size:14px;font-weight:600;letter-spacing:-.02em}
 .ai-card-body{font-size:13px;color:var(--muted);line-height:1.7;min-height:48px}
@@ -823,7 +863,7 @@ table{border-collapse:collapse;width:100%}
 .fund-flow-table th{padding:10px 12px;text-align:left;border-bottom:1px solid var(--divider);font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
 .fund-flow-table td{padding:12px;border-bottom:1px solid var(--divider);font-size:12px;vertical-align:middle;white-space:nowrap}
 .fund-flow-table tbody tr:last-child td{border-bottom:0}
-.fund-flow-value,.fund-flow-day{font-family:'JetBrains Mono',monospace;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)!important}
+.fund-flow-value,.fund-flow-day{font-family:var(--num-font);font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)!important}
 .fund-flow-day.positive{color:var(--success)!important}
 .fund-flow-day.negative{color:var(--error)!important}
 .fund-flow-streak{font-weight:700;color:var(--text)}
@@ -940,8 +980,8 @@ table{border-collapse:collapse;width:100%}
 }
 
 /* ── DASHBOARD v2 ────────────────────────────────────────────────── */
-.dash-v2-grid{display:grid;grid-template-columns:1fr 340px;gap:12px;margin-top:12px}
-@media(max-width:900px){.dash-v2-grid{grid-template-columns:1fr}}
+.dash-v2-grid,.dash-panel-grid{display:grid;grid-template-columns:minmax(0,1.2fr) 320px;gap:14px;margin-top:14px}
+@media(max-width:900px){.dash-v2-grid,.dash-panel-grid{grid-template-columns:1fr}}
 .dash-v2-charts{display:flex;flex-direction:column;gap:12px}
 
 /* ── TWEAKS PANEL ────────────────────────────────────────────────── */
@@ -1873,7 +1913,7 @@ table{border-collapse:collapse;width:100%}
     <!-- DASHBOARD -->
     <div class="view" id="view-dashboard" data-screen-label="Dashboard">
       <div class="page-hdr"><div class="page-title" id="pt-dashboard">Dashboard</div></div>
-      <div class="kpi-grid" id="dash-kpis"></div>
+      <div id="dash-kpis"></div>
 
       <!-- v2: Charts + AI row -->
       <div class="dash-v2-grid" id="dash-v2-section" style="display:none">
@@ -2936,7 +2976,6 @@ function renderDashboard(){
   const _fm        = n => '$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
   const dashMask   = value => privacyMode ? '*****' : value;
 
-  $('dash-kpis').classList.add('dash-silver-grid');
   // Grand Total = Bank + Market Value + Cash Remaining (gross wealth, not P&L)
   const _invGross   = _invValue2 + _invCashRemaining;
   const _grandTotal = dashBank + (_hasInvData ? _invGross : 0);
@@ -2944,18 +2983,34 @@ function renderDashboard(){
   const _monthCount = Math.max(1, (rangeEndYear-rangeStartYear)*12+(rangeEndMonth-rangeStartMonth)+1);
   const _avgMonthly = Math.round(total / _monthCount);
   const _bankEditIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+
   $('dash-kpis').innerHTML =
-    '<section class="dash-silver-card" aria-label="Dashboard summary">'
-  +   '<div class="dash-silver-logo"><video src="BlackSpace.mp4" autoplay muted loop playsinline preload="auto" aria-label="BlackSpace logo"></video></div>'
-  +   '<div class="dash-silver-brand">BlackSpace</div>'
-  +   '<div class="dash-silver-total"><div class="dash-silver-label">'+t('lbl-total')+'</div><div class="dash-silver-value">'+(_showTotal ? dashMask(_fm(_grandTotal)) : '?')+'</div><div class="dash-silver-sub">'+t('sub-bank-inv')+'</div></div>'
-  +   '<div class="dash-silver-metrics">'
-  +     '<div class="dash-silver-metric"><div class="dash-silver-row"><div class="dash-silver-label">'+t('lbl-total-spent')+'</div></div><div class="dash-silver-mini">'+dashMask(fmt(total))+'</div><div class="dash-silver-sub">'+t('sub-all-time')+'</div></div>'
-  +     '<div class="dash-silver-metric"><div class="dash-silver-row"><div class="dash-silver-label">'+t('lbl-avg-monthly')+'</div></div><div class="dash-silver-mini">'+dashMask(fmt(_avgMonthly))+'</div><div class="dash-silver-sub">'+t('sub-excl-income')+'</div></div>'
-  +     '<div class="dash-silver-metric"><div class="dash-silver-row"><div class="dash-silver-label">'+t('lbl-bank')+'</div><button id="edit-bank-btn" class="dash-silver-edit" title="Set bank balance" aria-label="Set bank balance">'+_bankEditIcon+'</button></div><div class="dash-silver-mini">'+dashMask(fmt(dashBank))+'</div><div class="dash-silver-sub">'+t('sub-manual')+'</div></div>'
-  +     '<div class="dash-silver-metric"><div class="dash-silver-row"><div class="dash-silver-label">'+t('lbl-investments')+'</div></div><div class="dash-silver-mini">'+(_hasInvData ? dashMask(_fm(_invGross)) : '?')+'</div><div class="dash-silver-sub">'+t('sub-cash-mktval')+'</div></div>'
+    '<div class="hero-row">'
+  +   '<section class="hero-card" aria-label="Dashboard summary">'
+  +     '<div class="hero-mark"><video src="BlackSpace.mp4" autoplay muted loop playsinline preload="auto" aria-label="BlackSpace logo"></video></div>'
+  +     '<div class="hero-brand">BlackSpace</div>'
+  +     '<div class="hero-label">'+t('lbl-total')+'</div>'
+  +     '<div class="hero-value">'+(_showTotal ? dashMask(_fm(_grandTotal)) : '?')+'</div>'
+  +     '<div class="hero-sub">'+t('sub-bank-inv')+'</div>'
+  +   '</section>'
+  +   '<div class="hero-stack">'
+  +     '<div class="mini-kpi">'
+  +       '<div class="mini-top"><div class="mini-label">'+t('lbl-bank')+'</div>'
+  +       '<button id="edit-bank-btn" class="edit-btn" title="Set bank balance" aria-label="Set bank balance">'+_bankEditIcon+'</button></div>'
+  +       '<div class="mini-value">'+dashMask(fmt(dashBank))+'</div>'
+  +       '<div class="mini-sub">'+t('sub-manual')+'</div>'
+  +     '</div>'
+  +     '<div class="mini-kpi">'
+  +       '<div class="mini-top"><div class="mini-label">'+t('lbl-investments')+'</div></div>'
+  +       '<div class="mini-value">'+(_hasInvData ? dashMask(_fm(_invGross)) : '?')+'</div>'
+  +       '<div class="mini-sub">'+t('sub-cash-mktval')+'</div>'
+  +     '</div>'
   +   '</div>'
-  + '</section>';
+  + '</div>'
+  + '<div class="kpi-row">'
+  +   '<div class="kpi-tile"><div class="mini-label">'+t('lbl-total-spent')+'</div><div class="mini-value">'+dashMask(fmt(total))+'</div><div class="mini-sub">'+t('sub-all-time')+'</div></div>'
+  +   '<div class="kpi-tile"><div class="mini-label">'+t('lbl-avg-monthly')+'</div><div class="mini-value">'+dashMask(fmt(_avgMonthly))+'</div><div class="mini-sub">'+t('sub-excl-income')+'</div></div>'
+  + '</div>';
 
   // Wire bank edit button after render
   setTimeout(()=>{
@@ -3020,34 +3075,20 @@ function renderDashboard(){
   const fmtN = n => '$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
   const fmtS = n => (n>=0?'+':'-') + fmtN(n);
 
-  let annualHtml = `
-  <div style="grid-column:1/-1;margin-top:4px">
-    <hr style="border:none;border-top:1px solid var(--divider);margin-bottom:16px">
-    <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text)">${rangeLabel}</div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px">
-      <div class="kpi-card">
-        <div class="kpi-lbl">${t('lbl-annual-income')}</div>
-        <div class="kpi-val" style="font-size:20px">${annualIncome > 0 ? dashMask(fmtN(annualIncome)) : '—'}</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-lbl">${t('lbl-annual-exp')}</div>
-        <div class="kpi-val" style="font-size:20px">${annualExpenseNet > 0 ? dashMask(fmtN(annualExpenseNet)) : '—'}</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-lbl">${t('lbl-annual-inv')}</div>
-        <div class="kpi-val" style="font-size:20px">${annualInvAmt > 0 ? dashMask(fmtN(annualInvAmt)) : '—'}</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-lbl">${t('lbl-annual-cf')}</div>
-        <div class="kpi-val" style="font-size:20px;color:${annualNetCF>=0?'var(--success)':'var(--notif)'}">${annualIncome > 0 ? dashMask(fmtS(annualNetCF)) : '—'}</div>
-      </div>
-      <div class="kpi-card" style="grid-column:1/-1">
-        <div class="kpi-lbl">${t('lbl-annual-savrate')}</div>
-        <div class="kpi-val" style="font-size:20px;color:${annualSavRate>=0?'var(--success)':'var(--notif)'}">${annualIncome > 0 ? dashMask(annualSavRate.toFixed(1)+'%') : '—'}</div>
-      </div>
-    </div>`;
+  const cfClass = annualNetCF >= 0 ? 'pos' : 'neg';
+  const savClass = annualSavRate >= 0 ? 'pos' : 'neg';
 
-  annualHtml += `</div>`;
+  let annualHtml = `
+  <section class="annual">
+    <div class="section-head">${rangeLabel}</div>
+    <div class="annual-grid">
+      <div class="kpi-tile"><div class="mini-label">${t('lbl-annual-income')}</div><div class="mini-value">${annualIncome > 0 ? dashMask(fmtN(annualIncome)) : '—'}</div></div>
+      <div class="kpi-tile"><div class="mini-label">${t('lbl-annual-exp')}</div><div class="mini-value">${annualExpenseNet > 0 ? dashMask(fmtN(annualExpenseNet)) : '—'}</div></div>
+      <div class="kpi-tile"><div class="mini-label">${t('lbl-annual-inv')}</div><div class="mini-value">${annualInvAmt > 0 ? dashMask(fmtN(annualInvAmt)) : '—'}</div></div>
+      <div class="kpi-tile"><div class="mini-label">${t('lbl-annual-cf')}</div><div class="mini-value ${cfClass}">${annualIncome > 0 ? dashMask(fmtS(annualNetCF)) : '—'}</div></div>
+      <div class="kpi-tile span-full"><div class="mini-label">${t('lbl-annual-savrate')}</div><div class="mini-value ${savClass}">${annualIncome > 0 ? dashMask(annualSavRate.toFixed(1)+'%') : '—'}</div></div>
+    </div>
+  </section>`;
 
   $('dash-kpis').innerHTML += annualHtml;
 }
@@ -3260,11 +3301,11 @@ document.addEventListener('click', e=>{
 
 const THEME_KEY = 'bs_theme';
 const LANG_KEY  = 'bs_lang';
-const THEMES = ['light'];
-let curTheme = 'light';
+const THEMES = ['light', 'dark', 'trader'];
+let curTheme = 'dark';
 function syncThemeChrome(theme){
-  theme = 'light';
-  const color = '#f5f5f7';
+  const colors = { light: '#f5f5f7', dark: '#070708', trader: '#000000' };
+  const color = colors[theme] || '#070708';
   let themeMeta = document.querySelector('meta[name="theme-color"]');
   if(!themeMeta){
     themeMeta = document.createElement('meta');
@@ -3274,19 +3315,20 @@ function syncThemeChrome(theme){
   themeMeta.setAttribute('content', color);
 
   const appleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-  if(appleMeta) appleMeta.setAttribute('content', 'default');
+  if(appleMeta) appleMeta.setAttribute('content', theme === 'light' ? 'default' : 'black-translucent');
 }
 // Restore saved theme on load
 try {
-  localStorage.setItem(THEME_KEY, 'light');
+  const savedTheme = localStorage.getItem(THEME_KEY);
+  if(THEMES.includes(savedTheme)) curTheme = savedTheme;
 } catch(_){}
-curTheme = 'light';
 document.documentElement.setAttribute('data-theme', curTheme);
 syncThemeChrome(curTheme);
 
 function toggleTheme(){
   // Cycle: light → dark → trader → light
-  curTheme = 'light';
+  const idx = THEMES.indexOf(curTheme);
+  curTheme = THEMES[(idx + 1) % THEMES.length];
   document.documentElement.setAttribute('data-theme', curTheme);
   syncThemeChrome(curTheme);
   try { localStorage.setItem(THEME_KEY, curTheme); } catch(_){}
