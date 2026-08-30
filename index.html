@@ -1124,6 +1124,9 @@ table{border-collapse:collapse;width:100%}
   const SESSION_DAYS = 7;
   const SESSION_MS = SESSION_DAYS * 24 * 60 * 60 * 1000;
   let _bsBootedUid = null;
+  let _bsAuthTask = Promise.resolve();
+  let _bsSaveTask = Promise.resolve();
+  let _pubSplashDone = false;
   window._bsDataReady = false;
 
   setPersistence(auth, browserLocalPersistence).catch(e => console.warn('setPersistence:', e));
@@ -1154,30 +1157,34 @@ table{border-collapse:collapse;width:100%}
   function clearErr(elId){ document.getElementById(elId).classList.remove('show'); }
 
   // ── save / load user data via Firestore ────────────────────────
-  window._fbSaveUserData = async function(){
-    const user = auth.currentUser;
-    if(!user || !window._bsDataReady) return;
-    const payload = {
-      transactions:  window._appData.transactions,
-      cats:          window._appData.CATS,
-      goals:         window._appData.goals,
-      investments:   window._appData.investments,
-      invCapital:    window._appData.invCapital,
-      invActualCash: window._appData.invActualCash,
-      dashBank:      window._appData.dashBank,
-      privacyMode:   window._appData.privacyMode,
-      incomeMap:     window._appData.incomeMap,
-      profile:       window._appData.profile,
-      range: {
-        rangeStartYear:  window._appData.rangeStartYear,
-        rangeStartMonth: window._appData.rangeStartMonth,
-        rangeEndYear:    window._appData.rangeEndYear,
-        rangeEndMonth:   window._appData.rangeEndMonth
-      }
-    };
-    try {
-      await setDoc(doc(db, 'users', user.uid), payload);
-    } catch(e){ console.warn('saveUserData error', e); }
+  window._fbSaveUserData = function(){
+    if(!auth.currentUser || !window._bsDataReady) return _bsSaveTask;
+    _bsSaveTask = _bsSaveTask.then(async () => {
+      const user = auth.currentUser;
+      if(!user || !window._bsDataReady) return;
+      const payload = {
+        transactions:  window._appData.transactions,
+        cats:          window._appData.CATS,
+        goals:         window._appData.goals,
+        investments:   window._appData.investments,
+        invCapital:    window._appData.invCapital,
+        invActualCash: window._appData.invActualCash,
+        dashBank:      window._appData.dashBank,
+        privacyMode:   window._appData.privacyMode,
+        incomeMap:     window._appData.incomeMap,
+        profile:       window._appData.profile,
+        range: {
+          rangeStartYear:  window._appData.rangeStartYear,
+          rangeStartMonth: window._appData.rangeStartMonth,
+          rangeEndYear:    window._appData.rangeEndYear,
+          rangeEndMonth:   window._appData.rangeEndMonth
+        }
+      };
+      try {
+        await setDoc(doc(db, 'users', user.uid), payload);
+      } catch(e){ console.warn('saveUserData error', e); }
+    }).catch(e => console.warn('saveUserData queue error', e));
+    return _bsSaveTask;
   };
 
   window._fbLoadUserData = async function(){
@@ -1325,6 +1332,8 @@ table{border-collapse:collapse;width:100%}
   window._fbLogout = async function(){
     await window._fbSaveUserData();
     try { localStorage.removeItem(SESSION_KEY); } catch(_){}
+    window._pubUserAuthFlow = false;
+    _pubSplashDone = false;
     await signOut(auth);
   };
 
@@ -1349,23 +1358,21 @@ table{border-collapse:collapse;width:100%}
   };
 
   // ── auth state listener (single source of truth) ───────────────
-  onAuthStateChanged(auth, async (user) => {
+  async function handleAuthChange(user){
     if(user){
       // Check 7-day session expiry
       let startedAt = 0;
       try { startedAt = parseInt(localStorage.getItem(SESSION_KEY) || '0', 10); } catch(_){}
       if(!startedAt){
-        // No timestamp yet — treat current restored session as fresh start
         try { localStorage.setItem(SESSION_KEY, String(Date.now())); } catch(_){}
       } else if(Date.now() - startedAt > SESSION_MS){
-        // Session expired — force sign out and show login
         try { localStorage.removeItem(SESSION_KEY); } catch(_){}
         await signOut(auth);
         return;
       }
 
       const isNewUserSession = _bsBootedUid !== user.uid;
-      const isFirstAutoLogin = isNewUserSession && !window._pubUserAuthFlow;
+      const isFirstAutoLogin = isNewUserSession && !window._pubUserAuthFlow && !_pubSplashDone;
 
       if(isFirstAutoLogin){
         window._pubAutoLoginHold = true;
@@ -1383,6 +1390,7 @@ table{border-collapse:collapse;width:100%}
         const waitMs = Math.max(0, 3000 - (Date.now() - splashStart));
         if(waitMs > 0) await new Promise(r => setTimeout(r, waitMs));
         window._pubAutoLoginHold = false;
+        _pubSplashDone = true;
       }
 
       if(isNewUserSession){
@@ -1404,26 +1412,38 @@ table{border-collapse:collapse;width:100%}
           window.bsiBootstrap();
         }
       }
-    } else {
-      _bsBootedUid = null;
-      window._bsDataReady = false;
-      window._pubUserAuthFlow = false;
-      if(window.BS_LOCAL_PREVIEW || window._bsLocalNewsPreviewActive){
-        if(typeof window.bsShowLocalNewsPreview === 'function') window.bsShowLocalNewsPreview();
-        return;
-      }
-      window._appData.clearUserMemory();
-      document.getElementById('app-wrapper').style.display='none';
-      if(typeof window.showLanding === 'function') window.showLanding();
-      else {
-        const lp = document.getElementById('landing-page');
-        if(lp) lp.style.display = 'grid';
-        document.documentElement.classList.add('landing-visible');
-        document.getElementById('auth-screen').style.display='none';
-        if(typeof syncAuthPanel === 'function') syncAuthPanel('login');
-      }
-      hideLoading();
+
+      window._pubUserAuthFlow = true;
+      return;
     }
+
+    // Firebase may briefly emit null during token refresh — wait and re-check
+    await new Promise(r => setTimeout(r, 250));
+    if(auth.currentUser) return;
+
+    _bsBootedUid = null;
+    window._bsDataReady = false;
+    window._pubUserAuthFlow = false;
+    _pubSplashDone = false;
+    if(window.BS_LOCAL_PREVIEW || window._bsLocalNewsPreviewActive){
+      if(typeof window.bsShowLocalNewsPreview === 'function') window.bsShowLocalNewsPreview();
+      return;
+    }
+    window._appData.clearUserMemory();
+    document.getElementById('app-wrapper').style.display='none';
+    if(typeof window.showLanding === 'function') window.showLanding();
+    else {
+      const lp = document.getElementById('landing-page');
+      if(lp) lp.style.display = 'grid';
+      document.documentElement.classList.add('landing-visible');
+      document.getElementById('auth-screen').style.display='none';
+      if(typeof syncAuthPanel === 'function') syncAuthPanel('login');
+    }
+    hideLoading();
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    _bsAuthTask = _bsAuthTask.then(() => handleAuthChange(user)).catch(e => console.warn('auth handler error', e));
   });
 
   }
