@@ -607,7 +607,7 @@ table{border-collapse:collapse;width:100%}
   #app-wrapper { flex-direction: column; height: var(--app-height); min-height: var(--app-height); }
   .main { width: 100%; }
   .topbar { padding: calc(10px + env(safe-area-inset-top)) 16px 10px; padding-top: calc(10px + constant(safe-area-inset-top)); background: var(--chrome-bg) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
-  .mobile-menu-btn, #view-sub, .page-title-wrap p, .live-time { display: none !important; }
+  .mobile-menu-btn, #view-sub, .page-title-wrap p, .live-time, #addBtn { display: none !important; }
   .page-title-wrap h1 { font-size: 17px; line-height: 1.15; }
   .topbar-left { gap: 0; min-width: 0; }
   input, select, textarea, .auth-inp, .search-inp { font-size: 16px !important; }
@@ -724,10 +724,11 @@ table{border-collapse:collapse;width:100%}
 .news-ai-title{font-size:16px;font-weight:850;color:var(--text)}
 .news-ai-pill{height:24px;padding:0 9px;border-radius:999px;background:var(--primaryHL);color:var(--primary);font-size:11px;font-weight:850;display:inline-flex;align-items:center;white-space:nowrap}
 .news-ai-body{display:grid;gap:12px}
-.news-ai-section strong{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px}
-.news-ai-section p{margin:0;color:var(--text);opacity:.86;font-size:13px;line-height:1.55}
-.news-ai-points{margin:0;padding-left:18px;color:var(--text);opacity:.86;font-size:13px;line-height:1.55}
-.news-ai-points li{margin-bottom:5px}
+.news-ai-section strong{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text);font-weight:700;margin-bottom:5px}
+.news-ai-section p{margin:0;color:var(--text);font-size:13px;line-height:1.6}
+.news-ai-points{margin:0;padding-left:18px;color:var(--text);font-size:13px;line-height:1.6}
+.news-ai-points li{margin-bottom:5px;color:var(--text)}
+[data-theme="dark"] .news-ai-card .news-ai-title,[data-theme="dark"] .news-ai-card .news-ai-section strong,[data-theme="dark"] .news-ai-card .news-ai-section p,[data-theme="dark"] .news-ai-card .news-ai-points,[data-theme="dark"] .news-ai-card .news-ai-points li{color:#fff}
 .news-card{overflow:hidden}
 .news-inner{display:grid;grid-template-columns:5px 1fr}
 .news-rail.pos{background:var(--green)}.news-rail.neg{background:var(--red)}.news-rail.neu{background:var(--muted)}
@@ -879,10 +880,13 @@ table{border-collapse:collapse;width:100%}
 .fund-flow-card{margin-top:12px;overflow:hidden}
 .fund-flow-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;overscroll-behavior-x:contain}
 .fund-flow-table-wrap::-webkit-scrollbar{display:none;height:0;width:0}
-.fund-flow-head-main{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
-.fund-flow-scroll-hint{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--primary);white-space:nowrap;flex-shrink:0;opacity:.92}
-.fund-flow-scroll-hint svg{width:14px;height:14px;stroke:currentColor}
-@media(min-width:721px){.fund-flow-scroll-hint{display:none}}
+.fund-flow-head-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.fund-flow-scroll-nav{display:none;align-items:center;gap:4px}
+.fund-flow-scroll-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;border:1px solid var(--border);border-radius:999px;background:var(--surfaceOff);color:var(--text);cursor:pointer;transition:opacity var(--trans),background var(--trans),border-color var(--trans)}
+.fund-flow-scroll-btn svg{width:16px;height:16px;stroke:currentColor}
+.fund-flow-scroll-btn:active:not(:disabled){transform:scale(.96)}
+.fund-flow-scroll-btn:disabled{opacity:.35;cursor:default}
+@media(max-width:768px){.fund-flow-scroll-nav{display:inline-flex}}
 .fund-flow-table{min-width:680px}
 .fund-flow-table th{padding:10px 12px;text-align:left;border-bottom:1px solid var(--divider);font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
 .fund-flow-table td{padding:12px;border-bottom:1px solid var(--divider);font-size:12px;vertical-align:middle;white-space:nowrap}
@@ -2153,16 +2157,20 @@ table{border-collapse:collapse;width:100%}
         </div>
         <section class="panel card fund-flow-card">
           <div class="panel-head card-hdr">
-            <div class="fund-flow-head-main">
-              <div class="card-title" data-i18n="fund-flow-title">主題 ETF 價格趨勢</div>
-              <span class="fund-flow-scroll-hint" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
-                <span data-i18n="fund-flow-scroll-hint">向右</span>
-              </span>
+            <div class="card-title" data-i18n="fund-flow-title">主題 ETF 價格趨勢</div>
+            <div class="fund-flow-head-actions">
+              <div class="fund-flow-scroll-nav" aria-label="Table scroll">
+                <button type="button" class="fund-flow-scroll-btn" id="fund-flow-scroll-left" aria-label="向左滑動">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+                </button>
+                <button type="button" class="fund-flow-scroll-btn" id="fund-flow-scroll-right" aria-label="向右滑動">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+                </button>
+              </div>
+              <span class="card-date" id="fund-flow-updated">--:--</span>
             </div>
-            <span class="card-date" id="fund-flow-updated">--:--</span>
           </div>
-          <div class="panel-body fund-flow-table-wrap">
+          <div class="panel-body fund-flow-table-wrap" id="fund-flow-table-wrap">
             <table class="fund-flow-table">
               <thead><tr><th data-i18n="fund-flow-etf">ETF / 主題</th><th data-i18n="fund-flow-one-day">1日變動 (%)</th><th data-i18n="fund-flow-five-day">5日變動 (%)</th><th data-i18n="fund-flow-streak">連續走勢</th></tr></thead>
               <tbody id="fund-flow-tbody"><tr><td colspan="4" data-i18n="fund-flow-loading">正在載入價格資料…</td></tr></tbody>
@@ -3307,6 +3315,33 @@ const FUND_FLOW_SECTOR_ZH = {
   XLB:'原材料', XLRE:'房地產', XLU:'公用事業', XLE:'能源', MAGS:'大型科技', XLK:'科技', SMH:'半導體',
 };
 let fundFlowRenderToken = 0;
+let fundFlowScrollNavReady = false;
+function syncFundFlowScrollNav(){
+  const wrap = $('fund-flow-table-wrap');
+  const leftBtn = $('fund-flow-scroll-left');
+  const rightBtn = $('fund-flow-scroll-right');
+  if(!wrap || !leftBtn || !rightBtn) return;
+  leftBtn.setAttribute('aria-label', t('fund-flow-scroll-left'));
+  rightBtn.setAttribute('aria-label', t('fund-flow-scroll-right'));
+  const max = Math.max(0, wrap.scrollWidth - wrap.clientWidth);
+  const left = wrap.scrollLeft;
+  leftBtn.disabled = max <= 0 || left <= 4;
+  rightBtn.disabled = max <= 0 || left >= max - 4;
+}
+function initFundFlowScrollNav(){
+  if(fundFlowScrollNavReady) return;
+  const wrap = $('fund-flow-table-wrap');
+  const leftBtn = $('fund-flow-scroll-left');
+  const rightBtn = $('fund-flow-scroll-right');
+  if(!wrap || !leftBtn || !rightBtn) return;
+  fundFlowScrollNavReady = true;
+  const step = () => Math.max(120, Math.round(wrap.clientWidth * 0.72));
+  leftBtn.addEventListener('click', () => wrap.scrollBy({ left:-step(), behavior:'smooth' }));
+  rightBtn.addEventListener('click', () => wrap.scrollBy({ left:step(), behavior:'smooth' }));
+  wrap.addEventListener('scroll', syncFundFlowScrollNav, { passive:true });
+  window.addEventListener('resize', syncFundFlowScrollNav);
+  syncFundFlowScrollNav();
+}
 function fundFlowEsc(value){ return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])); }
 function fundFlowFormat(value, suffix=''){ return Number.isFinite(Number(value)) ? `${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(1)}${suffix}` : '--'; }
 function renderFundFlowRows(items){
@@ -3378,6 +3413,8 @@ async function renderFundFlow(){
     if(!response.ok || !Array.isArray(data.items)) throw new Error(data.error || 'Fund Flow unavailable');
     renderFundFlowRows(data.items);
     $('fund-flow-updated').textContent = new Date().toLocaleTimeString(curLang === 'zh' ? 'zh-HK' : 'en-US',{hour:'2-digit',minute:'2-digit'});
+    initFundFlowScrollNav();
+    requestAnimationFrame(syncFundFlowScrollNav);
     await renderFundFlowAi(data.items, token);
   }catch(error){
     console.warn('Fund Flow data unavailable:', error);
@@ -3795,12 +3832,12 @@ Object.assign(I18N.en, {
 Object.assign(I18N.zh, {
   'title-fundflow':'資金流向','sub-fundflow':'ETF 歷史價格趨勢','app-sub-fundflow':'價格變動',
   'fund-flow-price-note':'以歷史收市價計算','fund-flow-title':'主題 ETF 價格趨勢',
-  'fund-flow-etf':'ETF / 主題','fund-flow-one-day':'1日變動 (%)','fund-flow-five-day':'5日變動 (%)','fund-flow-streak':'連續走勢','fund-flow-loading':'正在載入價格資料…','fund-flow-scroll-hint':'向右','fund-flow-ai-title':'AI 分析','fund-flow-ai-loading':'資料載入後，將由伺服器端 AI 分析價格趨勢.'
+  'fund-flow-etf':'ETF / 主題','fund-flow-one-day':'1日變動 (%)','fund-flow-five-day':'5日變動 (%)','fund-flow-streak':'連續走勢','fund-flow-loading':'正在載入價格資料…','fund-flow-scroll-left':'向左滑動','fund-flow-scroll-right':'向右滑動','fund-flow-ai-title':'AI 分析','fund-flow-ai-loading':'資料載入後，將由伺服器端 AI 分析價格趨勢.'
 });
 Object.assign(I18N.en, {
   'title-fundflow':'Fund Flow','sub-fundflow':'ETF historical price trend','app-sub-fundflow':'Price changes',
   'fund-flow-price-note':'BASED ON HISTORICAL CLOSES','fund-flow-title':'ETF Theme Price Trend',
-  'fund-flow-etf':'ETF / Theme','fund-flow-one-day':'1-day change (%)','fund-flow-five-day':'5-day change (%)','fund-flow-streak':'Price streak','fund-flow-loading':'Loading price data…','fund-flow-scroll-hint':'Swipe','fund-flow-ai-title':'AI Analysis','fund-flow-ai-loading':'The server-side AI will analyze price trends after data loads.'
+  'fund-flow-etf':'ETF / Theme','fund-flow-one-day':'1-day change (%)','fund-flow-five-day':'5-day change (%)','fund-flow-streak':'Price streak','fund-flow-loading':'Loading price data…','fund-flow-scroll-left':'Scroll left','fund-flow-scroll-right':'Scroll right','fund-flow-ai-title':'AI Analysis','fund-flow-ai-loading':'The server-side AI will analyze price trends after data loads.'
 });
 
 Object.assign(I18N.zh, {
@@ -4020,6 +4057,7 @@ function applyLang(){
       $('view-sub').textContent = vmeta[curView].sub;
     }
   }
+  if(typeof syncFundFlowScrollNav === 'function') syncFundFlowScrollNav();
   updateTopbarLabels();
 }
 
