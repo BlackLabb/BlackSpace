@@ -1123,6 +1123,8 @@ table{border-collapse:collapse;width:100%}
   const SESSION_KEY = 'bs_session_started_at';
   const SESSION_DAYS = 7;
   const SESSION_MS = SESSION_DAYS * 24 * 60 * 60 * 1000;
+  let _bsBootedUid = null;
+  window._bsDataReady = false;
 
   setPersistence(auth, browserLocalPersistence).catch(e => console.warn('setPersistence:', e));
 
@@ -1154,7 +1156,7 @@ table{border-collapse:collapse;width:100%}
   // ── save / load user data via Firestore ────────────────────────
   window._fbSaveUserData = async function(){
     const user = auth.currentUser;
-    if(!user) return;
+    if(!user || !window._bsDataReady) return;
     const payload = {
       transactions:  window._appData.transactions,
       cats:          window._appData.CATS,
@@ -1361,7 +1363,11 @@ table{border-collapse:collapse;width:100%}
         await signOut(auth);
         return;
       }
-      if(!window._pubUserAuthFlow){
+
+      const isNewUserSession = _bsBootedUid !== user.uid;
+      const isFirstAutoLogin = isNewUserSession && !window._pubUserAuthFlow;
+
+      if(isFirstAutoLogin){
         window._pubAutoLoginHold = true;
         const lpHold = document.getElementById('landing-page');
         const authHold = document.getElementById('auth-screen');
@@ -1378,23 +1384,30 @@ table{border-collapse:collapse;width:100%}
         if(waitMs > 0) await new Promise(r => setTimeout(r, waitMs));
         window._pubAutoLoginHold = false;
       }
-      // Hide landing page when logged in
-      const lp = document.getElementById('landing-page');
-      if(lp) lp.style.display = 'none';
-      document.documentElement.classList.remove('landing-visible');
-      document.getElementById('auth-screen').style.display='none';
-      showLoading('Loading your data…');
-      window._appData.clearUserMemory();
-      await window._fbLoadUserData();
-      window._appData.onUserReady();
-      hideLoading();
-      // Notify BSI module that auth is ready
-      window._bsiAuthReady = true;
-      if(typeof window.bsiBootstrap === 'function' && window._bsiPendingBoot){
-        window._bsiPendingBoot = false;
-        window.bsiBootstrap();
+
+      if(isNewUserSession){
+        window._bsDataReady = false;
+        const lp = document.getElementById('landing-page');
+        if(lp) lp.style.display = 'none';
+        document.documentElement.classList.remove('landing-visible');
+        document.getElementById('auth-screen').style.display='none';
+        showLoading('Loading your data…');
+        window._appData.clearUserMemory();
+        await window._fbLoadUserData();
+        window._bsDataReady = true;
+        window._appData.onUserReady();
+        _bsBootedUid = user.uid;
+        hideLoading();
+        window._bsiAuthReady = true;
+        if(typeof window.bsiBootstrap === 'function' && window._bsiPendingBoot){
+          window._bsiPendingBoot = false;
+          window.bsiBootstrap();
+        }
       }
     } else {
+      _bsBootedUid = null;
+      window._bsDataReady = false;
+      window._pubUserAuthFlow = false;
       if(window.BS_LOCAL_PREVIEW || window._bsLocalNewsPreviewActive){
         if(typeof window.bsShowLocalNewsPreview === 'function') window.bsShowLocalNewsPreview();
         return;
