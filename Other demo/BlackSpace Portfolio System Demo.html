@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="zh-HK">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>BlackSpace / System Demo</title>
+  <style>
+    :root {
+      --paper: #efefef;
+      --panel: #fff;
+      --panel-soft: #f7f7f7;
+      --ink: #111;
+      --muted: #767676;
+      --line: #dedede;
+      --green: #00c778;
+      --red: #ef4b55;
+      --blue: #3177ee;
+      --orange: #ff8f2e;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-width: 320px; min-height: 100%; margin: 0; background: var(--paper); }
+    body {
+      overflow: hidden;
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    button, input, select { color: inherit; font: inherit; }
+    button { cursor: pointer; }
+
+    .system-shell {
+      display: grid;
+      grid-template-rows: 72px minmax(0, 1fr);
+      min-height: 100svh;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) auto minmax(320px, 1fr);
+      gap: 20px;
+      align-items: center;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.78);
+    }
+
+    .brand-switcher {
+      display: inline-flex;
+      width: max-content;
+      max-width: 100%;
+      align-items: center;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #e2e2e2;
+      box-shadow: 0 1px 0 rgba(255,255,255,.8) inset;
+    }
+
+    .brand-switcher button {
+      min-height: 45px;
+      padding: 0 22px;
+      border: 0;
+      background: transparent;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -.08em;
+      white-space: nowrap;
+    }
+
+    .brand-switcher button:first-child { font-family: Georgia, "Times New Roman", serif; }
+    .brand-switcher button:nth-child(2) { font-size: 18px; }
+    .brand-switcher button:nth-child(3) { color: var(--orange); }
+    .brand-switcher button.is-active {
+      border-radius: 9px;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,.08);
+    }
+
+    .info-dot {
+      display: inline-grid;
+      place-items: center;
+      width: 16px;
+      height: 16px;
+      margin-left: 10px;
+      border: 1px solid #aaa;
+      border-radius: 50%;
+      color: #777;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .top-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+
+    .top-stat {
+      display: flex;
+      min-height: 38px;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 13px;
+      border: 1px solid #e6e6e6;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .top-stat b { font-size: 15px; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 7px;
+    }
+
+    .top-action {
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid #e6e6e6;
+      border-radius: 15px;
+      background: #fff;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+      transition: transform .16s ease, background .16s ease;
+    }
+
+    .top-action:hover { background: #f4f4f4; transform: translateY(-1px); }
+    .top-action.primary { background: var(--ink); color: #fff; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr) 320px;
+      gap: 12px;
+      min-height: 0;
+      padding: 12px;
+      background: var(--paper);
+    }
+
+    .side-panel,
+    .main-panel,
+    .activity-panel {
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--panel);
+      box-shadow: 0 1px 2px rgba(0,0,0,.02);
+    }
+
+    .side-panel,
+    .activity-panel { display: flex; flex-direction: column; }
+
+    .panel-head {
+      display: flex;
+      min-height: 52px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 15px;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: -.02em;
+    }
+
+    .panel-head span:last-child { color: var(--muted); font-size: 11px; }
+
+    .side-scroll,
+    .activity-scroll,
+    .main-scroll {
+      min-height: 0;
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #c9c9c9 transparent;
+    }
+
+    .side-scroll, .activity-scroll { padding: 12px; }
+    .main-scroll { padding: 0 12px 24px; }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 17px;
+    }
+
+    .filter-button {
+      display: grid;
+      min-height: 64px;
+      place-items: center;
+      gap: 5px;
+      padding: 7px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      transition: border .16s ease, background .16s ease;
+    }
+
+    .filter-button span { font-size: 20px; line-height: 1; }
+    .filter-button:hover, .filter-button.is-active { border-color: var(--ink); background: #f0f0f0; }
+
+    .watchlist {
+      display: grid;
+      gap: 8px;
+    }
+
+    .watch-item {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr) auto;
+      gap: 9px;
+      align-items: center;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel-soft);
+    }
+
+    .watch-logo,
+    .asset-logo {
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #101010;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .watch-logo { width: 36px; height: 36px; }
+    .watch-item strong { display: block; font-size: 12px; }
+    .watch-item small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .watch-item b { font-size: 12px; }
+    .up { color: var(--green); }
+    .down { color: var(--red); }
+
+    .main-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      display: grid;
+      grid-template-columns: auto minmax(140px, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      min-height: 64px;
+      margin: 0 -12px 14px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.96);
+    }
+
+    .segmented {
+      display: inline-flex;
+      gap: 2px;
+      padding: 3px;
+      border-radius: 10px;
+      background: #eee;
+    }
+
+    .segmented button {
+      min-width: 45px;
+      padding: 7px 9px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .segmented button.is-active { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+
+    .search {
+      width: 100%;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid #e7e7e7;
+      border-radius: 11px;
+      outline: 0;
+      background: #f8f8f8;
+      font-size: 12px;
+    }
+
+    .search:focus { border-color: #aaa; background: #fff; }
+
+    .toolbar-actions { display: flex; align-items: center; gap: 7px; }
+    .toolbar-select { min-height: 38px; padding: 0 11px; border: 1px solid #e7e7e7; border-radius: 11px; background: #fff; font-size: 11px; font-weight: 900; }
+
+    .asset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 11px;
+    }
+
+    .asset-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      transition: transform .17s ease, box-shadow .17s ease;
+    }
+
+    .asset-card:hover { box-shadow: 0 9px 20px rgba(0,0,0,.09); transform: translateY(-2px); }
+
+    .asset-cover {
+      display: grid;
+      min-height: 138px;
+      place-items: center;
+      position: relative;
+      background: var(--tone, #e7eef8);
+    }
+
+    .asset-cover::after {
+      position: absolute;
+      right: -25px;
+      bottom: -40px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.5);
+      content: "";
+    }
+
+    .asset-logo { z-index: 1; width: 74px; height: 74px; border: 4px solid rgba(255,255,255,.75); border-radius: 20px; font-size: 18px; box-shadow: 0 7px 17px rgba(0,0,0,.13); }
+    .asset-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .asset-type { position: absolute; top: 9px; left: 9px; z-index: 2; padding: 4px 6px; border-radius: 5px; background: rgba(255,255,255,.78); font-size: 9px; font-weight: 900; }
+
+    .asset-info { display: grid; gap: 5px; padding: 10px; }
+    .asset-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .asset-title strong { font-size: 13px; }
+    .asset-title b { font-size: 11px; white-space: nowrap; }
+    .asset-meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 10px; }
+    .asset-meta strong { color: var(--ink); font-size: 11px; }
+
+    .empty-state {
+      display: none;
+      padding: 44px 15px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .activity-scroll { display: grid; gap: 8px; }
+    .activity-item { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 8px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+    .activity-avatar { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: #111; color: #fff; font-size: 10px; font-weight: 900; }
+    .activity-copy strong { display: block; font-size: 11px; }
+    .activity-copy small { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; }
+    .activity-price { text-align: right; font-size: 11px; font-weight: 900; white-space: nowrap; }
+    .activity-price small { display: block; margin-top: 4px; color: var(--muted); font-size: 9px; font-weight: 400; }
+
+    .bottom-status { display: flex; align-items: center; justify-content: space-between; margin-top: 17px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; font-weight: 800; }
+    .bottom-status b { color: var(--green); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+
+    @media (max-width: 1180px) {
+      .topbar { grid-template-columns: minmax(230px, 1fr) auto; }
+      .top-stats { display: none; }
+      .workspace { grid-template-columns: 260px minmax(0, 1fr) 280px; }
+    }
+
+    @media (max-width: 900px) {
+      body { overflow: auto; }
+      .system-shell { display: block; }
+      .topbar { min-height: 64px; }
+      .top-actions { overflow-x: auto; justify-content: flex-start; }
+      .top-action:nth-child(-n+3) { display: none; }
+      .workspace { display: block; padding: 9px; }
+      .side-panel, .main-panel, .activity-panel { min-height: auto; margin-bottom: 9px; }
+      .side-scroll, .activity-scroll, .main-scroll { max-height: none; overflow: visible; }
+      .side-scroll { padding-bottom: 14px; }
+      .activity-scroll { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .main-toolbar { position: static; }
+    }
+
+    @media (max-width: 560px) {
+      .topbar { display: flex; justify-content: space-between; gap: 8px; padding: 8px 10px; }
+      .brand-switcher { max-width: calc(100vw - 132px); }
+      .brand-switcher button { min-height: 40px; padding: 0 11px; font-size: 16px; }
+      .brand-switcher button:nth-child(2) { font-size: 15px; }
+      .brand-switcher button:nth-child(3) { display: none; }
+      .info-dot { display: none; }
+      .top-actions { flex: 0 0 auto; }
+      .top-action { min-height: 36px; padding: 0 10px; font-size: 10px; }
+      .main-toolbar { grid-template-columns: 1fr; gap: 8px; padding: 10px; }
+      .toolbar-actions { justify-content: space-between; }
+      .asset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .asset-cover { min-height: 116px; }
+      .asset-logo { width: 62px; height: 62px; }
+      .asset-info { padding: 8px; }
+      .asset-title strong { font-size: 12px; }
+      .activity-scroll { grid-template-columns: 1fr; }
+      .filter-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="system-shell">
+    <header class="topbar">
+      <div>
+        <div class="brand-switcher" role="tablist" aria-label="BlackSpace areas">
+          <button class="is-active" type="button">BlackSpace</button>
+          <button type="button">Portfolio</button>
+          <button type="button">Markets</button>
+        </div>
+        <span class="info-dot" title="Demo only">i</span>
+      </div>
+      <div class="top-stats" aria-label="Portfolio status">
+        <div class="top-stat"><span class="live-dot"></span><span>CAPITAL</span><b>$110K</b></div>
+        <div class="top-stat"><span>AVAILABLE</span><b>$49.8K</b></div>
+        <div class="top-stat"><span>RETURN</span><b class="up">+7.74%</b></div>
+      </div>
+      <div class="top-actions">
+        <button class="top-action" type="button">▣ Dashboard</button>
+        <button class="top-action" type="button">↗ Export</button>
+        <button class="top-action" type="button">↻ Refresh data</button>
+        <button class="top-action primary" type="button" id="profileButton">MARK</button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="side-panel" aria-label="Research filters">
+        <div class="panel-head"><span>WATCHLIST</span><span>RESET ALL →</span></div>
+        <div class="side-scroll">
+          <div class="filter-bar"><span>VIEW</span><span id="watchCount">12 POSITIONS</span></div>
+          <div class="filter-grid" id="filterGrid">
+            <button class="filter-button is-active" type="button" data-filter="all"><span>⌂</span>All positions</button>
+            <button class="filter-button" type="button" data-filter="stock"><span>↗</span>Stocks</button>
+            <button class="filter-button" type="button" data-filter="etf"><span>◒</span>ETF Flow</button>
+            <button class="filter-button" type="button" data-filter="cash"><span>□</span>Cash</button>
+            <button class="filter-button" type="button" data-filter="tech"><span>✦</span>Technology</button>
+            <button class="filter-button" type="button" data-filter="risk"><span>!</span>Risk watch</button>
+          </div>
+          <div class="filter-bar"><span>QUICK VIEW</span><span>MARKET OPEN</span></div>
+          <div class="watchlist">
+            <div class="watch-item"><div class="watch-logo">NV</div><div><strong>NVDA</strong><small>Stock Research</small></div><b class="up">+2.97%</b></div>
+            <div class="watch-item"><div class="watch-logo">QQ</div><div><strong>QQQ</strong><small>ETF Flow / Tech</small></div><b class="down">-0.81%</b></div>
+            <div class="watch-item"><div class="watch-logo">SP</div><div><strong>SPY</strong><small>ETF Flow / Core</small></div><b class="down">-0.28%</b></div>
+            <div class="watch-item"><div class="watch-logo">IB</div><div><strong>IBIT</strong><small>ETF Flow / Crypto</small></div><b class="up">+0.80%</b></div>
+            <div class="watch-item"><div class="watch-logo">VO</div><div><strong>VOO</strong><small>ETF Flow / Core</small></div><b class="down">-0.37%</b></div>
+          </div>
+        </div>
+      </aside>
+
+        <main class="main-panel" aria-label="Portfolio monitor">
+        <div class="main-scroll">
+          <div class="main-toolbar">
+            <div class="segmented" role="tablist" aria-label="Portfolio views">
+              <button class="is-active" type="button">Summary</button><button type="button">Positions</button><button type="button">ETF Flow</button><button type="button">Research</button>
+            </div>
+              <input class="search" id="assetSearch" type="search" placeholder="✦  Search ticker, sector or view" aria-label="Search ticker, sector or view">
+            <div class="toolbar-actions">
+              <select class="toolbar-select" id="sortSelect" aria-label="Sort positions"><option value="signal">SORT: SIGNAL</option><option value="move">SORT: MOVE</option><option value="price">SORT: PRICE</option></select>
+              <button class="toolbar-select" type="button" id="gridButton">▦ GRID</button>
+            </div>
+          </div>
+          <div class="asset-grid" id="assetGrid"></div>
+          <div class="empty-state" id="emptyState">沒有符合條件的資產。</div>
+          <div class="bottom-status"><span>BLACKSPACE / PORTFOLIO WORKSPACE</span><b id="systemStatus">● SYNCED</b></div>
+        </div>
+      </main>
+
+      <aside class="activity-panel" aria-label="Recent updates">
+        <div class="panel-head"><span>RECENT UPDATES</span><span class="up">● LIVE</span></div>
+        <div class="activity-scroll">
+          <div class="activity-item"><div class="activity-avatar">NV</div><div class="activity-copy"><strong>NVDA research refreshed</strong><small>Stock Research · 8 min ago</small></div><div class="activity-price up">+2.97%<small>signal 92</small></div></div>
+          <div class="activity-item"><div class="activity-avatar">IB</div><div class="activity-copy"><strong>IBIT flow turned positive</strong><small>ETF Flow · 31 min ago</small></div><div class="activity-price up">+0.80<small>streak 1d</small></div></div>
+          <div class="activity-item"><div class="activity-avatar">QQ</div><div class="activity-copy"><strong>QQQ entered risk watch</strong><small>Portfolio · 1h ago</small></div><div class="activity-price down">-0.81%<small>review</small></div></div>
+          <div class="activity-item"><div class="activity-avatar">VO</div><div class="activity-copy"><strong>VOO outflow continued</strong><small>ETF Flow · 2h ago</small></div><div class="activity-price down">-0.37<small>streak 2d</small></div></div>
+          <div class="activity-item"><div class="activity-avatar">SP</div><div class="activity-copy"><strong>SPY signal unchanged</strong><small>ETF Flow · 3h ago</small></div><div class="activity-price">-0.28%<small>streak 1d</small></div></div>
+          <div class="activity-item"><div class="activity-avatar">CM</div><div class="activity-copy"><strong>Cash available unchanged</strong><small>Dashboard · 5h ago</small></div><div class="activity-price">$49.8K<small>available</small></div></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const assets = [
+      { symbol: 'NVDA', name: 'NVIDIA Corp', type: 'stock', sector: 'tech', price: '$210.73', move: '+2.97%', signal: 92, tone: '#dff3ed' },
+      { symbol: 'AAPL', name: 'Apple Inc.', type: 'stock', sector: 'tech', price: '$197.96', move: '+0.64%', signal: 77, tone: '#f4e9da' },
+      { symbol: 'MSFT', name: 'Microsoft', type: 'stock', sector: 'tech', price: '$510.05', move: '+1.10%', signal: 83, tone: '#e8edf8' },
+      { symbol: 'TSM', name: 'Taiwan Semi', type: 'stock', sector: 'tech', price: '$245.12', move: '+1.84%', signal: 86, tone: '#f7dede' },
+      { symbol: 'IBIT', name: 'Bitcoin ETF', type: 'etf', sector: 'risk', price: '$57.82', move: '+0.80%', signal: 80, tone: '#f9efd0' },
+      { symbol: 'QQQ', name: 'Nasdaq 100 ETF', type: 'etf', sector: 'tech', price: '$544.21', move: '-0.81%', signal: 62, tone: '#eee9f8' },
+      { symbol: 'SPY', name: 'S&amp;P 500 ETF', type: 'etf', sector: 'all', price: '$616.91', move: '-0.28%', signal: 58, tone: '#e5f1ee' },
+      { symbol: 'VOO', name: 'Vanguard ETF', type: 'etf', sector: 'all', price: '$565.44', move: '-0.37%', signal: 55, tone: '#e9edf1' },
+      { symbol: 'CASH', name: 'Cash Available', type: 'cash', sector: 'cash', price: '$49,793', move: 'READY', signal: 100, tone: '#ededed' },
+      { symbol: 'AVGO', name: 'Broadcom', type: 'stock', sector: 'tech', price: '$281.08', move: '+1.35%', signal: 74, tone: '#f1e4df' },
+      { symbol: 'XLE', name: 'Energy Select ETF', type: 'etf', sector: 'risk', price: '$89.32', move: '+0.23%', signal: 48, tone: '#e9f0d9' },
+      { symbol: 'TLT', name: '20+ Year Treasury', type: 'etf', sector: 'all', price: '$87.19', move: '+0.09%', signal: 51, tone: '#e5eef4' }
+    ];
+
+    const grid = document.getElementById('assetGrid');
+    const empty = document.getElementById('emptyState');
+    const search = document.getElementById('assetSearch');
+    const sort = document.getElementById('sortSelect');
+    const status = document.getElementById('systemStatus');
+    let activeFilter = 'all';
+
+    function card(asset) {
+      const positive = asset.move.startsWith('+');
+      return '<article class="asset-card" data-type="' + asset.type + '" data-sector="' + asset.sector + '">' +
+        '<div class="asset-cover" style="--tone:' + asset.tone + '"><span class="asset-type">' + asset.type.toUpperCase() + '</span><div class="asset-logo">' + (asset.symbol === 'CASH' ? '＄' : asset.symbol.slice(0, 2)) + '</div></div>' +
+        '<div class="asset-info"><div class="asset-title"><strong>' + asset.symbol + '</strong><b class="' + (positive ? 'up' : asset.move === 'READY' ? '' : 'down') + '">' + asset.move + '</b></div>' +
+        '<div class="asset-meta"><span>' + asset.name + '</span><strong>' + asset.price + '</strong></div><div class="asset-meta"><span>research signal</span><strong>' + asset.signal + '</strong></div></div></article>';
+    }
+
+    function render() {
+      const term = search.value.trim().toLowerCase();
+      let visible = assets.filter(asset => {
+        const matchesFilter = activeFilter === 'all' || asset.type === activeFilter || asset.sector === activeFilter;
+        const matchesTerm = !term || asset.symbol.toLowerCase().includes(term) || asset.name.toLowerCase().includes(term);
+        return matchesFilter && matchesTerm;
+      });
+      visible = visible.slice().sort((a, b) => sort.value === 'price' ? b.price.localeCompare(a.price) : sort.value === 'move' ? b.move.localeCompare(a.move) : b.signal - a.signal);
+      grid.innerHTML = visible.map(card).join('');
+      empty.style.display = visible.length ? 'none' : 'block';
+      status.textContent = '● ' + visible.length + ' ASSETS SYNCED';
+    }
+
+    document.querySelectorAll('[data-filter]').forEach(button => button.addEventListener('click', () => {
+      activeFilter = button.dataset.filter;
+      document.querySelectorAll('[data-filter]').forEach(item => item.classList.toggle('is-active', item === button));
+      render();
+    }));
+    document.querySelectorAll('.segmented button, .brand-switcher button').forEach(button => button.addEventListener('click', () => {
+      const group = button.parentElement;
+      group.querySelectorAll('button').forEach(item => item.classList.toggle('is-active', item === button));
+    }));
+    search.addEventListener('input', render);
+    sort.addEventListener('change', render);
+    document.getElementById('gridButton').addEventListener('click', event => {
+      grid.classList.toggle('compact');
+      event.currentTarget.textContent = grid.classList.contains('compact') ? '▦ COMPACT' : '▦ GRID';
+    });
+    document.getElementById('profileButton').addEventListener('click', event => {
+      event.currentTarget.textContent = event.currentTarget.textContent === 'MARK' ? 'PROFILE' : 'MARK';
+    });
+    render();
+  </script>
+</body>
+</html>

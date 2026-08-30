@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f6f8">
+  <title>BlackSpace News</title>
+  <style>
+    :root{--bg:#f5f6f8;--surface:#fff;--surface2:#eef2f7;--text:#171a20;--muted:#717985;--line:#dfe4ec;--primary:#0071e3;--primarySoft:#e6f1ff;--green:#20c875;--red:#ff4d5f;--shadow:0 14px 34px rgba(16,24,40,.08);--radius:16px;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","Inter",sans-serif;--mono:"SFMono-Regular","Cascadia Mono","Roboto Mono",monospace}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans)}body{padding:22px}button,input,select{font:inherit}button{border:0;cursor:pointer}a{color:inherit;text-decoration:none}
+    .shell{max-width:1220px;margin:0 auto;padding-bottom:48px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:16px}h1{margin:0;font-size:32px;line-height:1;font-weight:850}.sub{margin:7px 0 0;color:var(--muted);font-size:13px;line-height:1.45}
+    .status{display:flex;align-items:center;gap:8px;padding:10px 13px;border:1px solid var(--line);border-radius:999px;background:var(--surface);box-shadow:0 5px 14px rgba(20,25,30,.05);font-size:12px;color:var(--muted);white-space:nowrap}.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(32,200,117,.14)}.status.error .dot{background:var(--red);box-shadow:0 0 0 3px rgba(255,77,95,.14)}
+    .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.controls{padding:16px;margin-bottom:14px}.grid{display:grid;grid-template-columns:1.4fr .9fr auto;gap:12px;align-items:end}.field{display:flex;flex-direction:column;gap:7px}.label{font-size:11px;line-height:1;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:850}.input,.select{height:44px;width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--text);padding:0 13px;outline:none}.input:focus,.select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,113,227,.12)}.btn{height:44px;padding:0 16px;border-radius:12px;background:var(--primary);color:#fff;font-weight:850;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.chip{height:32px;padding:0 11px;border-radius:10px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:12px;font-weight:850}.chip.active{background:var(--primarySoft);color:var(--primary)}
+    .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}.metric{padding:14px 16px;position:relative;overflow:hidden}.metric:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--primary)}.metric strong{display:block;font-size:27px;line-height:1;margin-top:8px}.metric span{display:block;margin-top:7px;color:var(--muted);font-size:12px}
+    .content{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}.feed-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:12px}.feed-head h2{margin:0;font-size:18px}.list{display:flex;flex-direction:column;gap:12px}
+    .card{overflow:hidden;transition:transform .15s,box-shadow .15s,border-color .15s}.card:hover{transform:translateY(-1px);box-shadow:0 16px 36px rgba(18,24,31,.11);border-color:#ccd4df}.news-inner{display:grid;grid-template-columns:5px 1fr}.rail.pos{background:var(--green)}.rail.neg{background:var(--red)}.rail.neu{background:var(--muted)}.body{padding:17px 18px 16px}.meta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;color:var(--muted);font-size:12px}.meta-left,.meta-badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.source{font-weight:850;color:var(--text)}.badge{height:24px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:850;display:inline-flex;align-items:center}.badge.pos{background:rgba(32,200,117,.12);color:#0b9f58}.badge.neg{background:rgba(255,77,95,.12);color:#d9364a}.badge.neu{background:rgba(120,128,140,.12);color:#626a75}.card h3{margin:0 0 9px;font-size:19px;line-height:1.28}.desc{margin:0 0 14px;color:#3d444f;font-size:14px;line-height:1.58}.footer{display:flex;align-items:center;justify-content:space-between;gap:12px}.tags{display:flex;gap:7px;flex-wrap:wrap}.tag{height:24px;padding:0 8px;border-radius:8px;background:var(--surface2);color:#37404a;font-family:var(--mono);font-size:11px;font-weight:850;display:inline-flex;align-items:center}.open{color:var(--primary);font-size:13px;font-weight:850;white-space:nowrap}
+    .side{position:sticky;top:18px;display:flex;flex-direction:column;gap:16px;margin-top:34px}.side-card{padding:16px}.side-card h3{margin:0 0 12px;font-size:15px}.row{display:flex;align-items:flex-start;gap:9px;color:var(--muted);font-size:12px;line-height:1.45;margin-bottom:9px}.row:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--primary);margin-top:5px;flex:none}.err{color:#b42318}
+    @media(max-width:860px){body{padding:16px}.topbar{align-items:flex-start;flex-direction:column}.grid,.summary,.content{grid-template-columns:1fr}.side{position:static}h1{font-size:26px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div><h1>Investment News</h1><p class="sub">Worker live test. This page does not use mock news.</p></div>
+      <div class="status" id="feedStatus"><span class="dot"></span><span id="feedStatusText">正常</span></div>
+    </header>
+
+    <section class="panel controls">
+      <div class="grid">
+        <label class="field"><span class="label">Tickers</span><input class="input" id="tickerInput" value="NVDA" placeholder="AAPL, TSLA, NVDA"></label>
+        <label class="field"><span class="label">Sort</span><select class="select" id="sortSelect"><option value="latest">Latest</option><option value="sentiment">Sentiment</option><option value="relevance">Relevance</option></select></label>
+        <button class="btn" id="refreshBtn">Refresh</button>
+      </div>
+      <div class="chips" id="watchlist">
+        <button class="chip active">NVDA</button><button class="chip">GOOGL</button><button class="chip">AAPL</button><button class="chip">MSFT</button><button class="chip">AMZN</button><button class="chip">TSM</button><button class="chip">AVGO</button><button class="chip">META</button><button class="chip">TSLA</button><button class="chip">WMT</button>
+      </div>
+    </section>
+
+    <section class="summary">
+      <div class="panel metric"><div class="label">Articles</div><strong id="metricArticles">0</strong><span>Company-matched results</span></div>
+      <div class="panel metric"><div class="label">Positive Sentiment</div><strong id="metricPositive">0%</strong><span>Filtered feed tone</span></div>
+      <div class="panel metric"><div class="label">Last Updated</div><strong id="metricUpdated">--:--</strong><span>Local browser time</span></div>
+    </section>
+
+    <section class="content">
+      <div><div class="feed-head"><h2>News Feed</h2></div><div class="list" id="newsList"></div></div>
+      <aside class="side"><div class="panel side-card"><h3>Matching Rules</h3><div class="row">BlackSpace filters provider output so broad market stories do not crowd out ticker-specific news.</div><div class="row">Strict matching checks headline against ticker and company names.</div><div class="row">The information may contain errors; please verify the content if necessary.</div></div></aside>
+    </section>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const NEWS_API = 'https://blackspace.markchanchun.workers.dev/news';
+    const cache = new Map();
+    const CACHE_TTL = 10 * 60 * 1000;
+    let renderToken = 0;
+    let inputTimer = null;
+    let lastError = '';
+    const aliases = {NVDA:['NVIDIA','NVIDIA CORPORATION'],GOOGL:['ALPHABET','GOOGLE'],AAPL:['APPLE','APPLE INC'],MSFT:['MICROSOFT','MICROSOFT CORPORATION'],AMZN:['AMAZON','AMAZON.COM'],TSM:['TAIWAN SEMICONDUCTOR','TSMC'],AVGO:['BROADCOM','BROADCOM INC'],META:['META','META PLATFORMS','FACEBOOK'],TSLA:['TESLA','TESLA INC'],WMT:['WALMART','WALMART INC']};
+
+    function requested(){return $('tickerInput').value.split(',').map(v=>v.trim().toUpperCase()).filter(Boolean);}
+    function esc(value){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));}
+    function focused(item,symbol){const hay=`${item.title} ${item.summary}`.toUpperCase();return [symbol,...(aliases[symbol]||[])].some(name=>new RegExp(`(^|[^A-Z0-9])${name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}([^A-Z0-9]|$)`).test(hay));}
+    function parseTime(value){if(!value)return new Date(0);const raw=String(value);const av=raw.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})$/);if(av)return new Date(`${av[1]}-${av[2]}-${av[3]}T${av[4]}:${av[5]}:${av[6]}Z`);const d=new Date(raw);return Number.isNaN(d.getTime())?new Date(0):d;}
+    function setStatus(ok){$('feedStatus').classList.toggle('error',!ok);$('feedStatusText').textContent=ok?'正常':'錯誤';}
+    function errorText(){return `新聞 API 暫時未能連線：${esc(lastError || 'Unknown error')}`;}
+    function sortFeed(feed){const mode=$('sortSelect').value;const out=[...feed];if(mode==='sentiment')return out.sort((a,b)=>b.sentiment-a.sentiment);if(mode==='relevance')return out.sort((a,b)=>(b.relevance||0)-(a.relevance||0));return out.sort((a,b)=>parseTime(b.time)-parseTime(a.time));}
+    async function fetchNews(symbols, mode){
+      const key=`${symbols.join(',')}:${mode}`;
+      const cached=cache.get(key);
+      if(cached&&Date.now()-cached.ts<CACHE_TTL)return cached.feed;
+      const url=new URL(NEWS_API);
+      url.searchParams.set('tickers',symbols.join(','));
+      url.searchParams.set('sort',mode);
+      url.searchParams.set('limit','20');
+      url.searchParams.set('fulltext','1');
+      url.searchParams.set('debug','1');
+      const res=await fetch(url.toString(),{signal:AbortSignal.timeout(30000)});
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok)throw new Error(data.code||data.message||data.error||`News API ${res.status}`);
+      if(!Array.isArray(data.feed))throw new Error('Invalid news response');
+      const feed=data.feed.map(item=>({title:item.title||'',source:item.source||'RSS Feed',time:item.time||item.time_published||'',sentiment:Number(item.sentiment||item.overall_sentiment_score||0),relevance:Number(item.relevance||0),tickers:Array.isArray(item.tickers)?item.tickers:[],summary:item.summary||'',url:item.url||'#',contentSource:item.contentSource||'summary',fullTextStatus:item.fullTextStatus||null,sentimentProvider:item.sentimentProvider||''}));
+      cache.set(key,{ts:Date.now(),feed});
+      return feed;
+    }
+
+    async function render(){
+      const token=++renderToken;
+      const symbols=requested();
+      const mode=$('sortSelect').value;
+      if(!symbols.length){$('newsList').innerHTML='<div class="panel side-card">請先輸入股票代號。</div>';setStatus(false);return;}
+      $('newsList').innerHTML='<div class="panel side-card">正在載入新聞...</div>';
+      let feed=[];
+      try{feed=await fetchNews(symbols,mode);lastError='';}catch(err){console.warn('News API error',err);lastError=err.message||'News API error';}
+      if(token!==renderToken)return;
+      feed=sortFeed(feed.filter(item=>symbols.some(symbol=>focused(item,symbol)||(item.tickers||[]).includes(symbol))));
+      $('newsList').innerHTML=feed.length?feed.map(card).join(''):`<div class="panel side-card ${lastError?'err':''}">${lastError?errorText():'沒有符合所選代號的公司相關新聞。'}</div>`;
+      setStatus(!lastError&&feed.length>0);
+      const positive=feed.length?Math.round(feed.filter(i=>i.sentiment>.12).length/feed.length*100):0;
+      $('metricArticles').textContent=feed.length;
+      $('metricPositive').textContent=positive+'%';
+      $('metricUpdated').textContent=new Date().toLocaleTimeString('zh-HK',{hour:'2-digit',minute:'2-digit'});
+    }
+
+    function card(item){
+      const tone=item.sentiment>.12?'pos':item.sentiment<-.12?'neg':'neu';
+      const label=tone==='pos'?'Positive':tone==='neg'?'Negative':'Neutral';
+      return `<article class="panel card"><div class="news-inner"><div class="rail ${tone}"></div><div class="body"><div class="meta"><div class="meta-left"><span class="source">${esc(item.source)}</span><span>${parseTime(item.time).toLocaleString('zh-HK',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div><div class="meta-badges"><span class="badge ${tone}">${label} ${item.sentiment.toFixed(2)}</span></div></div><h3>${esc(item.title)}</h3><p class="desc">${esc(item.summary)}</p><div class="footer"><div class="tags">${item.tickers.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><a class="open" href="${esc(item.url)}" target="_blank" rel="noopener">Open &#8599;</a></div></div></div></article>`;
+    }
+
+    $('tickerInput').addEventListener('input',()=>{clearTimeout(inputTimer);inputTimer=setTimeout(render,500);});
+    $('sortSelect').addEventListener('change',render);
+    $('refreshBtn').addEventListener('click',render);
+    $('watchlist').addEventListener('click',event=>{if(!event.target.matches('.chip'))return;[...$('watchlist').querySelectorAll('.chip')].forEach(btn=>btn.classList.remove('active'));event.target.classList.add('active');$('tickerInput').value=event.target.textContent.trim();render();});
+    render();
+  </script>
+</body>
+</html>

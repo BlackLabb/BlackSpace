@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>BlackSpace UI Demo</title>
+  <style>
+    :root{
+      --ink:#101114;
+      --muted:#6d7280;
+      --line:rgba(18,20,24,.1);
+      --surface:rgba(255,255,255,.72);
+      --solid:#fff;
+      --wash:#f5f3ee;
+      --soft:#ebeef6;
+      --orange:#ff5c00;
+      --green:#1fbf75;
+      --blue:#2f7df6;
+      --violet:#7458ff;
+      --red:#e5484d;
+      --radius:24px;
+      --shadow:0 24px 70px rgba(30,34,45,.12);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:#f7f6f2;color:var(--ink)}
+    body{
+      overflow-x:hidden;
+      background:
+        linear-gradient(115deg,rgba(255,92,0,.08),transparent 34%),
+        linear-gradient(245deg,rgba(47,125,246,.1),transparent 36%),
+        #f7f6f2;
+    }
+    button,input{font:inherit}
+    button{border:0;background:none;color:inherit;cursor:pointer}
+
+    .shell{
+      width:min(1440px,100%);
+      margin:0 auto;
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:260px minmax(0,1fr);
+      gap:0;
+    }
+
+    .side{
+      position:sticky;
+      top:0;
+      height:100vh;
+      padding:22px 18px;
+      border-right:1px solid var(--line);
+      background:rgba(255,255,255,.42);
+      backdrop-filter:blur(24px) saturate(160%);
+      -webkit-backdrop-filter:blur(24px) saturate(160%);
+      display:flex;
+      flex-direction:column;
+      gap:24px;
+    }
+
+    .brand{display:flex;align-items:center;gap:12px;padding:6px 8px}
+    .brand-mark{position:relative;width:42px;height:42px;display:grid;place-items:center}
+    .brand-mark:before,.brand-mark:after{content:"";position:absolute;inset:0;border:2px solid var(--orange);clip-path:polygon(0 0,38% 0,38% 12%,12% 12%,12% 38%,0 38%)}
+    .brand-mark:after{transform:rotate(180deg)}
+    .brand-mark img{width:30px;height:30px;border-radius:9px;object-fit:cover}
+    .brand b{display:block;font-size:14px;letter-spacing:.1em;text-transform:uppercase}
+    .brand span{display:block;margin-top:2px;color:var(--muted);font-size:12px}
+
+    .nav{display:grid;gap:7px}
+    .nav button{
+      height:46px;
+      padding:0 12px;
+      border-radius:16px;
+      display:flex;
+      align-items:center;
+      gap:11px;
+      color:#5b606b;
+      transition:.18s ease;
+    }
+    .nav button svg{width:19px;height:19px;stroke-width:2}
+    .nav button:hover{background:rgba(255,255,255,.6)}
+    .nav button.active{background:#101114;color:#fff;box-shadow:0 18px 36px rgba(16,17,20,.22)}
+
+    .side-card{
+      margin-top:auto;
+      padding:16px;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:rgba(16,17,20,.92);
+      color:#fff;
+      overflow:hidden;
+    }
+    .side-card small{color:rgba(255,255,255,.56)}
+    .side-card strong{display:block;margin:10px 0 4px;font-size:22px}
+    .side-card .meter{height:7px;margin-top:16px;border-radius:99px;background:rgba(255,255,255,.13);overflow:hidden}
+    .side-card .meter i{display:block;width:72%;height:100%;border-radius:inherit;background:var(--orange)}
+
+    .main{min-width:0;padding:22px 26px 34px}
+    .top{
+      height:62px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+    .title-block p{margin:0;color:var(--muted);font-size:13px}
+    .title-block h1{margin:3px 0 0;font-size:30px;line-height:1.08;letter-spacing:-.04em}
+    .actions{display:flex;align-items:center;gap:10px}
+    .pill{
+      min-height:40px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:rgba(255,255,255,.58);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      padding:0 14px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      color:#333842;
+      font-weight:700;
+      font-size:13px;
+    }
+    .pill.primary{background:#101114;color:#fff;border-color:#101114}
+    .pill.orange{background:var(--orange);color:#fff;border-color:var(--orange)}
+
+    .content{padding-top:20px}
+    .view{display:none;animation:rise .22s ease both}
+    .view.active{display:block}
+    @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+    .hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);gap:18px;align-items:stretch}
+    .hero{
+      min-height:310px;
+      padding:28px;
+      border-radius:34px;
+      background:
+        linear-gradient(140deg,rgba(16,17,20,.96),rgba(34,39,51,.9)),
+        #101114;
+      color:#fff;
+      box-shadow:var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .hero:after{
+      content:"";
+      position:absolute;
+      right:-80px;
+      bottom:-110px;
+      width:360px;
+      height:220px;
+      border-radius:80px;
+      background:linear-gradient(90deg,rgba(255,92,0,.55),rgba(47,125,246,.26));
+      transform:rotate(-18deg);
+      filter:blur(4px);
+    }
+    .hero-content{position:relative;z-index:1;max-width:620px}
+    .eyebrow{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.65);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+    .eyebrow i{width:8px;height:8px;border-radius:99px;background:var(--orange)}
+    .hero h2{margin:42px 0 14px;font-size:58px;line-height:.92;letter-spacing:-.075em}
+    .hero h2 span{color:var(--orange);font-style:italic}
+    .hero p{margin:0;max-width:480px;color:rgba(255,255,255,.7);font-size:16px;line-height:1.7}
+    .hero-stats{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap}
+    .stat-chip{padding:12px 14px;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:rgba(255,255,255,.08);backdrop-filter:blur(14px)}
+    .stat-chip small{display:block;color:rgba(255,255,255,.52);font-size:11px}
+    .stat-chip b{display:block;margin-top:3px;font-size:18px}
+
+    .panel{
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      background:var(--surface);
+      backdrop-filter:blur(26px) saturate(155%);
+      -webkit-backdrop-filter:blur(26px) saturate(155%);
+      box-shadow:var(--shadow);
+    }
+    .panel-pad{padding:20px}
+    .panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
+    .panel-head h3{margin:0;font-size:17px;letter-spacing:-.02em}
+    .panel-head p{margin:4px 0 0;color:var(--muted);font-size:13px}
+
+    .asset-card{display:grid;gap:16px}
+    .asset-total{font-size:42px;letter-spacing:-.055em;font-weight:850}
+    .asset-line{display:grid;gap:11px}
+    .row{display:flex;justify-content:space-between;gap:12px;color:#303540;font-size:14px}
+    .track{height:10px;border-radius:999px;background:rgba(16,17,20,.08);overflow:hidden}
+    .track i{display:block;height:100%;border-radius:inherit;background:var(--blue)}
+    .track.orange i{background:var(--orange)}
+    .track.green i{background:var(--green)}
+
+    .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:18px}
+    .kpi{
+      min-height:132px;
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:24px;
+      background:rgba(255,255,255,.7);
+    }
+    .kpi small{color:var(--muted);font-weight:750;font-size:12px}
+    .kpi strong{display:block;margin-top:18px;font-size:27px;letter-spacing:-.05em}
+    .kpi span{display:block;margin-top:4px;color:var(--muted);font-size:13px}
+    .pos{color:var(--green)!important}
+    .neg{color:var(--red)!important}
+
+    .layout-2{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-top:18px;align-items:start}
+    .chart{height:240px;display:grid;grid-template-columns:repeat(12,1fr);gap:8px;align-items:end;padding-top:14px}
+    .bar{border-radius:999px 999px 6px 6px;background:linear-gradient(180deg,var(--orange),#ffb066);min-height:14px}
+    .bar:nth-child(3n){background:linear-gradient(180deg,var(--blue),#9cc2ff)}
+    .bar:nth-child(4n){background:linear-gradient(180deg,var(--green),#9be7c0)}
+
+    .feed{display:grid;gap:10px}
+    .feed-item{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px;border-radius:18px;background:rgba(255,255,255,.55);border:1px solid rgba(18,20,24,.06)}
+    .dot{width:38px;height:38px;border-radius:14px;display:grid;place-items:center;background:#101114;color:#fff;font-weight:850}
+    .feed-item b{display:block;font-size:14px}
+    .feed-item small{display:block;margin-top:3px;color:var(--muted)}
+
+    .monthly-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .month-strip{display:flex;gap:8px;overflow:auto;padding-bottom:12px;margin-bottom:6px}
+    .month-strip button{padding:10px 16px;border-radius:999px;background:rgba(255,255,255,.55);border:1px solid var(--line);white-space:nowrap;font-weight:800;color:var(--muted)}
+    .month-strip button.active{background:#101114;color:#fff}
+    .category-row{display:grid;grid-template-columns:96px 1fr 58px;gap:12px;align-items:center;margin:14px 0}
+    .category-row span{font-size:13px;color:#343944}
+    .category-row b{text-align:right;font-size:13px}
+
+    .portfolio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .position{padding:16px;border-radius:22px;background:rgba(255,255,255,.62);border:1px solid var(--line)}
+    .position-head{display:flex;justify-content:space-between;align-items:center}
+    .ticker{width:44px;height:44px;border-radius:16px;display:grid;place-items:center;background:#101114;color:#fff;font-weight:900}
+    .position strong{display:block;margin-top:18px;font-size:25px;letter-spacing:-.04em}
+
+    .research-card{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:18px;align-items:center}
+    .score-ring{width:168px;height:168px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--green) 0 74%,rgba(16,17,20,.08) 74% 100%);justify-self:center}
+    .score-ring div{width:126px;height:126px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.92);font-weight:900;font-size:36px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{padding:8px 11px;border-radius:999px;background:rgba(16,17,20,.06);font-size:12px;font-weight:800;color:#444a55}
+    .control-grid{display:grid;grid-template-columns:minmax(220px,1fr) auto auto;gap:10px;align-items:end;margin-bottom:16px}
+    .field{display:grid;gap:7px}
+    .field label{color:var(--muted);font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.08em}
+    .input,.select{
+      width:100%;
+      height:44px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(255,255,255,.68);
+      color:var(--ink);
+      padding:0 13px;
+      outline:none;
+      box-shadow:0 1px 0 rgba(255,255,255,.6) inset;
+    }
+    .input:focus,.select:focus{border-color:rgba(255,92,0,.55);box-shadow:0 0 0 4px rgba(255,92,0,.1)}
+    .segmented{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:rgba(16,17,20,.07)}
+    .segmented button{height:34px;padding:0 13px;border-radius:999px;color:#59616e;font-size:12px;font-weight:850}
+    .segmented button.active{background:#fff;color:#101114;box-shadow:0 10px 24px rgba(20,24,32,.12)}
+    .table-card{overflow:auto;border:1px solid rgba(18,20,24,.08);border-radius:20px;background:rgba(255,255,255,.48)}
+    table{width:100%;border-collapse:collapse;min-width:640px;font-size:13px}
+    th,td{padding:13px 14px;border-bottom:1px solid rgba(18,20,24,.07);text-align:left;white-space:nowrap}
+    th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+    td:last-child,th:last-child{text-align:right}
+    tr:last-child td{border-bottom:0}
+    .mini-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .mini-form .wide{grid-column:1/-1}
+    .summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .summary-box{padding:14px;border-radius:18px;background:rgba(255,255,255,.55);border:1px solid rgba(18,20,24,.07)}
+    .summary-box small{display:block;color:var(--muted);font-size:11px;font-weight:800}
+    .summary-box b{display:block;margin-top:8px;font-size:20px;letter-spacing:-.03em}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+    .goal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .goal{padding:18px;border-radius:24px;border:1px solid var(--line);background:rgba(255,255,255,.62)}
+    .goal strong{display:block;margin:18px 0 12px;font-size:22px}
+
+    .sim-ticket{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .trade-btn{height:54px;border-radius:18px;font-weight:900;color:#fff}
+    .trade-btn.buy{background:var(--green)}
+    .trade-btn.sell{background:var(--red)}
+
+    .mobile-nav{
+      display:none;
+      position:fixed;
+      left:18px;
+      right:18px;
+      bottom:18px;
+      z-index:20;
+      height:66px;
+      border:1px solid rgba(255,255,255,.6);
+      border-radius:999px;
+      background:rgba(255,255,255,.68);
+      backdrop-filter:blur(26px) saturate(180%);
+      -webkit-backdrop-filter:blur(26px) saturate(180%);
+      box-shadow:0 20px 48px rgba(16,17,20,.18);
+      padding:6px;
+      gap:4px;
+    }
+    .mobile-nav button{flex:1;border-radius:999px;display:grid;place-items:center;color:#5d6470}
+    .mobile-nav button.active{background:#101114;color:#fff}
+    .mobile-nav svg{width:22px;height:22px}
+
+    @media(max-width:1040px){
+      .shell{grid-template-columns:1fr}
+      .side{display:none}
+      .main{padding:18px 16px 104px}
+      .mobile-nav{display:flex}
+      .hero-grid,.layout-2,.research-card{grid-template-columns:1fr}
+      .kpis,.portfolio,.goal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .top{height:auto;align-items:flex-start}
+      .title-block h1{font-size:25px}
+      .actions .pill:not(.primary){display:none}
+    }
+
+    @media(max-width:640px){
+      body{background:#f8f7f3}
+      .main{padding-inline:12px}
+      .hero{min-height:360px;padding:22px;border-radius:30px}
+      .hero h2{font-size:44px;margin-top:36px}
+      .hero p{font-size:14px}
+      .kpis,.monthly-grid,.portfolio,.goal-grid,.sim-ticket{grid-template-columns:1fr}
+      .control-grid,.mini-form,.summary-grid,.two-col{grid-template-columns:1fr!important}
+      .kpi{min-height:116px}
+      .panel-pad{padding:16px}
+      .asset-total{font-size:36px}
+      .chart{height:190px;gap:5px}
+      .category-row{grid-template-columns:82px 1fr 48px}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="side">
+      <div class="brand">
+        <div class="brand-mark"><img src="BlackSpace.png" alt=""></div>
+        <div><b>BlackSpace</b><span>Personal OS</span></div>
+      </div>
+      <nav class="nav" id="sideNav" aria-label="Demo navigation"></nav>
+      <div class="side-card">
+        <small>Monthly health</small>
+        <strong>82 / 100</strong>
+        <small>Spend discipline improved this month.</small>
+        <div class="meter"><i></i></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="top">
+        <div class="title-block">
+          <p id="sectionLabel">Overview</p>
+          <h1 id="sectionTitle">A modern control room for your money.</h1>
+        </div>
+        <div class="actions">
+          <button class="pill" id="privacyBtn">Privacy off</button>
+          <button class="pill primary">Add record</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <section class="view active" data-view="dashboard">
+          <div class="hero-grid">
+            <div class="hero">
+              <div class="hero-content">
+                <div class="eyebrow"><i></i> BlackSpace Demo</div>
+                <h2>One app.<br><span>Multiple tools.</span></h2>
+                <p>一個更時尚的 BlackSpace 概念介面，把財務、投資、新聞和研究集中成清晰的日常工作台。</p>
+                <div class="hero-stats">
+                  <div class="stat-chip"><small>Total assets</small><b data-money>$279,783</b></div>
+                  <div class="stat-chip"><small>Cash flow</small><b class="pos" data-money>+$35,893</b></div>
+                  <div class="stat-chip"><small>Watchlist</small><b>12 tickers</b></div>
+                </div>
+              </div>
+            </div>
+            <div class="panel panel-pad asset-card">
+              <div class="panel-head">
+                <div><h3>Wealth stack</h3><p>Bank, market value and cash.</p></div>
+                <span class="chip">Live</span>
+              </div>
+              <div class="asset-total" data-money>$279,783</div>
+              <div class="asset-line">
+                <div class="row"><span>Bank</span><b data-money>$164,000</b></div><div class="track"><i style="width:58%"></i></div>
+                <div class="row"><span>Investments</span><b data-money>$115,783</b></div><div class="track orange"><i style="width:42%"></i></div>
+                <div class="row"><span>Free cash</span><b data-money>$49,793</b></div><div class="track green"><i style="width:27%"></i></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="kpis">
+            <div class="kpi"><small>Total spent</small><strong data-money>$80,162</strong><span>Historical total</span></div>
+            <div class="kpi"><small>Monthly avg</small><strong data-money>$6,680</strong><span>Excluding income</span></div>
+            <div class="kpi"><small>Saving rate</small><strong class="pos">33.7%</strong><span>Current year</span></div>
+            <div class="kpi"><small>AI insight</small><strong>3 alerts</strong><span>Budget and market signals</span></div>
+          </div>
+
+          <div class="layout-2">
+            <div class="panel panel-pad">
+              <div class="panel-head"><div><h3>Monthly rhythm</h3><p>Income, spending and investing pattern.</p></div><span class="chip">2026</span></div>
+              <div class="chart" aria-label="Monthly chart">
+                <div class="bar" style="height:42%"></div><div class="bar" style="height:56%"></div><div class="bar" style="height:38%"></div><div class="bar" style="height:70%"></div><div class="bar" style="height:46%"></div><div class="bar" style="height:88%"></div><div class="bar" style="height:64%"></div><div class="bar" style="height:52%"></div><div class="bar" style="height:73%"></div><div class="bar" style="height:48%"></div><div class="bar" style="height:61%"></div><div class="bar" style="height:81%"></div>
+              </div>
+            </div>
+            <div class="panel panel-pad">
+              <div class="panel-head"><div><h3>Smart brief</h3><p>Priority notes for today.</p></div></div>
+              <div class="feed">
+                <div class="feed-item"><div class="dot">1</div><div><b>Spending stayed below budget</b><small>Home and daily expense are under control.</small></div><b class="pos">Good</b></div>
+                <div class="feed-item"><div class="dot">2</div><div><b>NVDA news volume increased</b><small>Watch research page before adding exposure.</small></div><b>Review</b></div>
+                <div class="feed-item"><div class="dot">3</div><div><b>Cash buffer is healthy</b><small>Free cash covers current monthly plan.</small></div><b class="pos">Stable</b></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" data-view="monthly">
+          <div class="panel panel-pad" style="margin-bottom:16px">
+            <div class="panel-head"><div><h3>Transaction workspace</h3><p>Add, search and classify monthly records.</p></div><button class="pill orange">Add transaction</button></div>
+            <div class="control-grid">
+              <div class="field"><label for="txSearch">Search transactions</label><input class="input" id="txSearch" placeholder="Merchant, category, amount"></div>
+              <div class="field"><label for="txType">Type</label><select class="select" id="txType"><option>All</option><option>Expense</option><option>Income</option></select></div>
+              <button class="pill" type="button">Set income</button>
+            </div>
+          </div>
+          <div class="month-strip"><button>Apr</button><button>May</button><button class="active">Jun</button><button>Jul</button><button>Aug</button></div>
+          <div class="monthly-grid">
+            <div class="kpi"><small>Income</small><strong data-money>$116,055</strong><span>Net monthly pay</span></div>
+            <div class="kpi"><small>Total spent</small><strong data-money>$76,962</strong><span class="pos">$7,151 below last month</span></div>
+            <div class="kpi"><small>Net savings</small><strong class="pos" data-money>$35,893</strong><span>After spending</span></div>
+            <div class="kpi"><small>Transactions</small><strong>48</strong><span>Across 6 categories</span></div>
+          </div>
+          <div class="layout-2">
+            <div class="panel panel-pad">
+              <div class="panel-head"><div><h3>Spending by category</h3><p>June 2026 breakdown.</p></div></div>
+              <div class="category-row"><span>日常開支</span><div class="track"><i style="width:72%"></i></div><b data-money>$2.8k</b></div>
+              <div class="category-row"><span>家用</span><div class="track orange"><i style="width:58%"></i></div><b data-money>$2.1k</b></div>
+              <div class="category-row"><span>投資</span><div class="track green"><i style="width:40%"></i></div><b data-money>$1.4k</b></div>
+              <div class="category-row"><span>其他</span><div class="track"><i style="width:22%"></i></div><b data-money>$730</b></div>
+            </div>
+            <div class="panel panel-pad">
+              <div class="panel-head"><div><h3>Recent transactions</h3><p>Fast scan list.</p></div></div>
+              <div class="feed">
+                <div class="feed-item"><div class="dot">C</div><div><b>Coffee</b><small>Daily expense</small></div><b data-money>-$42</b></div>
+                <div class="feed-item"><div class="dot">H</div><div><b>Home</b><small>Monthly recurring</small></div><b data-money>-$3,800</b></div>
+                <div class="feed-item"><div class="dot">S</div><div><b>Salary</b><small>Income</small></div><b class="pos" data-money>+$38,000</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-pad" style="margin-top:18px">
+            <div class="panel-head"><div><h3>Budget vs actual</h3><p>Category budget table.</p></div></div>
+            <div class="table-card">
+              <table>
+                <thead><tr><th>Category</th><th>Budget</th><th>Actual</th><th>Remaining</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>Daily expense</td><td>$3,000</td><td>$2,160</td><td>$840</td><td class="pos">Under</td></tr>
+                  <tr><td>Home</td><td>$5,000</td><td>$4,120</td><td>$880</td><td class="pos">Under</td></tr>
+                  <tr><td>Investment</td><td>$3,200</td><td>$3,200</td><td>$0</td><td>On track</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" data-view="invest">
+          <div class="panel panel-pad">
+            <div class="panel-head"><div><h3>Investment controls</h3><p>Search positions, update manual values and refresh prices.</p></div><button class="pill orange">Add position</button></div>
+            <div class="control-grid">
+              <div class="field"><label for="positionSearch">Position search</label><input class="input" id="positionSearch" value="NVDA" placeholder="Symbol or name"></div>
+              <div class="field"><label for="assetType">Asset type</label><select class="select" id="assetType"><option>All assets</option><option>Stocks</option><option>ETF</option><option>Crypto</option><option>Cash</option></select></div>
+              <button class="pill" type="button">Refresh prices</button>
+            </div>
+            <div class="mini-form">
+              <div class="field"><label for="capitalInput">Capital</label><input class="input" id="capitalInput" value="$110,000"></div>
+              <div class="field"><label for="cashInput">Cash Remaining</label><input class="input" id="cashInput" value="$49,793"></div>
+            </div>
+          </div>
+          <div class="kpis">
+            <div class="kpi"><small>Market value</small><strong data-money>$64,867</strong><span>Current value</span></div>
+            <div class="kpi"><small>Total P&L</small><strong class="pos" data-money>+$4,660</strong><span>Unrealized</span></div>
+            <div class="kpi"><small>Capital</small><strong data-money>$110,000</strong><span>User input</span></div>
+            <div class="kpi"><small>Cash remaining</small><strong data-money>$49,793</strong><span>User input</span></div>
+          </div>
+          <div class="layout-2">
+            <div class="panel panel-pad">
+              <div class="panel-head"><div><h3>Portfolio allocation</h3><p>Modern position cards.</p></div><button class="pill orange">Add position</button></div>
+              <div class="portfolio">
+                <div class="position"><div class="position-head"><div class="ticker">N</div><span class="pos">+8.4%</span></div><strong>NVDA</strong><small>AI infrastructure</small></div>
+                <div class="position"><div class="position-head"><div class="ticker">A</div><span class="pos">+3.1%</span></div><strong>AAPL</strong><small>Consumer tech</small></div>
+                <div class="position"><div class="position-head"><div class="ticker">B</div><span class="neg">-1.2%</span></div><strong>BTC</strong><small>Crypto</small></div>
+              </div>
+            </div>
+            <div class="panel panel-pad">
+              <div class="panel-head"><div><h3>Account value</h3><p>(Market Value + Cash Remaining) - Capital</p></div></div>
+              <div class="asset-total pos" data-money>$4,660</div>
+              <div class="chart"><div class="bar" style="height:34%"></div><div class="bar" style="height:46%"></div><div class="bar" style="height:55%"></div><div class="bar" style="height:72%"></div><div class="bar" style="height:60%"></div><div class="bar" style="height:88%"></div></div>
+            </div>
+          </div>
+          <div class="panel panel-pad" style="margin-top:18px">
+            <div class="panel-head"><div><h3>Positions table</h3><p>Keep the full data density from the existing app.</p></div></div>
+            <div class="table-card">
+              <table>
+                <thead><tr><th>Symbol</th><th>Qty</th><th>Avg cost</th><th>Live price</th><th>Market value</th><th>P&L</th><th>Return</th></tr></thead>
+                <tbody>
+                  <tr><td>NVDA</td><td>18</td><td>$820.00</td><td>$910.00</td><td>$16,380</td><td class="pos">+$1,620</td><td class="pos">+10.98%</td></tr>
+                  <tr><td>AAPL</td><td>80</td><td>$186.00</td><td>$198.00</td><td>$15,840</td><td class="pos">+$960</td><td class="pos">+6.45%</td></tr>
+                  <tr><td>BTC-USD</td><td>0.22</td><td>$62,000</td><td>$66,500</td><td>$14,630</td><td class="pos">+$990</td><td class="pos">+7.26%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" data-view="news">
+          <div class="panel panel-pad">
+            <div class="panel-head"><div><h3>Investment news</h3><p>Company-focused market feed with quick AI summary.</p></div><span class="chip">Updated 13:28</span></div>
+            <div class="control-grid">
+              <div class="field">
+                <label for="newsTicker">Ticker search</label>
+                <input class="input" id="newsTicker" value="NVDA, AAPL, TSM" placeholder="e.g. NVDA, AAPL, 0700.HK">
+              </div>
+              <div class="field">
+                <label for="newsSort">Sort by</label>
+                <select class="select" id="newsSort">
+                  <option>Latest</option>
+                  <option>Sentiment</option>
+                  <option>Relevance</option>
+                </select>
+              </div>
+              <button class="pill orange" type="button">Refresh</button>
+            </div>
+            <div class="chips" style="margin-bottom:14px">
+              <span class="chip">NVDA</span><span class="chip">AAPL</span><span class="chip">MSFT</span><span class="chip">GOOGL</span><span class="chip">TSM</span><span class="chip">TSLA</span><span class="chip">AVGO</span><span class="chip">META</span>
+            </div>
+            <div class="feed">
+              <div class="feed-item"><div class="dot">N</div><div><b>NVIDIA expands AI platform partnerships</b><small>Reuters · Positive tone · 12 min ago · NVDA</small></div><b class="pos">0.42</b></div>
+              <div class="feed-item"><div class="dot">A</div><div><b>Apple services revenue reaches new high</b><small>Bloomberg · Neutral tone · 31 min ago · AAPL</small></div><b>0.08</b></div>
+              <div class="feed-item"><div class="dot">T</div><div><b>TSMC capex outlook remains strong</b><small>CNBC · Positive tone · 1 hr ago · TSM</small></div><b class="pos">0.36</b></div>
+              <div class="feed-item"><div class="dot">M</div><div><b>Microsoft AI demand lifts cloud outlook</b><small>MarketWatch · Positive tone · 2 hr ago · MSFT</small></div><b class="pos">0.29</b></div>
+            </div>
+          </div>
+          <div class="layout-2">
+            <div class="panel panel-pad">
+              <div class="panel-head"><div><h3>AI news brief</h3><p>Summary from selected ticker news.</p></div><span class="chip">Demo</span></div>
+              <div class="feed">
+                <div class="feed-item"><div class="dot">1</div><div><b>AI infrastructure sentiment remains strong</b><small>NVDA and TSM coverage is mostly constructive.</small></div><b class="pos">Bullish</b></div>
+                <div class="feed-item"><div class="dot">2</div><div><b>Valuation risk is still the main caveat</b><small>Positive news flow does not remove entry discipline.</small></div><b>Watch</b></div>
+              </div>
+            </div>
+            <div class="panel panel-pad">
+              <div class="summary-grid">
+                <div class="summary-box"><small>Articles</small><b>20</b></div>
+                <div class="summary-box"><small>Positive</small><b class="pos">64%</b></div>
+                <div class="summary-box"><small>Tickers</small><b>4</b></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" data-view="research">
+          <div class="panel panel-pad research-card">
+            <div>
+              <div class="panel-head"><div><h3>Stock research</h3><p>Enter a ticker and review business, valuation, risk and entry plan.</p></div></div>
+              <div class="control-grid" style="grid-template-columns:minmax(220px,1fr) auto">
+                <div class="field">
+                  <label for="researchTicker">Ticker</label>
+                  <input class="input" id="researchTicker" value="NVDA" placeholder="Enter ticker">
+                </div>
+                <button class="pill orange" type="button">Analyze</button>
+              </div>
+              <div class="chips"><span class="chip">NVDA</span><span class="chip">GOOGL</span><span class="chip">MSFT</span><span class="chip">TSLA</span><span class="chip">AMZN</span><span class="chip">AVGO</span></div>
+              <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:18px">
+                <div class="kpi"><small>P/E</small><strong>42.8</strong><span>Valuation</span></div>
+                <div class="kpi"><small>FCF</small><strong data-money>$27.1B</strong><span>Cash engine</span></div>
+                <div class="kpi"><small>Risk</small><strong>Medium</strong><span>News + filings</span></div>
+              </div>
+            </div>
+            <div class="score-ring"><div>74</div></div>
+          </div>
+          <div class="layout-2">
+            <div class="panel panel-pad">
+              <div class="panel-head"><div><h3>Financial snapshot</h3><p>Revenue, net income, debt and cash flow.</p></div><span class="chip">Annual</span></div>
+              <div class="table-card">
+                <table>
+                  <thead><tr><th>Metric</th><th>2023</th><th>2024</th><th>2025</th><th>Trend</th></tr></thead>
+                  <tbody>
+                    <tr><td>Revenue</td><td>$27.0B</td><td>$60.9B</td><td>$130.5B</td><td class="pos">Rising</td></tr>
+                    <tr><td>Net income</td><td>$4.4B</td><td>$29.8B</td><td>$72.9B</td><td class="pos">Rising</td></tr>
+                    <tr><td>Free cash flow</td><td>$3.8B</td><td>$27.1B</td><td>$60.9B</td><td class="pos">Strong</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="panel panel-pad">
+              <div class="panel-head"><div><h3>Valuation analysis</h3><p>Multiples and quality read.</p></div></div>
+              <div class="summary-grid">
+                <div class="summary-box"><small>Forward P/E</small><b>31.2</b></div>
+                <div class="summary-box"><small>P/B</small><b>34.4</b></div>
+                <div class="summary-box"><small>EV/EBITDA</small><b>28.6</b></div>
+              </div>
+              <div class="feed" style="margin-top:12px">
+                <div class="feed-item"><div class="dot">Q</div><div><b>Quality premium is justified</b><small>Margins and FCF remain strong.</small></div><b class="pos">High</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="layout-2">
+            <div class="panel panel-pad"><div class="panel-head"><div><h3>Entry ladder</h3><p>Separate 1/2 and 1/4 position rhythm.</p></div></div><div class="two-col"><div class="feed"><div class="feed-item"><div class="dot">50</div><div><b>1/2 first entry</b><small>Wait near support zone</small></div><b>$885</b></div><div class="feed-item"><div class="dot">50</div><div><b>1/2 second entry</b><small>Add on confirmation</small></div><b>$820</b></div></div><div class="feed"><div class="feed-item"><div class="dot">25</div><div><b>1/4 entry 1</b><small>Starter position</small></div><b>$910</b></div><div class="feed-item"><div class="dot">25</div><div><b>1/4 entry 2</b><small>First pullback</small></div><b>$865</b></div><div class="feed-item"><div class="dot">25</div><div><b>1/4 entry 3</b><small>Support retest</small></div><b>$820</b></div><div class="feed-item"><div class="dot">25</div><div><b>1/4 entry 4</b><small>Deep value zone</small></div><b>$760</b></div></div></div></div>
+            <div class="panel panel-pad"><div class="panel-head"><div><h3>Risk & AI conclusion</h3><p>Business moat, management and market risk.</p></div></div><div class="feed"><div class="feed-item"><div class="dot">R</div><div><b>Valuation compression</b><small>High expectations already priced.</small></div><b>Watch</b></div><div class="feed-item"><div class="dot">S</div><div><b>Supply chain concentration</b><small>Monitor capex and supplier updates.</small></div><b>Medium</b></div><div class="feed-item"><div class="dot">A</div><div><b>Investment view</b><small>Strong company, wait for disciplined entries.</small></div><b class="pos">Positive</b></div></div></div>
+          </div>
+        </section>
+
+        <section class="view" data-view="goals">
+          <div class="panel panel-pad" style="margin-bottom:16px">
+            <div class="panel-head"><div><h3>Goals & categories controls</h3><p>Create goals, edit budgets and manage recurring categories.</p></div><div class="chips"><button class="pill orange">Add goal</button><button class="pill">Add category</button></div></div>
+            <div class="mini-form">
+              <div class="field"><label for="goalName">Goal name</label><input class="input" id="goalName" value="Travel budget"></div>
+              <div class="field"><label for="goalTarget">Target amount</label><input class="input" id="goalTarget" value="$30,000"></div>
+            </div>
+          </div>
+          <div class="goal-grid">
+            <div class="goal"><small>Emergency fund</small><strong data-money>$82,000 / $100,000</strong><div class="track green"><i style="width:82%"></i></div></div>
+            <div class="goal"><small>Travel budget</small><strong data-money>$18,400 / $30,000</strong><div class="track orange"><i style="width:61%"></i></div></div>
+            <div class="goal"><small>Investment reserve</small><strong data-money>$49,793 / $80,000</strong><div class="track"><i style="width:62%"></i></div></div>
+          </div>
+          <div class="layout-2">
+            <div class="panel panel-pad"><div class="panel-head"><div><h3>Categories</h3><p>Budget groups in a cleaner list.</p></div></div><div class="feed"><div class="feed-item"><div class="dot">D</div><div><b>Daily expense</b><small>Monthly budget $3,000</small></div><b>72%</b></div><div class="feed-item"><div class="dot">I</div><div><b>Investment</b><small>Monthly recurring enabled</small></div><b>40%</b></div><div class="feed-item"><div class="dot">H</div><div><b>Home</b><small>Color and budget editable</small></div><b>58%</b></div></div></div>
+            <div class="panel panel-pad"><div class="panel-head"><div><h3>Goal forecast</h3><p>Projected completion.</p></div></div><div class="chart"><div class="bar" style="height:26%"></div><div class="bar" style="height:34%"></div><div class="bar" style="height:45%"></div><div class="bar" style="height:57%"></div><div class="bar" style="height:74%"></div><div class="bar" style="height:92%"></div></div></div>
+          </div>
+        </section>
+
+        <section class="view" data-view="sim">
+          <div class="hero-grid">
+            <div class="panel panel-pad">
+              <div class="panel-head"><div><h3>Sim trading</h3><p>Practice portfolio with fast actions.</p></div><span class="chip">Paper mode</span></div>
+              <div class="asset-total" data-money>$114,660</div>
+              <p style="color:var(--muted);margin:8px 0 20px">Cash + portfolio value</p>
+              <div class="mini-form" style="margin-bottom:14px">
+                <div class="field"><label for="simSymbol">Symbol</label><input class="input" id="simSymbol" value="MSFT"></div>
+                <div class="field"><label for="simQty">Quantity</label><input class="input" id="simQty" value="10"></div>
+                <div class="field"><label for="simType">Order type</label><select class="select" id="simType"><option>Market</option><option>Limit</option></select></div>
+                <div class="field"><label for="simPrice">Limit price</label><input class="input" id="simPrice" value="$410.00"></div>
+              </div>
+              <div class="sim-ticket"><button class="trade-btn buy">Buy</button><button class="trade-btn sell">Sell</button></div>
+            </div>
+            <div class="panel panel-pad">
+              <div class="panel-head"><div><h3>Watchlist</h3><p>Tap a ticker to open detail.</p></div></div>
+              <div class="feed">
+                <div class="feed-item"><div class="dot">M</div><div><b>MSFT</b><small>Cloud and AI</small></div><b class="pos">+1.8%</b></div>
+                <div class="feed-item"><div class="dot">A</div><div><b>AMZN</b><small>Commerce and AWS</small></div><b class="pos">+0.9%</b></div>
+                <div class="feed-item"><div class="dot">T</div><div><b>TSLA</b><small>High volatility</small></div><b class="neg">-2.4%</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="layout-2">
+            <div class="panel panel-pad"><div class="panel-head"><div><h3>Open orders</h3><p>Pending simulated orders.</p></div></div><div class="feed"><div class="feed-item"><div class="dot">L</div><div><b>NVDA limit buy</b><small>5 shares at $880</small></div><b>Pending</b></div><div class="feed-item"><div class="dot">S</div><div><b>AAPL sell</b><small>20 shares at market</small></div><b>Ready</b></div></div></div>
+            <div class="panel panel-pad"><div class="panel-head"><div><h3>Order history</h3><p>Recent practice trades.</p></div></div><div class="feed"><div class="feed-item"><div class="dot">B</div><div><b>Bought MSFT</b><small>10 shares</small></div><b class="pos">Filled</b></div><div class="feed-item"><div class="dot">S</div><div><b>Sold TSLA</b><small>3 shares</small></div><b class="pos">Filled</b></div></div></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile demo navigation"></nav>
+
+  <script>
+    const navItems = [
+      ['dashboard','Overview','M5 12h14M12 5v14M5 5h14v14H5z'],
+      ['monthly','Monthly','M7 3v4M17 3v4M4 8h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1z'],
+      ['invest','Invest','M4 17l5-5 4 4 7-9M20 7v6h-6'],
+      ['news','News','M4 6h16M4 12h16M4 18h10'],
+      ['research','Research','M10 18a8 8 0 1 1 5.66-2.34L21 21'],
+      ['goals','Goals','M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2'],
+      ['sim','Sim','M4 18h16M7 14l3-3 3 2 4-6']
+    ];
+
+    const titles = {
+      dashboard:['Overview','A modern control room for your money.'],
+      monthly:['Monthly','A calmer way to read your cash flow.'],
+      invest:['Investments','Portfolio, cash and account value in one view.'],
+      news:['News','Market information designed for quick judgement.'],
+      research:['Research','Ticker research with valuation and risk context.'],
+      goals:['Goals','Budget categories and wealth targets.'],
+      sim:['Sim Trading','A cleaner practice trading desk.']
+    };
+
+    function icon(path){
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">${path.split('|').map(d=>`<path d="${d}"></path>`).join('')}</svg>`;
+    }
+
+    function buildNav(){
+      const side = document.getElementById('sideNav');
+      const mobile = document.getElementById('mobileNav');
+      side.innerHTML = navItems.map(([id,label,d],i)=>`<button data-go="${id}" class="${i===0?'active':''}">${icon(d)}<span>${label}</span></button>`).join('');
+      mobile.innerHTML = navItems.slice(0,6).map(([id,label,d],i)=>`<button aria-label="${label}" data-go="${id}" class="${i===0?'active':''}">${icon(d)}</button>`).join('');
+    }
+
+    function setView(id){
+      document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===id));
+      document.querySelectorAll('[data-go]').forEach(b=>b.classList.toggle('active',b.dataset.go===id));
+      document.getElementById('sectionLabel').textContent = titles[id][0];
+      document.getElementById('sectionTitle').textContent = titles[id][1];
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    let privateMode = false;
+    function setPrivacy(){
+      privateMode = !privateMode;
+      document.querySelectorAll('[data-money]').forEach(el=>{
+        if(!el.dataset.real) el.dataset.real = el.textContent;
+        el.textContent = privateMode ? '*****' : el.dataset.real;
+      });
+      document.getElementById('privacyBtn').textContent = privateMode ? 'Privacy on' : 'Privacy off';
+    }
+
+    buildNav();
+    document.addEventListener('click', e=>{
+      const btn = e.target.closest('[data-go]');
+      if(btn) setView(btn.dataset.go);
+    });
+    document.getElementById('privacyBtn').addEventListener('click', setPrivacy);
+  </script>
+</body>
+</html>

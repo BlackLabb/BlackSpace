@@ -1,0 +1,2371 @@
+<!doctype html>
+<html lang="zh-HK">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>BlackSpace / Redesign Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070708;
+      --bg-soft: #0d0d10;
+      --surface: rgba(18, 18, 22, 0.72);
+      --surface-solid: #121216;
+      --surface-hover: rgba(255, 255, 255, 0.04);
+      --line: rgba(255, 255, 255, 0.08);
+      --line-strong: rgba(255, 255, 255, 0.14);
+      --text: #f3f1ec;
+      --muted: #8d8980;
+      --faint: #5c5954;
+      --accent: #d4b56a;
+      --accent-soft: rgba(212, 181, 106, 0.12);
+      --accent-glow: rgba(212, 181, 106, 0.28);
+      --positive: #6fae82;
+      --negative: #d06b6b;
+      --blue: #7aa7d9;
+      --purple: #a78fd4;
+      --radius: 18px;
+      --radius-sm: 12px;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      --display: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      --sans: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      --mono: "Inter", "Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+      --num-tabular: tabular-nums;
+      --nav-w: 248px;
+      --top-h: 72px;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    [data-theme="light"] {
+      --bg: #f4f1ea;
+      --bg-soft: #ece7dd;
+      --surface: rgba(255, 255, 255, 0.78);
+      --surface-solid: #ffffff;
+      --surface-hover: rgba(0, 0, 0, 0.04);
+      --line: rgba(20, 18, 15, 0.08);
+      --line-strong: rgba(20, 18, 15, 0.14);
+      --text: #171512;
+      --muted: #6f6a62;
+      --faint: #a39d93;
+      --accent: #9a7b2f;
+      --accent-soft: rgba(154, 123, 47, 0.1);
+      --accent-glow: rgba(154, 123, 47, 0.18);
+      --shadow: 0 24px 80px rgba(30, 24, 12, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: var(--bg); }
+    body {
+      margin: 0;
+      min-height: 100svh;
+      color: var(--text);
+      font-family: var(--sans);
+      letter-spacing: -0.01em;
+      background:
+        radial-gradient(circle at 12% -10%, rgba(212, 181, 106, 0.12), transparent 34%),
+        radial-gradient(circle at 88% 0%, rgba(122, 167, 217, 0.08), transparent 28%),
+        linear-gradient(180deg, var(--bg-soft), var(--bg));
+      overflow-x: hidden;
+    }
+
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; background: none; border: none; }
+
+    .grain {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      opacity: 0.35;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+      mix-blend-mode: soft-light;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: var(--nav-w) minmax(0, 1fr);
+      min-height: 100svh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      padding: 22px 16px 18px;
+      border-right: 1px solid var(--line);
+      background: var(--surface);
+      backdrop-filter: blur(28px) saturate(140%);
+      -webkit-backdrop-filter: blur(28px) saturate(140%);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 4px 8px 10px;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--line-strong);
+      background: linear-gradient(145deg, #1a1a1f, #09090b);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .brand-copy strong {
+      display: block;
+      font-family: var(--display);
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .brand-copy span {
+      display: block;
+      margin-top: 4px;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .nav-group-label {
+      padding: 0 10px;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 14px;
+      color: var(--muted);
+      transition: background 0.22s var(--ease), color 0.22s var(--ease), transform 0.22s var(--ease);
+    }
+
+    .nav-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      flex-shrink: 0;
+    }
+
+    .nav-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+      transform: translateX(2px);
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(90deg, var(--accent-soft), transparent);
+      color: var(--text);
+      box-shadow: inset 0 0 0 1px rgba(212, 181, 106, 0.18);
+    }
+
+    .nav-btn.active svg { color: var(--accent); }
+
+    .nav-btn .badge {
+      margin-left: auto;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .sidebar-foot {
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .profile-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 14px;
+      transition: background 0.22s var(--ease);
+    }
+
+    .profile-card:hover { background: var(--surface-hover); }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #2a2620, #121216);
+      border: 1px solid var(--line-strong);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .profile-copy strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .profile-copy span {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ── Main ── */
+    .main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100svh;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: var(--top-h);
+      padding: 14px 28px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(7, 7, 8, 0.55);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    [data-theme="light"] .topbar { background: rgba(244, 241, 234, 0.72); }
+
+    .page-title-wrap h1 {
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(28px, 3vw, 36px);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .page-title-wrap p {
+      margin: 6px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill-btn, .icon-btn, .primary-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--surface-solid);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      transition: transform 0.18s var(--ease), border-color 0.18s var(--ease), background 0.18s var(--ease);
+    }
+
+    .icon-btn {
+      width: 40px;
+      padding: 0;
+      justify-content: center;
+    }
+
+    .pill-btn:hover, .icon-btn:hover, .primary-btn:hover { transform: translateY(-1px); border-color: var(--line-strong); }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #e8cf8d, #b8923f);
+      color: #171512;
+      border-color: transparent;
+      box-shadow: 0 10px 30px var(--accent-glow);
+    }
+
+    .privacy-on .masked { filter: blur(7px); user-select: none; }
+
+    .content {
+      flex: 1;
+      padding: 22px 28px 120px;
+    }
+
+    .view { display: none; animation: fadeUp 0.42s var(--ease); }
+    .view.active { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Shared components ── */
+    .hero-metric {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.9fr);
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .hero-card {
+      position: relative;
+      overflow: hidden;
+      padding: 28px;
+      border-radius: calc(var(--radius) + 4px);
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at top right, rgba(212, 181, 106, 0.14), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -10% -40% auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-glow), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-label {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .hero-value {
+      margin-top: 10px;
+      font-family: var(--mono);
+      font-size: clamp(34px, 5vw, 52px);
+      font-weight: 600;
+      letter-spacing: -0.05em;
+      line-height: 1;
+    }
+
+    .hero-sub {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      font-size: 12px;
+    }
+
+    .chip.positive { color: var(--positive); border-color: rgba(111, 174, 130, 0.24); background: rgba(111, 174, 130, 0.08); }
+    .chip.negative { color: var(--negative); border-color: rgba(208, 107, 107, 0.24); background: rgba(208, 107, 107, 0.08); }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .kpi {
+      padding: 18px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--surface-solid);
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .kpi-value {
+      margin-top: 8px;
+      font-family: var(--mono);
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+    }
+
+    .kpi-sub {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .panel {
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--surface-solid);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .panel-head span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .panel-body { padding: 18px; }
+
+    .chart-bars {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 88px minmax(0, 1fr) 72px;
+      gap: 12px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .bar-track {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), #f0dfa8);
+    }
+    .chart-bars .bar-fill {
+      width: 0 !important;
+      animation: growBar 0.9s var(--ease) forwards;
+    }
+
+    .bar-amt {
+      text-align: right;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .donut-wrap {
+      display: grid;
+      place-items: center;
+      padding: 8px 0 4px;
+    }
+
+    .donut {
+      width: 180px;
+      height: 180px;
+      transform: rotate(-90deg);
+    }
+
+    .donut-center {
+      margin-top: -118px;
+      text-align: center;
+    }
+
+    .donut-center strong {
+      display: block;
+      font-family: var(--mono);
+      font-size: 22px;
+    }
+
+    .donut-center span {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .legend {
+      display: grid;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .legend-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .ai-panel {
+      padding: 18px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(212, 181, 106, 0.18);
+      background: linear-gradient(180deg, rgba(212, 181, 106, 0.08), rgba(212, 181, 106, 0.02));
+    }
+
+    .ai-panel h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .ai-panel p, .ai-panel li {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .ai-panel ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .hero-row { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(240px, 0.85fr); gap: 14px; margin-bottom: 14px; }
+    .hero-stack { display: grid; gap: 14px; }
+    .hero-mark {
+      position: relative; z-index: 1; width: 56px; height: 56px; border-radius: 50%; overflow: hidden;
+      border: 1px solid var(--line-strong); background: #0b0b0b; box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+    .hero-mark video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .hero-brand { position: absolute; z-index: 1; top: 28px; right: 28px; font-family: var(--display); font-size: 18px; font-weight: 600; opacity: 0.72; }
+    .mini-kpi { padding: 20px; border-radius: 20px; border: 1px solid var(--line); background: var(--surface-solid); box-shadow: var(--shadow); }
+    .mini-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .mini-label { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+    .mini-value { font-family: var(--mono); font-size: 28px; font-weight: 600; letter-spacing: -0.04em; line-height: 1; }
+    .mini-sub { margin-top: 6px; font-size: 12px; color: var(--muted); }
+    .edit-btn { width: 28px; height: 28px; border-radius: 8px; color: var(--muted); display: grid; place-items: center; }
+    .edit-btn:hover { background: var(--surface-hover); color: var(--text); }
+    .kpi-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .kpi-tile { padding: 18px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface-solid); box-shadow: var(--shadow); }
+    .kpi-tile .mini-value { font-size: 24px; }
+    .annual { margin-bottom: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .section-head { margin-bottom: 12px; font-family: var(--display); font-size: 22px; font-weight: 600; letter-spacing: -0.03em; }
+    .annual-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .annual-grid .span-full { grid-column: 1 / -1; }
+    .pos { color: var(--positive) !important; }
+    .neg { color: var(--negative) !important; }
+
+    .toggle { display: flex; gap: 14px; }
+    .toggle button { position: relative; padding: 4px 2px; font-size: 13px; font-weight: 600; color: var(--muted); background: none; }
+    .toggle button.active { color: var(--text); }
+    .toggle button.active::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px;
+      background: var(--accent); border-radius: 1px;
+    }
+    .cycle-btn {
+      padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03); color: var(--muted); font-size: 12px; font-weight: 600;
+    }
+
+    .ai-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .ai-icon {
+      width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--accent), #e8cf8d); color: #171512;
+      box-shadow: 0 8px 24px var(--accent-glow); flex-shrink: 0;
+    }
+    .ai-title { font-family: var(--display); font-size: 20px; font-weight: 600; }
+    .ai-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .refresh-btn {
+      margin-top: 14px; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted);
+      padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,0.03);
+    }
+
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .search-field {
+      display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 14px;
+      border-radius: 999px; border: 1px solid var(--line); background: var(--surface-solid); flex: 1; min-width: 200px;
+    }
+    .search-field input { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; }
+    .note-pill {
+      display: inline-flex; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line);
+      font-size: 11px; color: var(--muted); margin-bottom: 14px;
+    }
+    .rules-panel {
+      padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+    }
+    .rules-panel h3 { margin: 0 0 12px; font-size: 15px; }
+    .rules-panel p { margin: 0 0 10px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .recurring-badge {
+      display: inline-flex; margin-top: 8px; padding: 3px 8px; border-radius: 999px;
+      font-size: 10px; font-weight: 600; color: var(--accent); background: var(--accent-soft);
+    }
+
+    .table-wrap {
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--surface-solid);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    th {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      background: rgba(255,255,255,0.02);
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .amt { font-family: var(--mono); font-weight: 600; text-align: right; }
+    .amt.positive { color: var(--positive); }
+    .amt.negative { color: var(--negative); }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .month-strip {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: 16px;
+      scrollbar-width: none;
+    }
+
+    .month-strip::-webkit-scrollbar { display: none; }
+
+    .month-pill {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .month-pill.active {
+      color: #171512;
+      background: linear-gradient(135deg, #e8cf8d, #b8923f);
+      border-color: transparent;
+    }
+
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .cat-card {
+      padding: 18px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--surface-solid);
+      transition: transform 0.22s var(--ease), border-color 0.22s var(--ease);
+    }
+
+    .cat-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--line-strong);
+    }
+
+    .cat-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .cat-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .cat-name {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .cat-budget {
+      margin-top: 14px;
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .progress {
+      margin-top: 10px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      overflow: hidden;
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+    }
+
+    .news-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+      gap: 16px;
+    }
+
+    .news-card {
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      transition: border-color 0.22s var(--ease), transform 0.22s var(--ease);
+    }
+
+    .news-card:hover {
+      border-color: var(--line-strong);
+      transform: translateY(-1px);
+    }
+
+    .news-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .news-card h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    .news-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .research-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .research-stat {
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: var(--surface-solid);
+    }
+
+    .research-stat span {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .research-stat strong {
+      display: block;
+      margin-top: 8px;
+      font-family: var(--mono);
+      font-size: 22px;
+    }
+
+    .ticker-search {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .ticker-search input, .ticker-search select {
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--surface-solid);
+      outline: none;
+    }
+
+    .ticker-search input { flex: 1; min-width: 0; }
+
+    .demo-banner {
+      position: fixed;
+      left: 50%;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(10, 10, 12, 0.82);
+      backdrop-filter: blur(18px);
+      font-size: 12px;
+      color: var(--muted);
+      box-shadow: var(--shadow);
+    }
+
+    .demo-banner strong { color: var(--accent); }
+    .demo-banner button {
+      width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--line);
+      color: var(--muted); display: grid; place-items: center; margin-left: 4px;
+    }
+    .demo-banner button:hover { color: var(--text); border-color: var(--line-strong); }
+    .demo-banner.hidden { display: none; }
+
+    /* ── Ambient & motion ── */
+    .ambient {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.45;
+      animation: orbFloat 18s var(--ease) infinite alternate;
+    }
+    .orb-a { width: 420px; height: 420px; top: -8%; left: -6%; background: rgba(212, 181, 106, 0.14); }
+    .orb-b { width: 360px; height: 360px; top: 18%; right: -8%; background: rgba(122, 167, 217, 0.1); animation-delay: -6s; }
+    .orb-c { width: 280px; height: 280px; bottom: 8%; left: 32%; background: rgba(167, 143, 212, 0.08); animation-delay: -12s; }
+
+    @keyframes orbFloat {
+      from { transform: translate(0, 0) scale(1); }
+      to { transform: translate(24px, -18px) scale(1.08); }
+    }
+
+    body { transition: background 0.45s var(--ease), color 0.35s var(--ease); }
+
+    .nav-btn.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 18px;
+      border-radius: 0 2px 2px 0;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+    .nav-btn { position: relative; }
+
+    .live-time {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--faint);
+      letter-spacing: 0.04em;
+    }
+    .live-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--positive);
+      box-shadow: 0 0 0 0 rgba(111, 174, 130, 0.5);
+      animation: pulseDot 2.4s ease infinite;
+    }
+    @keyframes pulseDot {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(111, 174, 130, 0.45); }
+      50% { box-shadow: 0 0 0 5px rgba(111, 174, 130, 0); }
+    }
+
+    .view.active > * {
+      animation: fadeUp 0.5s var(--ease) both;
+    }
+    .view.active > *:nth-child(1) { animation-delay: 0.04s; }
+    .view.active > *:nth-child(2) { animation-delay: 0.08s; }
+    .view.active > *:nth-child(3) { animation-delay: 0.12s; }
+    .view.active > *:nth-child(4) { animation-delay: 0.16s; }
+    .view.active > *:nth-child(5) { animation-delay: 0.2s; }
+    .view.active > *:nth-child(6) { animation-delay: 0.24s; }
+
+    .kpi, .kpi-tile, .mini-kpi, .hero-card, .cat-card, .research-stat {
+      transition: transform 0.22s var(--ease), border-color 0.22s var(--ease), box-shadow 0.22s var(--ease);
+    }
+    .kpi:hover, .kpi-tile:hover, .mini-kpi:hover {
+      transform: translateY(-2px);
+      border-color: var(--line-strong);
+    }
+    .hero-card:hover { box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(212, 181, 106, 0.08); }
+
+    tbody tr { transition: background 0.18s var(--ease); }
+    tbody tr:hover { background: rgba(255, 255, 255, 0.025); }
+
+    .trend-line {
+      stroke-dasharray: 600;
+      stroke-dashoffset: 600;
+      animation: drawLine 1.6s var(--ease) 0.3s forwards;
+    }
+    @keyframes drawLine { to { stroke-dashoffset: 0; } }
+
+    @keyframes growBar { to { width: var(--w, 100%) !important; } }
+
+    .news-card.sent-pos { border-left: 3px solid var(--positive); }
+    .news-card.sent-neg { border-left: 3px solid var(--negative); }
+    .news-card.sent-neu { border-left: 3px solid var(--muted); }
+
+    .streak {
+      display: inline-flex;
+      gap: 2px;
+      font-size: 10px;
+      letter-spacing: -0.02em;
+    }
+    .streak-up { color: var(--positive); }
+    .streak-down { color: var(--negative); }
+
+    .cat-card.over-budget {
+      border-color: rgba(208, 107, 107, 0.28);
+      background: linear-gradient(180deg, rgba(208, 107, 107, 0.06), var(--surface-solid));
+    }
+    .cat-card.over-budget .cat-budget .over-tag {
+      margin-left: 8px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--negative);
+      vertical-align: middle;
+    }
+
+    .ai-panel.loading { opacity: 0.72; }
+    .ai-panel.loading ul { opacity: 0.4; }
+
+    .toast-wrap {
+      position: fixed;
+      top: calc(var(--top-h) + 12px);
+      right: 28px;
+      z-index: 60;
+      display: grid;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(10, 10, 12, 0.92);
+      backdrop-filter: blur(20px);
+      box-shadow: var(--shadow);
+      font-size: 13px;
+      color: var(--text);
+      animation: toastIn 0.35s var(--ease), toastOut 0.35s var(--ease) 2.4s forwards;
+    }
+    .toast strong { color: var(--accent); font-weight: 600; }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes toastOut {
+      to { opacity: 0; transform: translateY(-6px); }
+    }
+
+    .kbd-hint {
+      position: fixed;
+      right: 28px;
+      bottom: calc(68px + env(safe-area-inset-bottom));
+      z-index: 35;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(10, 10, 12, 0.65);
+      backdrop-filter: blur(12px);
+      font-size: 11px;
+      color: var(--faint);
+      opacity: 0;
+      transition: opacity 0.3s var(--ease);
+    }
+    .kbd-hint.show { opacity: 1; }
+    .kbd-hint kbd {
+      display: inline-block;
+      min-width: 18px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      font-family: var(--mono);
+      font-variant-numeric: var(--num-tabular);
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    body[data-num-style="jetbrains"] {
+      --mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+      --num-tabular: normal;
+    }
+    body[data-num-style="ibm"] {
+      --mono: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
+      --num-tabular: normal;
+    }
+    body[data-num-style="system"] {
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      --num-tabular: normal;
+    }
+    body[data-num-style="sans"] {
+      --mono: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      --num-tabular: tabular-nums;
+    }
+    body[data-num-style="inter"] {
+      --mono: "Inter", "Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+      --num-tabular: tabular-nums;
+    }
+
+    .hero-value,
+    .mini-value,
+    .kpi-value,
+    .amt,
+    .stat-val {
+      font-variant-numeric: var(--num-tabular);
+    }
+
+    .num-preview {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s var(--ease);
+    }
+    .num-preview.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .num-preview-card {
+      width: min(520px, 100%);
+      max-height: min(82svh, 640px);
+      overflow: auto;
+      border-radius: 22px;
+      border: 1px solid var(--line-strong);
+      background: var(--surface-solid);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    .num-preview-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .num-preview-head h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .num-preview-head p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .num-preview-close {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--surface-hover);
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .num-preview-list {
+      display: grid;
+      gap: 8px;
+    }
+    .num-preview-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 4px 12px;
+      align-items: center;
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: transparent;
+      text-align: left;
+      transition: border-color 0.18s var(--ease), background 0.18s var(--ease);
+    }
+    .num-preview-item:hover { border-color: var(--line-strong); background: var(--surface-hover); }
+    .num-preview-item.active {
+      border-color: rgba(212, 181, 106, 0.45);
+      background: var(--accent-soft);
+    }
+    .num-preview-name {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .num-preview-desc {
+      grid-column: 1;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .num-preview-sample {
+      grid-row: 1 / span 2;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+      white-space: nowrap;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .bar-fill { width: var(--w, 100%) !important; animation: none; }
+      .trend-line { stroke-dashoffset: 0; animation: none; }
+    }
+
+    .mobile-nav, .mobile-menu-btn { display: none; }
+
+    /* Dashboard approved layout */
+    .hero-row { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(240px, 0.85fr); gap: 14px; margin-bottom: 14px; }
+    .hero-row .hero-card { min-height: 260px; }
+    .hero-mark { position: relative; z-index: 1; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 1px solid var(--line-strong); background: #0b0b0b; box-shadow: 0 0 0 4px var(--accent-soft); }
+    .hero-mark video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .hero-brand { position: absolute; z-index: 1; top: 28px; right: 28px; font-family: var(--display); font-size: 18px; font-weight: 600; opacity: 0.72; }
+    .hero-stack { display: grid; gap: 14px; }
+    .mini-kpi { padding: 20px; border-radius: 20px; border: 1px solid var(--line); background: var(--surface-solid); box-shadow: var(--shadow); }
+    .mini-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .mini-label { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+    .mini-value { font-family: var(--mono); font-size: 28px; font-weight: 600; letter-spacing: -0.04em; line-height: 1; }
+    .mini-sub { margin-top: 6px; font-size: 12px; color: var(--muted); }
+    .edit-btn { width: 28px; height: 28px; border-radius: 8px; color: var(--muted); display: grid; place-items: center; }
+    .edit-btn:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .kpi-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .kpi-tile { padding: 18px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface-solid); box-shadow: var(--shadow); }
+    .kpi-tile .mini-value { font-size: 24px; }
+    .annual { margin-top: 4px; padding-top: 18px; border-top: 1px solid var(--line); margin-bottom: 18px; }
+    .section-head { margin-bottom: 12px; font-family: var(--display); font-size: 22px; font-weight: 600; letter-spacing: -0.03em; }
+    .annual-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .annual-grid .span-full { grid-column: 1 / -1; }
+    .pos { color: var(--positive); }
+    .neg { color: var(--negative); }
+    .toggle { display: flex; gap: 14px; }
+    .toggle button { position: relative; padding: 4px 2px; font-size: 13px; font-weight: 600; color: var(--muted); background: none; }
+    .toggle button.active { color: var(--text); }
+    .toggle button.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: var(--accent); border-radius: 1px; }
+    .cycle-btn { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,0.03); color: var(--muted); font-size: 12px; font-weight: 600; }
+    .dash-panel-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) 320px; gap: 14px; }
+    .dash-left-stack { display: grid; gap: 14px; }
+    .panel-head h2.serif { font-family: var(--display); font-size: 18px; font-weight: 600; }
+    .ai-panel-full { padding: 20px; border-radius: 20px; border: 1px solid rgba(212, 181, 106, 0.18); background: linear-gradient(180deg, var(--accent-soft), transparent); box-shadow: var(--shadow); }
+    .ai-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .ai-icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: linear-gradient(135deg, var(--accent), #e8cf8d); color: #171512; box-shadow: 0 8px 24px var(--accent-glow); flex-shrink: 0; }
+    .ai-title { font-family: var(--display); font-size: 20px; font-weight: 600; }
+    .ai-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .refresh-btn { margin-top: 14px; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,0.03); }
+    .search-toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+    .search-toolbar input { flex: 1; min-width: 180px; min-height: 42px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-solid); outline: none; }
+    .note-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 600; margin-bottom: 14px; }
+    .rules-panel { padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: rgba(255,255,255,0.02); margin-top: 12px; }
+    .rules-panel h4 { margin: 0 0 10px; font-size: 13px; font-weight: 600; }
+    .rules-panel p { margin: 0 0 8px; font-size: 12px; color: var(--muted); line-height: 1.55; }
+    .news-side-stack { display: grid; gap: 14px; }
+
+    @media (max-width: 1080px) {
+      .hero-row, .hero-metric, .panel-grid, .news-grid, .dash-panel-grid { grid-template-columns: 1fr; }
+      .kpi-grid, .cat-grid, .research-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 820px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: min(86vw, 320px);
+        transform: translateX(-105%);
+        transition: transform 0.32s var(--ease);
+        z-index: 50;
+        box-shadow: var(--shadow);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.28s var(--ease);
+        z-index: 45;
+      }
+      .overlay.open { opacity: 1; pointer-events: auto; }
+      .mobile-menu-btn, .mobile-nav { display: flex; }
+      .mobile-menu-btn {
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--surface-solid);
+      }
+      .topbar { padding: 12px 16px; }
+      .content { padding: 16px 16px 120px; }
+      .mobile-nav {
+        position: fixed;
+        left: 16px;
+        right: 16px;
+        bottom: calc(12px + env(safe-area-inset-bottom));
+        z-index: 30;
+        padding: 8px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(10, 10, 12, 0.82);
+        backdrop-filter: blur(24px);
+        justify-content: space-between;
+        gap: 4px;
+      }
+      .mobile-nav button {
+        flex: 1;
+        min-width: 0;
+        height: 46px;
+        border-radius: 999px;
+        color: var(--muted);
+      }
+      .mobile-nav button.active {
+        color: var(--text);
+        background: var(--accent-soft);
+      }
+      .demo-banner { bottom: calc(84px + env(safe-area-inset-bottom)); }
+      .kbd-hint { right: 16px; bottom: calc(140px + env(safe-area-inset-bottom)); display: none; }
+    }
+
+    @media (max-width: 560px) {
+      .kpi-grid, .kpi-row, .annual-grid, .cat-grid, .research-grid { grid-template-columns: 1fr; }
+      .hero-value { font-size: 34px; }
+      .top-actions .pill-btn span.label { display: none; }
+    }
+  </style>
+</head>
+<body data-theme="dark" data-num-style="inter">
+  <div class="ambient" aria-hidden="true">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="orb orb-c"></div>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="overlay" id="overlay"></div>
+  <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+  <div class="kbd-hint" id="kbdHint" data-i18n-html="demo-kbd-hint"><kbd>1</kbd>–<kbd>7</kbd> switch pages · <kbd>P</kbd> privacy · <kbd>T</kbd> theme · <kbd>N</kbd> numbers</div>
+
+  <div class="num-preview" id="numPreview" aria-hidden="true">
+    <div class="num-preview-card" role="dialog" aria-labelledby="numPreviewTitle">
+      <div class="num-preview-head">
+        <div>
+          <h2 id="numPreviewTitle" data-i18n="demo-num-preview-title">Number styles</h2>
+          <p data-i18n="demo-num-preview-sub">Click a style to preview it across the dashboard.</p>
+        </div>
+        <button class="num-preview-close" id="numPreviewClose" type="button" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="num-preview-list" id="numPreviewList"></div>
+    </div>
+  </div>
+
+  <div class="app" id="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">
+          <img src="../BlackSpace.png" alt="" onerror="this.style.display='none'">
+        </div>
+        <div class="brand-copy">
+          <strong>BlackSpace</strong>
+          <span data-i18n="demo-brand-tag">Wealth Studio</span>
+        </div>
+      </div>
+
+      <div class="nav-group-label" data-i18n="demo-nav-core">Core</div>
+      <div class="nav-list">
+        <button class="nav-btn active" data-view="dashboard">
+          <svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5"/><path d="M6 10v10h4v-6h4v6h4V10"/></svg>
+          <span data-i18n="nav-dashboard">Dashboard</span>
+        </button>
+        <button class="nav-btn" data-view="monthly">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          <span data-i18n="nav-monthly">Monthly</span>
+        </button>
+        <button class="nav-btn" data-view="investments">
+          <svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-9"/><path d="M14 6h7v7"/></svg>
+          <span data-i18n="nav-investments">Investments</span>
+        </button>
+        <button class="nav-btn" data-view="categories">
+          <svg viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1"/></svg>
+          <span data-i18n="nav-categories">Categories</span>
+        </button>
+      </div>
+
+      <div class="nav-group-label" data-i18n="nav-apps">Apps</div>
+      <div class="nav-list">
+        <button class="nav-btn" data-view="news">
+          <svg viewBox="0 0 24 24"><path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/><path d="M8 8h7M8 12h8M8 16h5"/></svg>
+          <span data-i18n="nav-news">News</span>
+          <span class="badge" data-i18n="demo-badge-live">Live</span>
+        </button>
+        <button class="nav-btn" data-view="fundflow">
+          <svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 3-4 3 2 5-7"/><path d="m15 6 3 0 0 3"/></svg>
+          <span data-i18n="title-fundflow">Fund Flow</span>
+        </button>
+        <button class="nav-btn" data-view="research">
+          <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-7"/><circle cx="11" cy="11" r="1"/></svg>
+          <span data-i18n="title-stockresearch">Stock Research</span>
+        </button>
+      </div>
+
+      <div class="sidebar-foot">
+        <div class="profile-card">
+          <div class="avatar">BC</div>
+          <div class="profile-copy">
+            <strong>Black Chan</strong>
+            <span data-i18n="demo-profile-tier">Premium · Hong Kong</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0">
+          <button class="mobile-menu-btn" id="menuBtn" aria-label="Open menu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+          <div class="page-title-wrap">
+            <h1 id="pageTitle">Dashboard</h1>
+            <p id="pageSub">Your wealth at a glance</p>
+            <div class="live-time"><span class="live-dot" aria-hidden="true"></span><span id="liveClock">—</span></div>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="pill-btn" id="privacyBtn" title="Privacy mode">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span class="label" data-i18n="settings-privacy">Privacy</span>
+          </button>
+          <button class="pill-btn" id="numPreviewBtn" title="Number font preview">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h16"/></svg>
+            <span class="label" data-i18n="demo-num-btn">Numbers</span>
+          </button>
+          <button class="pill-btn" id="themeBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+            <span class="label" id="themeLabel" data-i18n="demo-theme-light">Light</span>
+          </button>
+          <button class="pill-btn" id="langBtn">
+            <span class="label" id="langLabel">中文</span>
+          </button>
+          <button class="primary-btn" id="addBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+            <span id="addLabel">Add</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="content">
+        <!-- Dashboard -->
+        <section class="view active" id="view-dashboard">
+          <div class="hero-row">
+            <section class="hero-card">
+              <div class="hero-mark">
+                <video src="../BlackSpace.mp4" autoplay muted loop playsinline preload="auto" aria-label="BlackSpace logo"></video>
+              </div>
+              <div class="hero-brand">BlackSpace</div>
+              <div class="hero-label" data-i18n="lbl-total">Total Assets</div>
+              <div class="hero-value masked" data-value="$1,284,600">$1,284,600</div>
+              <div class="hero-sub" data-i18n="sub-bank-inv">Bank deposits + investments</div>
+            </section>
+            <div class="hero-stack">
+              <div class="mini-kpi">
+                <div class="mini-top">
+                  <div class="mini-label" data-i18n="lbl-bank">Bank Deposits</div>
+                  <button class="edit-btn" aria-label="Edit bank balance">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                </div>
+                <div class="mini-value masked" data-value="$248,000">$248,000</div>
+                <div class="mini-sub" data-i18n="sub-manual">Manual entry</div>
+              </div>
+              <div class="mini-kpi">
+                <div class="mini-top"><div class="mini-label" data-i18n="lbl-investments">Investments</div></div>
+                <div class="mini-value masked" data-value="$936,600">$936,600</div>
+                <div class="mini-sub" data-i18n="sub-cash-mktval">Market value + cash remaining</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="kpi-row">
+            <div class="kpi-tile">
+              <div class="mini-label" data-i18n="lbl-total-spent">Total Spent</div>
+              <div class="mini-value masked" data-value="$186,400">$186,400</div>
+              <div class="mini-sub" data-i18n="demo-selected-range">Selected range</div>
+            </div>
+            <div class="kpi-tile">
+              <div class="mini-label" data-i18n="lbl-avg-monthly">Avg Monthly</div>
+              <div class="mini-value masked" data-value="$23,300">$23,300</div>
+              <div class="mini-sub" data-i18n="sub-excl-income">Excl. income</div>
+            </div>
+          </div>
+
+          <section class="annual">
+            <div class="section-head" data-i18n="demo-annual-summary">2026 Annual Summary</div>
+            <div class="annual-grid">
+              <div class="kpi-tile"><div class="mini-label" data-i18n="lbl-annual-income">Annual Income</div><div class="mini-value masked" data-value="$504,000">$504,000</div></div>
+              <div class="kpi-tile"><div class="mini-label" data-i18n="lbl-annual-exp">Annual Expenses</div><div class="mini-value masked" data-value="$223,680">$223,680</div></div>
+              <div class="kpi-tile"><div class="mini-label" data-i18n="lbl-investments">Investments</div><div class="mini-value masked" data-value="$96,000">$96,000</div></div>
+              <div class="kpi-tile"><div class="mini-label" data-i18n="lbl-annual-cf">Net Cash Flow</div><div class="mini-value pos masked" data-value="+$184,320">+$184,320</div></div>
+              <div class="kpi-tile span-full"><div class="mini-label" data-i18n="lbl-annual-savrate">Savings Rate</div><div class="mini-value pos masked" data-value="44.4%">44.4%</div></div>
+            </div>
+          </section>
+
+          <div class="panel-grid">
+            <div>
+              <div class="panel" style="margin-bottom:14px">
+                <div class="panel-head"><h2 data-i18n="card-monthly-trend">Monthly Spending Trend</h2><span data-i18n="demo-trend-range">Jan – Aug 2026</span></div>
+                <div class="panel-body">
+                  <svg viewBox="0 0 520 160" width="100%" height="160" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#d4b56a" stop-opacity="0.35"/>
+                        <stop offset="100%" stop-color="#d4b56a" stop-opacity="0"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M0,120 L65,108 L130,96 L195,88 L260,72 L325,78 L390,64 L455,58 L520,42 L520,160 L0,160 Z" fill="url(#lineGrad)"/>
+                    <polyline class="trend-line" points="0,120 65,108 130,96 195,88 260,72 325,78 390,64 455,58 520,42" fill="none" stroke="#d4b56a" stroke-width="3" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panel-head">
+                  <div class="toggle">
+                    <button class="active" id="btnAnnual" data-i18n="card-cat-annual">Annual Categories</button>
+                    <button id="btnMonthly" data-i18n="card-cat-monthly">Monthly Categories</button>
+                  </div>
+                  <button class="cycle-btn" id="cycleBtn" aria-label="Toggle chart">◁ ▷</button>
+                </div>
+                <div class="panel-body" id="chartBody">
+                  <svg viewBox="0 0 42 42" width="180" height="180" style="display:block;margin:0 auto;transform:rotate(-90deg)">
+                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5"/>
+                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="#d4b56a" stroke-width="5" stroke-dasharray="42 58" stroke-linecap="round"/>
+                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="#7aa7d9" stroke-width="5" stroke-dasharray="28 72" stroke-dashoffset="-42" stroke-linecap="round"/>
+                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="#6fae82" stroke-width="5" stroke-dasharray="18 82" stroke-dashoffset="-70" stroke-linecap="round"/>
+                  </svg>
+                  <div style="text-align:center;margin-top:-118px;margin-bottom:90px">
+                    <strong class="masked" data-value="$186K" style="font-family:var(--mono);font-size:22px">$186K</strong>
+                    <div style="font-size:12px;color:var(--muted)" data-i18n="demo-total-spent-label">Total spent</div>
+                  </div>
+                  <div class="legend">
+                    <div class="legend-row"><span class="legend-left"><i class="dot" style="background:#d4b56a"></i><span data-i18n="cat-dining">Dining</span></span><strong>32%</strong></div>
+                    <div class="legend-row"><span class="legend-left"><i class="dot" style="background:#7aa7d9"></i><span data-i18n="cat-transport">Transport</span></span><strong>21%</strong></div>
+                    <div class="legend-row"><span class="legend-left"><i class="dot" style="background:#6fae82"></i><span data-i18n="cat-shopping">Shopping</span></span><strong>18%</strong></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <aside class="ai-panel">
+              <div class="ai-head">
+                <div class="ai-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </div>
+                <div>
+                  <div class="ai-title" data-i18n="card-ai-title">Financial Insight</div>
+                  <div class="ai-sub" data-i18n="card-ai-sub">Based on your real data</div>
+                </div>
+              </div>
+              <ul>
+                <li data-i18n="demo-ai-1">Your savings rate improved 6 points this quarter — discretionary dining is the main drag.</li>
+                <li data-i18n="demo-ai-2">NVDA and QQQ represent 38% of portfolio beta; consider rebalancing if volatility rises.</li>
+                <li data-i18n="demo-ai-3">Apr cash flow supports adding one more monthly auto-invest tranche without touching reserves.</li>
+              </ul>
+              <button class="refresh-btn" id="refreshBtn">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                <span data-i18n="card-ai-refresh">Re-analyse</span>
+              </button>
+            </aside>
+          </div>
+        </section>
+
+        <!-- Monthly -->
+        <section class="view" id="view-monthly">
+          <div class="month-strip">
+            <button class="month-pill">Jan</button>
+            <button class="month-pill">Feb</button>
+            <button class="month-pill">Mar</button>
+            <button class="month-pill active">Apr</button>
+            <button class="month-pill">May</button>
+            <button class="month-pill">Jun</button>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-label" data-i18n="lbl-income">Income</div><div class="kpi-value masked">$42,000</div><div class="kpi-sub" data-i18n="sub-income">Net monthly pay</div></div>
+            <div class="kpi"><div class="kpi-label" data-i18n="lbl-spent">Total Spent</div><div class="kpi-value masked">$18,640</div><div class="kpi-sub negative">▲ $1,240 vs Mar</div></div>
+            <div class="kpi"><div class="kpi-label" data-i18n="lbl-savings">Savings</div><div class="kpi-value masked">$23,360</div><div class="kpi-sub" data-i18n="demo-savings-rate">55.6% rate</div></div>
+            <div class="kpi"><div class="kpi-label" data-i18n="lbl-tx-count">Transactions</div><div class="kpi-value">47</div><div class="kpi-sub" data-i18n="demo-avg-tx">Avg $396</div></div>
+          </div>
+          <div class="panel-grid">
+            <div class="panel">
+              <div class="panel-head"><h2 data-i18n="card-spending">Spending by Category</h2><span>Apr 2026</span></div>
+              <div class="panel-body chart-bars">
+                <div class="bar-row"><span data-i18n="cat-dining">Dining</span><div class="bar-track"><div class="bar-fill" style="--w:82%"></div></div><span class="bar-amt masked">$4,820</span></div>
+                <div class="bar-row"><span data-i18n="cat-transport">Transport</span><div class="bar-track"><div class="bar-fill" style="--w:58%;opacity:.85"></div></div><span class="bar-amt masked">$2,960</span></div>
+                <div class="bar-row"><span data-i18n="cat-shopping">Shopping</span><div class="bar-track"><div class="bar-fill" style="--w:46%;opacity:.72"></div></div><span class="bar-amt masked">$2,340</span></div>
+                <div class="bar-row"><span data-i18n="cat-travel">Travel</span><div class="bar-track"><div class="bar-fill" style="--w:34%;opacity:.58"></div></div><span class="bar-amt masked">$1,880</span></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><h2 data-i18n="card-bva">Budget vs Actual</h2><span data-i18n="demo-categories-over">4 categories over</span></div>
+              <div class="panel-body chart-bars">
+                <div class="bar-row"><span data-i18n="cat-dining">Dining</span><div class="bar-track"><div class="bar-fill" style="--w:92%;background:linear-gradient(90deg,#d06b6b,#efb0b0)"></div></div><span class="bar-amt">121%</span></div>
+                <div class="bar-row"><span data-i18n="cat-groceries">Groceries</span><div class="bar-track"><div class="bar-fill" style="--w:68%"></div></div><span class="bar-amt">68%</span></div>
+                <div class="bar-row"><span data-i18n="cat-utilities">Utilities</span><div class="bar-track"><div class="bar-fill" style="--w:44%"></div></div><span class="bar-amt">44%</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <div class="toolbar" style="padding:14px 16px;margin:0;border-bottom:1px solid var(--line)">
+              <div class="search-field">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" data-i18n-ph="ph-search-tx" placeholder="Search transactions…">
+              </div>
+              <span class="tag" data-i18n="demo-tx-count">47 transactions</span>
+            </div>
+            <table>
+              <thead><tr><th data-i18n="th-date">Date</th><th data-i18n="th-merchant">Merchant</th><th data-i18n="th-category">Category</th><th class="amt" data-i18n="th-amount">Amount</th></tr></thead>
+              <tbody>
+                <tr><td>Apr 28</td><td>Sushi Zen</td><td><span class="tag" data-i18n="cat-dining">Dining</span></td><td class="amt negative masked">-$680</td></tr>
+                <tr><td>Apr 26</td><td>Citybus</td><td><span class="tag" data-i18n="cat-transport">Transport</span></td><td class="amt negative masked">-$48</td></tr>
+                <tr><td>Apr 24</td><td>Salary</td><td><span class="tag" data-i18n="cat-income">Income</span></td><td class="amt positive masked">+$42,000</td></tr>
+                <tr><td>Apr 22</td><td>Apple Store</td><td><span class="tag" data-i18n="cat-shopping">Shopping</span></td><td class="amt negative masked">-$3,999</td></tr>
+                <tr><td>Apr 18</td><td>ParknShop</td><td><span class="tag" data-i18n="cat-groceries">Groceries</span></td><td class="amt negative masked">-$286</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Investments -->
+        <section class="view" id="view-investments">
+          <div class="hero-row">
+            <section class="hero-card">
+              <div class="hero-label" data-i18n="lbl-total-acct">Total Account Value</div>
+              <div class="hero-value masked" data-value="$1,036,600">$1,036,600</div>
+              <div class="hero-sub">
+                <span class="chip positive">P&amp;L +$62,400</span>
+                <span class="chip" data-i18n="demo-return-chip">Return +14.2%</span>
+              </div>
+            </section>
+            <div class="hero-stack">
+              <div class="mini-kpi">
+                <div class="mini-top"><div class="mini-label" data-i18n="lbl-capital">Capital</div></div>
+                <div class="mini-value masked" data-value="$900,000">$900,000</div>
+                <div class="mini-sub" data-i18n="sub-capital">Total funds allocated</div>
+              </div>
+              <div class="mini-kpi">
+                <div class="mini-top"><div class="mini-label" data-i18n="lbl-cash-rem">Cash Remaining</div></div>
+                <div class="mini-value masked" data-value="$100,000">$100,000</div>
+                <div class="mini-sub" data-i18n="sub-manual">Manual entry</div>
+              </div>
+            </div>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-label" data-i18n="lbl-inv-cost">Total Cost</div><div class="kpi-value masked">$874,200</div></div>
+            <div class="kpi"><div class="kpi-label" data-i18n="lbl-inv-mktval">Market Value</div><div class="kpi-value masked">$936,600</div></div>
+            <div class="kpi"><div class="kpi-label" data-i18n="lbl-inv-pnl">Total P&amp;L</div><div class="kpi-value positive masked">+$62,400</div></div>
+            <div class="kpi"><div class="kpi-label" data-i18n="lbl-inv-return">Return</div><div class="kpi-value positive">+14.2%</div></div>
+          </div>
+          <div class="panel" style="margin-bottom:16px">
+            <div class="panel-head"><h2 data-i18n="card-inv-alloc">Portfolio Allocation</h2><span data-i18n="demo-by-asset">By asset class</span></div>
+            <div class="panel-body">
+              <div class="donut-wrap">
+                <svg class="donut" viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5"/><circle cx="21" cy="21" r="15.9" fill="none" stroke="#d4b56a" stroke-width="5" stroke-dasharray="42 58" stroke-linecap="round"/><circle cx="21" cy="21" r="15.9" fill="none" stroke="#7aa7d9" stroke-width="5" stroke-dasharray="28 72" stroke-dashoffset="-42" stroke-linecap="round"/><circle cx="21" cy="21" r="15.9" fill="none" stroke="#6fae82" stroke-width="5" stroke-dasharray="18 82" stroke-dashoffset="-70" stroke-linecap="round"/></svg>
+                <div class="donut-center"><strong class="masked">$936K</strong><span data-i18n="demo-invested">Invested</span></div>
+              </div>
+              <div class="legend">
+                <div class="legend-row"><span class="legend-left"><i class="dot" style="background:#d4b56a"></i><span data-i18n="asset-stock">Equities</span></span><strong>42%</strong></div>
+                <div class="legend-row"><span class="legend-left"><i class="dot" style="background:#7aa7d9"></i><span data-i18n="asset-etf">ETF</span></span><strong>28%</strong></div>
+                <div class="legend-row"><span class="legend-left"><i class="dot" style="background:#6fae82"></i><span data-i18n="asset-crypto">Crypto</span></span><strong>18%</strong></div>
+                <div class="legend-row"><span class="legend-left"><i class="dot" style="background:#a78fd4"></i><span data-i18n="asset-cash">Cash</span></span><strong>12%</strong></div>
+              </div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th data-i18n="th-symbol">Ticker</th><th data-i18n="th-qty">Qty</th><th data-i18n="th-avgcost">Avg Cost</th><th data-i18n="th-price">Last</th><th class="amt" data-i18n="th-pnl">P&amp;L</th></tr></thead>
+              <tbody>
+                <tr><td><strong>NVDA</strong></td><td>120</td><td class="masked">$620</td><td class="masked">$892</td><td class="amt positive masked">+$32,640</td></tr>
+                <tr><td><strong>QQQ</strong></td><td>80</td><td class="masked">$420</td><td class="masked">$468</td><td class="amt positive masked">+$3,840</td></tr>
+                <tr><td><strong>BTC</strong></td><td>1.2</td><td class="masked">$58,000</td><td class="masked">$67,400</td><td class="amt positive masked">+$11,280</td></tr>
+                <tr><td><strong>VRT</strong></td><td>200</td><td class="masked">$78</td><td class="masked">$92</td><td class="amt positive masked">+$2,800</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Categories -->
+        <section class="view" id="view-categories">
+          <div class="cat-grid">
+            <article class="cat-card over-budget"><div class="cat-top"><span class="cat-dot" style="background:#d4b56a"></span><span class="cat-name" data-i18n="cat-dining">Dining</span></div><div class="cat-budget masked">$4,000<span class="over-tag" data-i18n="demo-over-budget">Over</span></div><div class="progress"><span style="width:82%;background:#d4b56a"></span></div><div class="kpi-sub" data-i18n="demo-cat-dining">Used 121% · 18 tx</div></article>
+            <article class="cat-card"><div class="cat-top"><span class="cat-dot" style="background:#7aa7d9"></span><span class="cat-name" data-i18n="cat-transport">Transport</span></div><div class="cat-budget masked">$3,000</div><div class="progress"><span style="width:58%;background:#7aa7d9"></span></div><div class="kpi-sub" data-i18n="demo-cat-transport">Used 58% · 24 tx</div></article>
+            <article class="cat-card"><div class="cat-top"><span class="cat-dot" style="background:#a78fd4"></span><span class="cat-name" data-i18n="cat-shopping">Shopping</span></div><div class="cat-budget masked">$5,000</div><div class="progress"><span style="width:46%;background:#a78fd4"></span></div><div class="kpi-sub" data-i18n="demo-cat-shopping">Used 46% · 6 tx</div></article>
+            <article class="cat-card"><div class="cat-top"><span class="cat-dot" style="background:#6fae82"></span><span class="cat-name" data-i18n="cat-groceries">Groceries</span></div><div class="cat-budget masked">$2,500</div><div class="progress"><span style="width:68%;background:#6fae82"></span></div><div class="kpi-sub" data-i18n="demo-cat-groceries">Used 68% · 12 tx</div></article>
+            <article class="cat-card"><div class="cat-top"><span class="cat-dot" style="background:#d06b6b"></span><span class="cat-name" data-i18n="cat-travel">Travel</span></div><div class="cat-budget masked">$6,000</div><div class="progress"><span style="width:31%;background:#d06b6b"></span></div><div class="kpi-sub" data-i18n="demo-cat-travel">Used 31% · 2 tx</div></article>
+            <article class="cat-card"><div class="cat-top"><span class="cat-dot" style="background:#8d8980"></span><span class="cat-name" data-i18n="cat-utilities">Utilities</span></div><div class="cat-budget masked">$1,800</div><div class="progress"><span style="width:44%;background:#8d8980"></span></div><div class="kpi-sub" data-i18n="demo-cat-utilities">Used 44% · $792</div><span class="recurring-badge" data-i18n="demo-recurring">Recurring monthly</span></article>
+          </div>
+        </section>
+
+        <!-- News -->
+        <section class="view" id="view-news">
+          <div class="ticker-search">
+            <input type="text" value="NVDA, AAPL, TSLA" placeholder="AAPL, TSLA, NVDA">
+            <select>
+              <option data-i18n="news-sort-latest">Latest</option>
+              <option data-i18n="news-sort-sentiment">Sentiment</option>
+              <option data-i18n="news-sort-relevance">Relevance</option>
+            </select>
+            <button class="primary-btn" data-i18n="btn-refresh">Refresh</button>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-label" data-i18n="news-articles">Articles</div><div class="kpi-value">24</div><div class="kpi-sub" data-i18n="news-company-results">Company-matched</div></div>
+            <div class="kpi"><div class="kpi-label" data-i18n="news-positive">Positive Sentiment</div><div class="kpi-value positive">62%</div><div class="kpi-sub" data-i18n="news-feed-tone">Filtered tone</div></div>
+            <div class="kpi"><div class="kpi-label" data-i18n="news-updated">Last Updated</div><div class="kpi-value" style="font-size:18px">16:42</div><div class="kpi-sub" data-i18n="news-local-time">Local time</div></div>
+          </div>
+          <div class="news-grid">
+            <div>
+              <div class="news-card sent-pos">
+                <div class="news-meta"><span>NVDA</span><span>Bloomberg</span><span class="tag" style="color:var(--positive)" data-i18n="news-sentiment-positive">Positive</span></div>
+                <h3 data-i18n="demo-news-h1">NVIDIA data-center demand stays ahead of supply into next quarter</h3>
+                <p data-i18n="demo-news-p1">Filtered headline match for NVDA. BlackSpace hides broad market noise and keeps ticker-specific stories.</p>
+              </div>
+              <div class="news-card sent-neu" style="margin-top:12px">
+                <div class="news-meta"><span>AAPL</span><span>Reuters</span><span class="tag" data-i18n="news-sentiment-neutral">Neutral</span></div>
+                <h3 data-i18n="demo-news-h2">Apple supplier checks point to stable iPhone build plans</h3>
+                <p data-i18n="demo-news-p2">Strict matching checks headline against ticker and company names before ranking relevance.</p>
+              </div>
+              <div class="news-card sent-neg" style="margin-top:12px">
+                <div class="news-meta"><span>TSLA</span><span>CNBC</span><span class="tag" style="color:var(--negative)" data-i18n="news-sentiment-negative">Negative</span></div>
+                <h3 data-i18n="demo-news-h3">Tesla margin debate intensifies after latest delivery update</h3>
+                <p data-i18n="demo-news-p3">Sentiment score -0.32. Verify details before acting on any single headline.</p>
+              </div>
+            </div>
+            <aside>
+              <div class="ai-panel" style="margin-bottom:14px">
+                <div class="ai-head">
+                  <div class="ai-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+                  <div><div class="ai-title" data-i18n="news-ai">AI News Brief</div><div class="ai-sub" data-i18n="news-ai-pill">First 10 articles</div></div>
+                </div>
+                <p data-i18n-html="demo-news-ai-overall"><strong>Overall:</strong> Tech leadership remains intact, with NVDA headlines skewing positive and TSLA mixed.</p>
+                <ul style="margin-top:10px">
+                  <li data-i18n="demo-news-ai-1">Watch NVDA supply commentary for Q2 estimate revisions.</li>
+                  <li data-i18n="demo-news-ai-2">AAPL story is low-impact for near-term price action.</li>
+                  <li data-i18n="demo-news-ai-3">TSLA margin narrative could add volatility this week.</li>
+                </ul>
+              </div>
+              <div class="rules-panel">
+                <h3 data-i18n="news-rules">Matching Rules</h3>
+                <p data-i18n="news-rule-1">BlackSpace filters provider output so broad market stories do not crowd out ticker-specific news.</p>
+                <p data-i18n="news-rule-2">Strict matching checks headline against ticker and company names.</p>
+                <p data-i18n="news-rule-4">Sentiment score ranges from -1 to 1; higher is more positive.</p>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <!-- Fund Flow -->
+        <section class="view" id="view-fundflow">
+          <span class="note-pill" data-i18n="fund-flow-price-note">Historical closing prices</span>
+          <div class="panel" style="margin-bottom:16px">
+            <div class="panel-head"><h2 data-i18n="fund-flow-title">Thematic ETF Trends</h2><span data-i18n="demo-updated-at">Updated 16:42</span></div>
+            <div class="table-wrap" style="border:0;border-radius:0">
+              <table>
+                <thead><tr><th data-i18n="fund-flow-etf">ETF / Theme</th><th data-i18n="fund-flow-one-day">1D</th><th data-i18n="fund-flow-five-day">5D</th><th data-i18n="fund-flow-streak">Streak</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>SMH · Semiconductors</strong></td><td class="amt positive">+1.8%</td><td class="amt positive">+4.2%</td><td><span class="streak"><span class="streak-up">▲</span><span class="streak-up">▲</span><span class="streak-up">▲</span><span class="streak-up">▲</span></span></td></tr>
+                  <tr><td><strong>QQQ · Nasdaq 100</strong></td><td class="amt positive">+0.9%</td><td class="amt positive">+2.1%</td><td><span class="streak"><span class="streak-up">▲</span><span class="streak-up">▲</span><span class="streak-up">▲</span></span></td></tr>
+                  <tr><td><strong>XLK · Technology</strong></td><td class="amt positive">+1.2%</td><td class="amt positive">+3.4%</td><td><span class="streak"><span class="streak-up">▲</span><span class="streak-up">▲</span><span class="streak-up">▲</span></span></td></tr>
+                  <tr><td><strong>XLE · Energy</strong></td><td class="amt negative">-0.6%</td><td class="amt negative">-1.4%</td><td><span class="streak"><span class="streak-down">▼</span><span class="streak-down">▼</span></span></td></tr>
+                  <tr><td><strong>ARKK · Innovation</strong></td><td class="amt positive">+2.4%</td><td class="amt positive">+5.8%</td><td><span class="streak"><span class="streak-up">▲</span><span class="streak-up">▲</span><span class="streak-up">▲</span><span class="streak-up">▲</span><span class="streak-up">▲</span></span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="ai-panel">
+            <div class="ai-head">
+              <div class="ai-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+              <div><div class="ai-title" data-i18n="fund-flow-ai-title">AI Flow Read</div><div class="ai-sub" data-i18n="demo-flow-ai-sub">Price momentum only</div></div>
+            </div>
+            <ul>
+              <li data-i18n="demo-flow-ai-1">Semiconductor and growth ETFs are leading on both 1D and 5D windows.</li>
+              <li data-i18n="demo-flow-ai-2">Energy is the only major theme still in a short-term drawdown streak.</li>
+              <li data-i18n="demo-flow-ai-3">Momentum breadth favors AI / tech exposure over defensives this week.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- Stock Research -->
+        <section class="view" id="view-research">
+          <div class="ticker-search">
+            <input type="text" value="NVDA" data-i18n-ph="demo-ph-ticker" placeholder="Enter ticker">
+            <button class="primary-btn" data-i18n="demo-research-btn">Research</button>
+          </div>
+          <div class="hero-row">
+            <section class="hero-card">
+              <div class="hero-label">NVIDIA Corporation · NVDA</div>
+              <div class="hero-value masked" data-value="$892.40">$892.40</div>
+              <div class="hero-sub">
+                <span class="chip positive" data-i18n="demo-nvda-today">▲ +2.8% today</span>
+                <span class="chip" data-i18n="demo-nvda-mcap">Market Cap $2.19T</span>
+              </div>
+            </section>
+            <div class="ai-panel" style="margin:0">
+              <div class="ai-head">
+                <div class="ai-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+                <div><div class="ai-title" data-i18n="demo-research-ai-title">AI View</div><div class="ai-sub" data-i18n="demo-research-ai-sub">Investment reference</div></div>
+              </div>
+              <p data-i18n="demo-research-ai-body">Strong revenue growth, premium valuation, high beta. Suitable for core growth sleeve with staged entries.</p>
+            </div>
+          </div>
+          <div class="research-grid">
+            <div class="research-stat"><span data-i18n="demo-stat-rev">Revenue Growth</span><strong>+94%</strong></div>
+            <div class="research-stat"><span data-i18n="demo-stat-margin">Gross Margin</span><strong>75.0%</strong></div>
+            <div class="research-stat"><span data-i18n="demo-stat-pe">Forward P/E</span><strong>36.4x</strong></div>
+            <div class="research-stat"><span data-i18n="demo-stat-debt">Debt / Equity</span><strong>0.18</strong></div>
+            <div class="research-stat"><span data-i18n="demo-stat-fcf">FCF Yield</span><strong>1.8%</strong></div>
+            <div class="research-stat"><span data-i18n="demo-stat-beta">Beta</span><strong>1.72</strong></div>
+          </div>
+          <div class="panel-grid">
+            <div class="panel">
+              <div class="panel-head"><h2 data-i18n="demo-entry-rhythm">Entry Rhythm</h2><span data-i18n="demo-staged-plan">Staged build plan</span></div>
+              <div class="panel-body chart-bars">
+                <div class="bar-row"><span data-i18n="demo-entry-full">Full</span><div class="bar-track"><div class="bar-fill" style="--w:100%"></div></div><span class="bar-amt masked">$892</span></div>
+                <div class="bar-row"><span>1/2</span><div class="bar-track"><div class="bar-fill" style="--w:72%"></div></div><span class="bar-amt masked">$860</span></div>
+                <div class="bar-row"><span>1/4</span><div class="bar-track"><div class="bar-fill" style="--w:48%"></div></div><span class="bar-amt masked">$820</span></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><h2 data-i18n="demo-peer-compare">Peer Compare</h2><span data-i18n="demo-semis">Semis</span></div>
+              <div class="panel-body chart-bars">
+                <div class="bar-row"><span>NVDA</span><div class="bar-track"><div class="bar-fill" style="--w:100%"></div></div><span class="bar-amt">36.4x</span></div>
+                <div class="bar-row"><span>AMD</span><div class="bar-track"><div class="bar-fill" style="--w:58%"></div></div><span class="bar-amt">21.1x</span></div>
+                <div class="bar-row"><span>AVGO</span><div class="bar-track"><div class="bar-fill" style="--w:72%"></div></div><span class="bar-amt">26.3x</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <button class="active" data-view="dashboard" aria-label="Dashboard"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10.5 12 4l8 6.5"/><path d="M6 10v10h4v-6h4v6h4V10"/></svg></button>
+    <button data-view="monthly" aria-label="Monthly"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></button>
+    <button data-view="investments" aria-label="Investments"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-9"/><path d="M14 6h7v7"/></svg></button>
+    <button data-view="news" aria-label="News"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/><path d="M8 8h7M8 12h8"/></svg></button>
+    <button data-view="research" aria-label="Research"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-7"/></svg></button>
+  </nav>
+
+  <div class="demo-banner" id="demoBanner">
+    <strong data-i18n="demo-banner-title">BlackSpace Redesign Demo</strong>
+    <span data-i18n="demo-banner-sub">Full app prototype — mock data only</span>
+    <button type="button" id="dismissBanner" aria-label="Dismiss">×</button>
+  </div>
+
+  <script>
+    const I18N = {
+      zh: {
+        'nav-dashboard':'總覽','nav-monthly':'每月','nav-investments':'投資','nav-categories':'類別','nav-news':'新聞','nav-apps':'小程式',
+        'title-fundflow':'資金流向','title-stockresearch':'股票研究',
+        'title-dashboard':'總覽','sub-dashboard':'總體概覽',
+        'title-monthly':'每月明細','sub-monthly-breakdown':'詳細每月分析',
+        'title-investments':'投資組合','sub-investments':'即時投資組合追蹤',
+        'title-categories':'類別管理','sub-categories':'管理消費類別',
+        'title-news':'投資新聞','sub-news':'持倉與關注公司的市場新聞',
+        'sub-fundflow':'ETF 歷史價格趨勢',
+        'sub-stockresearch':'公司估值與 AI 研究',
+        'settings-privacy':'私隱','demo-theme-light':'淺色','demo-theme-dark':'深色',
+        'btn-add':'新增交易','btn-add-position':'新增持倉','btn-add-cat':'新增類別','btn-refresh':'重新整理',
+        'lbl-total':'總資產','sub-bank-inv':'銀行＋投資現金＋市值',
+        'lbl-bank':'銀行存款','lbl-investments':'投資','sub-manual':'手動輸入','sub-cash-mktval':'市值＋剩餘現金',
+        'lbl-total-spent':'總支出','lbl-avg-monthly':'月均支出','demo-selected-range':'已選範圍','sub-excl-income':'不含收入',
+        'demo-annual-summary':'2026 年度摘要','lbl-annual-income':'年度收入','lbl-annual-exp':'年度支出','lbl-annual-cf':'年度淨現金流','lbl-annual-savrate':'年度儲蓄率',
+        'card-monthly-trend':'月度支出趨勢','demo-trend-range':'2026年1–8月',
+        'card-cat-annual':'年度分類佔比','card-cat-monthly':'月度分類佔比','demo-total-spent-label':'總支出',
+        'card-ai-title':'財務分析','card-ai-sub':'基於你的真實數據','card-ai-refresh':'重新分析',
+        'demo-ai-1':'本季儲蓄率提升 6 個百分點——外出用餐仍是主要拖累。',
+        'demo-ai-2':'NVDA 與 QQQ 佔組合 beta 38%；若波動上升可考慮再平衡。',
+        'demo-ai-3':'4 月現金流足以再加一輪月供，無需動用儲備。',
+        'lbl-income':'收入','sub-income':'每月淨薪酬','lbl-spent':'總支出','lbl-savings':'淨儲蓄',
+        'demo-savings-rate':'55.6% 比率','lbl-tx-count':'交易筆數','demo-avg-tx':'平均 $396',
+        'card-spending':'消費類別','card-bva':'預算對比實際','demo-categories-over':'4 個類別超支',
+        'ph-search-tx':'搜尋交易…','demo-tx-count':'47 筆交易',
+        'th-date':'日期','th-merchant':'商戶／說明','th-category':'類別','th-amount':'金額',
+        'cat-dining':'餐飲','cat-transport':'交通','cat-shopping':'購物','cat-groceries':'雜貨','cat-travel':'旅行','cat-utilities':'水電','cat-income':'收入',
+        'lbl-total-acct':'帳戶總值','demo-return-chip':'回報 +14.2%','lbl-capital':'資本','lbl-cash-rem':'剩餘現金','sub-capital':'總分配資金',
+        'lbl-inv-cost':'成本總額','lbl-inv-mktval':'市值','lbl-inv-pnl':'總盈虧','lbl-inv-return':'回報率',
+        'card-inv-alloc':'投資組合分配','demo-by-asset':'按資產類別','demo-invested':'已投入',
+        'asset-stock':'股票','asset-etf':'ETF','asset-crypto':'加密貨幣','asset-cash':'現金',
+        'th-symbol':'代號','th-qty':'數量','th-avgcost':'平均成本','th-price':'現價','th-pnl':'盈虧',
+        'demo-cat-dining':'已用 121% · 18 筆','demo-cat-transport':'已用 58% · 24 筆','demo-cat-shopping':'已用 46% · 6 筆',
+        'demo-cat-groceries':'已用 68% · 12 筆','demo-cat-travel':'已用 31% · 2 筆','demo-cat-utilities':'已用 44% · $792',
+        'demo-recurring':'每月週期','demo-over-budget':'超支',
+        'news-sort-latest':'最新','news-sort-sentiment':'情緒','news-sort-relevance':'相關度',
+        'news-articles':'文章','news-company-results':'公司相關結果','news-positive':'正面情緒','news-feed-tone':'已過濾新聞情緒',
+        'news-updated':'最後更新','news-local-time':'本地時間',
+        'news-sentiment-positive':'正面','news-sentiment-neutral':'中性','news-sentiment-negative':'負面',
+        'demo-news-h1':'NVIDIA 數據中心需求持續領先供應至下季',
+        'demo-news-p1':'已過濾 NVDA 標題匹配。BlackSpace 隱藏廣泛市場噪音，保留個股相關新聞。',
+        'demo-news-h2':'Apple 供應商調查顯示 iPhone 組裝計劃穩定',
+        'demo-news-p2':'嚴格匹配會檢查標題是否包含股票代號和公司名稱，再排序相關度。',
+        'demo-news-h3':'Tesla 最新交付更新後，利潤率爭議升溫',
+        'demo-news-p3':'情緒分數 -0.32。請勿單憑一則標題行事，自行核實內容。',
+        'news-ai':'AI 分析','news-ai-pill':'前 10 篇內文',
+        'demo-news-ai-overall':'<strong>整體：</strong>科技領導地位不變，NVDA 標題偏正面，TSLA 好壞參半。',
+        'demo-news-ai-1':'留意 NVDA 供應鏈評論對 Q2 預估的影響。',
+        'demo-news-ai-2':'AAPL 故事對短期股價影響有限。',
+        'demo-news-ai-3':'TSLA margin 敘事可能令本週波動加劇。',
+        'news-rules':'篩選規則','news-rule-1':'BlackSpace 會過濾新聞供應商的結果，避免廣泛市場新聞蓋過個別股票相關新聞。',
+        'news-rule-2':'嚴格匹配會檢查標題是否包含股票代號和公司名稱。','news-rule-4':'情緒分數範圍為 -1 至 1；分數越高代表越正面。',
+        'fund-flow-price-note':'以歷史收市價計算','fund-flow-title':'主題 ETF 價格趨勢','demo-updated-at':'更新於 16:42',
+        'fund-flow-etf':'ETF / 主題','fund-flow-one-day':'1日','fund-flow-five-day':'5日','fund-flow-streak':'連續走勢',
+        'fund-flow-ai-title':'AI 分析','demo-flow-ai-sub':'僅價格動能',
+        'demo-flow-ai-1':'半導體與成長型 ETF 在 1 日與 5 日窗口均領先。',
+        'demo-flow-ai-2':'能源是唯一仍在短期回撤連續走勢的主要主題。',
+        'demo-flow-ai-3':'本週動能廣度偏向 AI／科技，而非防禦型。',
+        'demo-ph-ticker':'輸入代號','demo-research-btn':'研究',
+        'demo-nvda-today':'▲ 今日 +2.8%','demo-nvda-mcap':'市值 $2.19T',
+        'demo-research-ai-title':'AI 觀點','demo-research-ai-sub':'投資參考',
+        'demo-research-ai-body':'營收增長強勁、估值偏高、beta 較高。適合作為核心成長倉位，分批建倉。',
+        'demo-stat-rev':'營收增長','demo-stat-margin':'毛利率','demo-stat-pe':'遠期市盈率',
+        'demo-stat-debt':'負債／股本','demo-stat-fcf':'自由現金流收益率','demo-stat-beta':'Beta',
+        'demo-entry-rhythm':'建倉節奏','demo-staged-plan':'分批建倉計劃','demo-entry-full':'全倉',
+        'demo-peer-compare':'同業比較','demo-semis':'半導體',
+        'demo-brand-tag':'財富工作室','demo-nav-core':'核心','demo-badge-live':'即時','demo-profile-tier':'Premium · 香港',
+        'demo-kbd-hint':'<kbd>1</kbd>–<kbd>7</kbd> 切換頁面 · <kbd>P</kbd> 私隱 · <kbd>T</kbd> 主題 · <kbd>N</kbd> 數字',
+        'demo-num-btn':'數字','demo-num-preview-title':'數字樣式預覽','demo-num-preview-sub':'點選樣式，即時套用到整個 Demo。',
+        'demo-num-jetbrains':'JetBrains Mono','demo-num-jetbrains-desc':'現用 · 清晰等寬，跟主 app 一致',
+        'demo-num-ibm':'IBM Plex Mono','demo-num-ibm-desc':'等寬 · 比 JetBrains 更精緻',
+        'demo-num-system':'System Mono','demo-num-system-desc':'等寬 · SF Mono / 系統原生',
+        'demo-num-sans':'Noto Sans 等寬數字','demo-num-sans-desc':'Sans · 乾淨產品感，像 silver dashboard',
+        'demo-num-inter':'Inter 等寬數字','demo-num-inter-desc':'Sans · 常見 fintech 風格',
+        'demo-toast-num-applied':'數字樣式已套用',
+        'demo-banner-title':'BlackSpace 重設計 Demo','demo-banner-sub':'完整 App 原型 — 僅示範數據',
+        'demo-toast-only':'僅 Demo，未連接後端','demo-toast-refreshing':'正在重新分析…','demo-toast-done':'分析已更新'
+      },
+      en: {
+        'nav-dashboard':'Dashboard','nav-monthly':'Monthly','nav-investments':'Investments','nav-categories':'Categories','nav-news':'News','nav-apps':'Apps',
+        'title-fundflow':'Fund Flow','title-stockresearch':'Stock Research',
+        'title-dashboard':'Dashboard','sub-dashboard':'Your wealth at a glance',
+        'title-monthly':'Monthly','sub-monthly-breakdown':'Track income, spending and savings',
+        'title-investments':'Investments','sub-investments':'Portfolio performance and allocation',
+        'title-categories':'Categories','sub-categories':'Budgets and spending labels',
+        'title-news':'Investment News','sub-news':'Filtered ticker-specific headlines',
+        'sub-fundflow':'Thematic ETF price momentum',
+        'sub-stockresearch':'Fundamentals, peers and entry rhythm',
+        'settings-privacy':'Privacy','demo-theme-light':'Light','demo-theme-dark':'Dark',
+        'btn-add':'Add Transaction','btn-add-position':'Add Position','btn-add-cat':'Add Category','btn-refresh':'Refresh',
+        'lbl-total':'Total Assets','sub-bank-inv':'Bank deposits + investments',
+        'lbl-bank':'Bank Deposits','lbl-investments':'Investments','sub-manual':'Manual entry','sub-cash-mktval':'Market value + cash remaining',
+        'lbl-total-spent':'Total Spent','lbl-avg-monthly':'Avg Monthly','demo-selected-range':'Selected range','sub-excl-income':'Excl. income',
+        'demo-annual-summary':'2026 Annual Summary','lbl-annual-income':'Annual Income','lbl-annual-exp':'Annual Expenses','lbl-annual-cf':'Net Cash Flow','lbl-annual-savrate':'Savings Rate',
+        'card-monthly-trend':'Monthly Spending Trend','demo-trend-range':'Jan – Aug 2026',
+        'card-cat-annual':'Annual Categories','card-cat-monthly':'Monthly Categories','demo-total-spent-label':'Total spent',
+        'card-ai-title':'Financial Insight','card-ai-sub':'Based on your real data','card-ai-refresh':'Re-analyse',
+        'demo-ai-1':'Your savings rate improved 6 points this quarter — discretionary dining is the main drag.',
+        'demo-ai-2':'NVDA and QQQ represent 38% of portfolio beta; consider rebalancing if volatility rises.',
+        'demo-ai-3':'Apr cash flow supports adding one more monthly auto-invest tranche without touching reserves.',
+        'lbl-income':'Income','sub-income':'Net monthly pay','lbl-spent':'Total Spent','lbl-savings':'Savings',
+        'demo-savings-rate':'55.6% rate','lbl-tx-count':'Transactions','demo-avg-tx':'Avg $396',
+        'card-spending':'Spending by Category','card-bva':'Budget vs Actual','demo-categories-over':'4 categories over',
+        'ph-search-tx':'Search transactions…','demo-tx-count':'47 transactions',
+        'th-date':'Date','th-merchant':'Merchant','th-category':'Category','th-amount':'Amount',
+        'cat-dining':'Dining','cat-transport':'Transport','cat-shopping':'Shopping','cat-groceries':'Groceries','cat-travel':'Travel','cat-utilities':'Utilities','cat-income':'Income',
+        'lbl-total-acct':'Total Account Value','demo-return-chip':'Return +14.2%','lbl-capital':'Capital','lbl-cash-rem':'Cash Remaining','sub-capital':'Total funds allocated',
+        'lbl-inv-cost':'Total Cost','lbl-inv-mktval':'Market Value','lbl-inv-pnl':'Total P&L','lbl-inv-return':'Return',
+        'card-inv-alloc':'Portfolio Allocation','demo-by-asset':'By asset class','demo-invested':'Invested',
+        'asset-stock':'Equities','asset-etf':'ETF','asset-crypto':'Crypto','asset-cash':'Cash',
+        'th-symbol':'Ticker','th-qty':'Qty','th-avgcost':'Avg Cost','th-price':'Last','th-pnl':'P&L',
+        'demo-cat-dining':'Used 121% · 18 tx','demo-cat-transport':'Used 58% · 24 tx','demo-cat-shopping':'Used 46% · 6 tx',
+        'demo-cat-groceries':'Used 68% · 12 tx','demo-cat-travel':'Used 31% · 2 tx','demo-cat-utilities':'Used 44% · $792',
+        'demo-recurring':'Recurring monthly','demo-over-budget':'Over',
+        'news-sort-latest':'Latest','news-sort-sentiment':'Sentiment','news-sort-relevance':'Relevance',
+        'news-articles':'Articles','news-company-results':'Company-matched','news-positive':'Positive Sentiment','news-feed-tone':'Filtered tone',
+        'news-updated':'Last Updated','news-local-time':'Local time',
+        'news-sentiment-positive':'Positive','news-sentiment-neutral':'Neutral','news-sentiment-negative':'Negative',
+        'demo-news-h1':'NVIDIA data-center demand stays ahead of supply into next quarter',
+        'demo-news-p1':'Filtered headline match for NVDA. BlackSpace hides broad market noise and keeps ticker-specific stories.',
+        'demo-news-h2':'Apple supplier checks point to stable iPhone build plans',
+        'demo-news-p2':'Strict matching checks headline against ticker and company names before ranking relevance.',
+        'demo-news-h3':'Tesla margin debate intensifies after latest delivery update',
+        'demo-news-p3':'Sentiment score -0.32. Verify details before acting on any single headline.',
+        'news-ai':'AI News Brief','news-ai-pill':'First 10 articles',
+        'demo-news-ai-overall':'<strong>Overall:</strong> Tech leadership remains intact, with NVDA headlines skewing positive and TSLA mixed.',
+        'demo-news-ai-1':'Watch NVDA supply commentary for Q2 estimate revisions.',
+        'demo-news-ai-2':'AAPL story is low-impact for near-term price action.',
+        'demo-news-ai-3':'TSLA margin narrative could add volatility this week.',
+        'news-rules':'Matching Rules','news-rule-1':'BlackSpace filters provider output so broad market stories do not crowd out ticker-specific news.',
+        'news-rule-2':'Strict matching checks headline against ticker and company names.','news-rule-4':'Sentiment score ranges from -1 to 1; higher is more positive.',
+        'fund-flow-price-note':'Historical closing prices','fund-flow-title':'Thematic ETF Trends','demo-updated-at':'Updated 16:42',
+        'fund-flow-etf':'ETF / Theme','fund-flow-one-day':'1D','fund-flow-five-day':'5D','fund-flow-streak':'Streak',
+        'fund-flow-ai-title':'AI Flow Read','demo-flow-ai-sub':'Price momentum only',
+        'demo-flow-ai-1':'Semiconductor and growth ETFs are leading on both 1D and 5D windows.',
+        'demo-flow-ai-2':'Energy is the only major theme still in a short-term drawdown streak.',
+        'demo-flow-ai-3':'Momentum breadth favors AI / tech exposure over defensives this week.',
+        'demo-ph-ticker':'Enter ticker','demo-research-btn':'Research',
+        'demo-nvda-today':'▲ +2.8% today','demo-nvda-mcap':'Market Cap $2.19T',
+        'demo-research-ai-title':'AI View','demo-research-ai-sub':'Investment reference',
+        'demo-research-ai-body':'Strong revenue growth, premium valuation, high beta. Suitable for core growth sleeve with staged entries.',
+        'demo-stat-rev':'Revenue Growth','demo-stat-margin':'Gross Margin','demo-stat-pe':'Forward P/E',
+        'demo-stat-debt':'Debt / Equity','demo-stat-fcf':'FCF Yield','demo-stat-beta':'Beta',
+        'demo-entry-rhythm':'Entry Rhythm','demo-staged-plan':'Staged build plan','demo-entry-full':'Full',
+        'demo-peer-compare':'Peer Compare','demo-semis':'Semis',
+        'demo-brand-tag':'Wealth Studio','demo-nav-core':'Core','demo-badge-live':'Live','demo-profile-tier':'Premium · Hong Kong',
+        'demo-kbd-hint':'<kbd>1</kbd>–<kbd>7</kbd> switch pages · <kbd>P</kbd> privacy · <kbd>T</kbd> theme · <kbd>N</kbd> numbers',
+        'demo-num-btn':'Numbers','demo-num-preview-title':'Number style preview','demo-num-preview-sub':'Pick a style to apply it across the demo.',
+        'demo-num-jetbrains':'JetBrains Mono','demo-num-jetbrains-desc':'Current · crisp mono, matches main app',
+        'demo-num-ibm':'IBM Plex Mono','demo-num-ibm-desc':'Mono · slightly more refined',
+        'demo-num-system':'System Mono','demo-num-system-desc':'Mono · SF Mono / native fallback',
+        'demo-num-sans':'Noto Sans tabular','demo-num-sans-desc':'Sans · clean product feel, silver dashboard style',
+        'demo-num-inter':'Inter tabular','demo-num-inter-desc':'Sans · common fintech look',
+        'demo-toast-num-applied':'Number style applied',
+        'demo-banner-title':'BlackSpace Redesign Demo','demo-banner-sub':'Full app prototype — mock data only',
+        'demo-toast-only':'demo only, not connected to backend','demo-toast-refreshing':'refreshing insights…','demo-toast-done':'insights updated'
+      }
+    };
+
+    const VIEW_META = {
+      dashboard: { title: 'title-dashboard', sub: 'sub-dashboard', add: 'btn-add' },
+      monthly: { title: 'title-monthly', sub: 'sub-monthly-breakdown', add: 'btn-add' },
+      investments: { title: 'title-investments', sub: 'sub-investments', add: 'btn-add-position' },
+      categories: { title: 'title-categories', sub: 'sub-categories', add: 'btn-add-cat' },
+      news: { title: 'title-news', sub: 'sub-news', add: 'btn-refresh' },
+      fundflow: { title: 'title-fundflow', sub: 'sub-fundflow', add: 'btn-refresh' },
+      research: { title: 'title-stockresearch', sub: 'sub-stockresearch', add: 'demo-research-btn' }
+    };
+
+    const NUM_STYLES = [
+      { id: 'jetbrains', nameKey: 'demo-num-jetbrains', descKey: 'demo-num-jetbrains-desc', sampleFont: '"JetBrains Mono", "SF Mono", Menlo, monospace' },
+      { id: 'ibm', nameKey: 'demo-num-ibm', descKey: 'demo-num-ibm-desc', sampleFont: '"IBM Plex Mono", "SF Mono", Menlo, monospace' },
+      { id: 'system', nameKey: 'demo-num-system', descKey: 'demo-num-system-desc', sampleFont: 'ui-monospace, "SF Mono", Menlo, Consolas, monospace' },
+      { id: 'sans', nameKey: 'demo-num-sans', descKey: 'demo-num-sans-desc', sampleFont: '"Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif', tabular: true },
+      { id: 'inter', nameKey: 'demo-num-inter', descKey: 'demo-num-inter-desc', sampleFont: '"Inter", "Noto Sans TC", -apple-system, sans-serif', tabular: true }
+    ];
+
+    let numStyle = 'inter';
+    let numPreviewOpen = false;
+
+    const numPreview = document.getElementById('numPreview');
+    const numPreviewList = document.getElementById('numPreviewList');
+    const numPreviewBtn = document.getElementById('numPreviewBtn');
+    const numPreviewClose = document.getElementById('numPreviewClose');
+
+    function renderNumPreviewList() {
+      numPreviewList.innerHTML = NUM_STYLES.map(style => `
+        <button type="button" class="num-preview-item${style.id === numStyle ? ' active' : ''}" data-num-style="${style.id}">
+          <span class="num-preview-name">${t(style.nameKey)}</span>
+          <span class="num-preview-desc">${t(style.descKey)}</span>
+          <span class="num-preview-sample" style="font-family:${style.sampleFont};${style.tabular ? 'font-variant-numeric:tabular-nums;' : ''}">$1,284,600</span>
+        </button>
+      `).join('');
+
+      numPreviewList.querySelectorAll('[data-num-style]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          setNumStyle(btn.dataset.numStyle);
+          toast(`<strong>${t('demo-num-preview-title')}</strong> — ${t('demo-toast-num-applied')}`);
+        });
+      });
+    }
+
+    function setNumStyle(id) {
+      if (!NUM_STYLES.some(style => style.id === id)) return;
+      numStyle = id;
+      document.body.dataset.numStyle = id;
+      renderNumPreviewList();
+    }
+
+    function openNumPreview() {
+      numPreviewOpen = true;
+      numPreview.classList.add('open');
+      numPreview.setAttribute('aria-hidden', 'false');
+      renderNumPreviewList();
+    }
+
+    function closeNumPreview() {
+      numPreviewOpen = false;
+      numPreview.classList.remove('open');
+      numPreview.setAttribute('aria-hidden', 'true');
+    }
+
+    function toggleNumPreview() {
+      if (numPreviewOpen) closeNumPreview();
+      else openNumPreview();
+    }
+
+    let lang = 'zh';
+    let privacy = false;
+
+    const views = ['dashboard', 'monthly', 'investments', 'categories', 'news', 'fundflow', 'research'];
+    const pageTitle = document.getElementById('pageTitle');
+    const pageSub = document.getElementById('pageSub');
+    const addLabel = document.getElementById('addLabel');
+    const liveClock = document.getElementById('liveClock');
+    const toastWrap = document.getElementById('toastWrap');
+    const kbdHint = document.getElementById('kbdHint');
+    const viewEls = document.querySelectorAll('.view');
+    const navBtns = document.querySelectorAll('.nav-btn[data-view]');
+    const mobileBtns = document.querySelectorAll('.mobile-nav button[data-view]');
+
+    function t(key) {
+      return (I18N[lang] || I18N.en)[key] ?? I18N.en[key] ?? key;
+    }
+
+    function applyLang() {
+      document.documentElement.lang = lang === 'zh' ? 'zh-HK' : 'en';
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const prefix = el.getAttribute('data-i18n-prefix') || '';
+        el.textContent = prefix + t(key);
+      });
+
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        el.innerHTML = t(el.getAttribute('data-i18n-html'));
+      });
+
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        el.placeholder = t(el.getAttribute('data-i18n-ph'));
+      });
+
+      document.getElementById('langLabel').textContent = lang === 'zh' ? 'EN' : '中文';
+      const themeKey = document.body.dataset.theme === 'dark' ? 'demo-theme-light' : 'demo-theme-dark';
+      document.getElementById('themeLabel').textContent = t(themeKey);
+
+      const active = document.querySelector('.nav-btn.active')?.dataset.view || 'dashboard';
+      updatePageHeader(active);
+      if (numPreviewOpen) renderNumPreviewList();
+    }
+
+    function updatePageHeader(name) {
+      const meta = VIEW_META[name] || VIEW_META.dashboard;
+      pageTitle.textContent = t(meta.title);
+      pageSub.textContent = t(meta.sub);
+      addLabel.textContent = t(meta.add);
+    }
+
+    function toast(msg) {
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.innerHTML = msg;
+      toastWrap.appendChild(el);
+      setTimeout(() => el.remove(), 2800);
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const opts = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      liveClock.textContent = now.toLocaleString(lang === 'zh' ? 'zh-HK' : 'en-HK', opts);
+    }
+
+    function replayBars(root) {
+      root?.querySelectorAll('.chart-bars .bar-fill').forEach(bar => {
+        bar.style.animation = 'none';
+        void bar.offsetWidth;
+        bar.style.animation = '';
+      });
+    }
+
+    function replayTrendLine() {
+      const line = document.querySelector('.trend-line');
+      if (!line) return;
+      line.style.animation = 'none';
+      void line.getBoundingClientRect();
+      line.style.animation = '';
+    }
+
+    function barChartHTML() {
+      return `<div class="chart-bars" style="display:grid;gap:12px">
+        <div class="bar-row"><span>${t('cat-dining')}</span><div class="bar-track"><div class="bar-fill" style="--w:82%"></div></div><span class="bar-amt masked">$4.8k</span></div>
+        <div class="bar-row"><span>${t('cat-transport')}</span><div class="bar-track"><div class="bar-fill" style="--w:58%;opacity:.85"></div></div><span class="bar-amt masked">$3.0k</span></div>
+        <div class="bar-row"><span>${t('cat-shopping')}</span><div class="bar-track"><div class="bar-fill" style="--w:46%;opacity:.72"></div></div><span class="bar-amt masked">$2.3k</span></div>
+      </div>`;
+    }
+
+    function setView(name) {
+      viewEls.forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+      navBtns.forEach(b => b.classList.toggle('active', b.dataset.view === name));
+      mobileBtns.forEach(b => b.classList.toggle('active', b.dataset.view === name));
+      updatePageHeader(name);
+      closeMenu();
+      const activeView = document.getElementById('view-' + name);
+      replayBars(activeView);
+      if (name === 'dashboard') replayTrendLine();
+    }
+
+    function closeMenu() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('overlay').classList.remove('open');
+    }
+
+    navBtns.forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+    mobileBtns.forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+
+    document.getElementById('menuBtn').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('overlay').classList.add('open');
+    });
+    document.getElementById('overlay').addEventListener('click', closeMenu);
+
+    numPreviewBtn.addEventListener('click', toggleNumPreview);
+    numPreviewClose.addEventListener('click', closeNumPreview);
+    numPreview.addEventListener('click', (e) => {
+      if (e.target === numPreview) closeNumPreview();
+    });
+
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      const body = document.body;
+      const next = body.dataset.theme === 'dark' ? 'light' : 'dark';
+      body.dataset.theme = next;
+      applyLang();
+    });
+
+    document.getElementById('langBtn').addEventListener('click', () => {
+      lang = lang === 'zh' ? 'en' : 'zh';
+      applyLang();
+      updateClock();
+      if (chartMode === 'bar' && chartBody) {
+        chartBody.innerHTML = barChartHTML();
+        replayBars(chartBody);
+      }
+    });
+
+    document.getElementById('addBtn').addEventListener('click', () => {
+      const active = document.querySelector('.nav-btn.active')?.dataset.view || 'dashboard';
+      const label = t((VIEW_META[active] || VIEW_META.dashboard).add);
+      toast(`<strong>${label}</strong> — ${t('demo-toast-only')}`);
+    });
+
+    document.getElementById('dismissBanner').addEventListener('click', () => {
+      document.getElementById('demoBanner').classList.add('hidden');
+    });
+
+    document.getElementById('privacyBtn').addEventListener('click', () => {
+      privacy = !privacy;
+      document.getElementById('app').classList.toggle('privacy-on', privacy);
+      document.querySelectorAll('.masked').forEach(el => {
+        if (privacy) {
+          el.dataset.raw = el.textContent;
+          el.textContent = '*****';
+        } else if (el.dataset.raw) {
+          el.textContent = el.dataset.raw;
+        }
+      });
+    });
+
+    document.querySelectorAll('.month-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.month-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+      });
+    });
+
+    const btnAnnual = document.getElementById('btnAnnual');
+    const btnMonthlyCat = document.getElementById('btnMonthly');
+    if (btnAnnual && btnMonthlyCat) {
+      btnAnnual.addEventListener('click', () => {
+        btnAnnual.classList.add('active');
+        btnMonthlyCat.classList.remove('active');
+      });
+      btnMonthlyCat.addEventListener('click', () => {
+        btnMonthlyCat.classList.add('active');
+        btnAnnual.classList.remove('active');
+      });
+    }
+
+    const cycleBtn = document.getElementById('cycleBtn');
+    const chartBody = document.getElementById('chartBody');
+    let chartMode = 'donut';
+    if (cycleBtn && chartBody) {
+      const donutHTML = chartBody.innerHTML;
+      cycleBtn.addEventListener('click', () => {
+        chartMode = chartMode === 'donut' ? 'bar' : 'donut';
+        if (chartMode === 'bar') {
+          chartBody.innerHTML = barChartHTML();
+          replayBars(chartBody);
+        } else {
+          chartBody.innerHTML = donutHTML;
+          applyLang();
+        }
+      });
+    }
+
+    const refreshBtn = document.getElementById('refreshBtn');
+    const aiPanel = document.querySelector('#view-dashboard .ai-panel');
+    if (refreshBtn && aiPanel) {
+      refreshBtn.addEventListener('click', () => {
+        aiPanel.classList.add('loading');
+        refreshBtn.style.opacity = '0.55';
+        toast(`<strong>${t('card-ai-refresh')}</strong> — ${t('demo-toast-refreshing')}`);
+        setTimeout(() => {
+          aiPanel.classList.remove('loading');
+          refreshBtn.style.opacity = '1';
+          toast(`<strong>${lang === 'zh' ? '完成' : 'Done'}</strong> — ${t('demo-toast-done')}`);
+        }, 1200);
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.matches('input, select, textarea')) return;
+      const key = e.key.toLowerCase();
+      if (key >= '1' && key <= '7') {
+        setView(views[+key - 1]);
+        return;
+      }
+      if (key === 'p') document.getElementById('privacyBtn').click();
+      if (key === 't') document.getElementById('themeBtn').click();
+      if (key === 'n') toggleNumPreview();
+      if (key === 'escape' && numPreviewOpen) closeNumPreview();
+      if (key === '?') kbdHint.classList.toggle('show');
+    });
+
+    setTimeout(() => {
+      kbdHint.classList.add('show');
+      setTimeout(() => kbdHint.classList.remove('show'), 4500);
+    }, 1400);
+
+    const txSearch = document.querySelector('#view-monthly .search-field input');
+    if (txSearch) {
+      txSearch.addEventListener('input', () => {
+        const q = txSearch.value.trim().toLowerCase();
+        document.querySelectorAll('#view-monthly tbody tr').forEach(row => {
+          row.style.display = !q || row.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+      });
+    }
+
+    updateClock();
+    setInterval(updateClock, 30000);
+
+    setNumStyle('inter');
+    setView('dashboard');
+    applyLang();
+  </script>
+</body>
+</html>
