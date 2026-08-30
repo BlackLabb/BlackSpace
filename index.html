@@ -620,7 +620,8 @@ table{border-collapse:collapse;width:100%}
   .add-btn { padding: 7px 12px; }
   .add-btn-label { display: none; }
   .month-strip { padding: 8px 16px; }
-  .content { padding: 12px; }
+  .content { padding: 12px; scrollbar-width: none; -ms-overflow-style: none; }
+  .content::-webkit-scrollbar { display: none; width: 0; height: 0; }
   .content { overflow-x: hidden; overscroll-behavior-x: none; }
   .view.active,
   .kpi-grid,
