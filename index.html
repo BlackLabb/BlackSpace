@@ -352,7 +352,19 @@ table{border-collapse:collapse;width:100%}
 .pos{color:var(--success)}
 .neg{color:var(--error)}
 @media(max-width:1080px){.hero-row{grid-template-columns:1fr}}
-@media(max-width:560px){.hero-value{font-size:34px}#dash-kpis .hero-value{font-size:28px}.hero-card{padding:22px}.hero-brand{top:22px;right:22px}}
+@media(max-width:768px){
+  #dash-kpis .hero-row .hero-card{min-height:0;padding:16px 18px;border-radius:18px}
+  #dash-kpis .hero-mark{width:44px;height:44px;box-shadow:0 0 0 3px var(--primaryHL)}
+  #dash-kpis .hero-brand{top:16px;right:16px;font-size:14px}
+  #dash-kpis .hero-label{margin-top:10px;font-size:10px}
+  #dash-kpis .hero-value{margin-top:6px;font-size:clamp(24px,7vw,30px)}
+  #dash-kpis .hero-sub{margin-top:8px;font-size:12px}
+  #dash-kpis .hero-card::after{width:120px;height:120px}
+  #dash-kpis .hero-row{margin-bottom:10px;gap:10px}
+  #dash-kpis .mini-kpi{padding:14px 16px;border-radius:16px}
+  #dash-kpis .mini-value{font-size:22px}
+}
+@media(max-width:560px){.hero-value{font-size:34px}#dash-kpis .hero-value{font-size:24px}.hero-card{padding:22px}.hero-brand{top:22px;right:22px}}
 
 
 /* ── DASHBOARD GRID ──────────────────────────────────────────────────────────── */
