@@ -285,6 +285,7 @@ table{border-collapse:collapse;width:100%}
 .view{display:none}
 .view.active{display:block}
 .stockresearch-host{display:block;min-height:640px}
+.stockresearch-host .app{width:100%;max-width:none;margin:0;padding:16px;box-sizing:border-box}
 @media(max-width:720px){.stockresearch-host{min-height:560px}}
 
 /* ── PAGE HEADER ─────────────────────────────────────────────────────────────── */
@@ -315,6 +316,7 @@ table{border-collapse:collapse;width:100%}
 .hero-sub{margin-top:12px;color:var(--muted);font-size:13px;position:relative;z-index:1}
 .hero-stack{display:grid;gap:14px}
 .mini-kpi{padding:20px;border-radius:20px;border:1px solid var(--divider);background:var(--surface);box-shadow:var(--shadow)}
+#inv-hero-wrap .hero-stack .mini-kpi{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px}
 .mini-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .mini-label{font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)}
 .mini-value{font-size:28px;font-weight:600;letter-spacing:-0.04em;line-height:1}
@@ -512,7 +514,7 @@ table{border-collapse:collapse;width:100%}
   #app-wrapper { flex-direction: column; height: var(--app-height); min-height: var(--app-height); }
   .main { width: 100%; }
   .topbar { padding: calc(10px + env(safe-area-inset-top)) 16px 10px; padding-top: calc(10px + constant(safe-area-inset-top)); background: var(--chrome-bg) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
-  .mobile-menu-btn, #view-sub, .page-title-wrap p, .live-time, #addBtn { display: none !important; }
+  .mobile-menu-btn { display: none !important; }
   .page-title-wrap h1 { font-size: 17px; line-height: 1.15; }
   .topbar-left { gap: 0; min-width: 0; }
   input, select, textarea, .pub-field-inp, .search-inp { font-size: 16px !important; }
@@ -621,7 +623,8 @@ table{border-collapse:collapse;width:100%}
 .news-sentiment-value.is-positive{color:var(--success)}
 .news-sentiment-value.is-negative{color:var(--error)}
 .news-sentiment-value.is-neutral{color:var(--text)}
-.news-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.news-layout{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start}
+.news-layout > :first-child{grid-column:1 / 3;min-width:0}
 .news-feed-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:12px}
 .news-feed-head h2{margin:0;font-size:18px}
 .news-list{display:flex;flex-direction:column;gap:12px}
@@ -649,7 +652,7 @@ table{border-collapse:collapse;width:100%}
 .news-tags{display:flex;gap:7px;flex-wrap:wrap}
 .news-tag{height:24px;padding:0 8px;border-radius:8px;background:var(--surfaceOff);color:var(--muted);font-family:var(--mono);font-size:11px;font-weight:850;display:inline-flex;align-items:center}
 .news-open{color:var(--primary);font-size:13px;font-weight:850;white-space:nowrap}
-.news-side{position:sticky;top:18px;display:flex;flex-direction:column;gap:16px;margin-top:34px}
+.news-side{grid-column:3;position:sticky;top:18px;display:flex;flex-direction:column;gap:16px;margin-top:0;min-width:0}
 .news-rule-row{display:flex;align-items:flex-start;gap:9px;color:var(--muted);font-size:12px;line-height:1.45;margin-bottom:9px}
 .news-rule-row:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--primary);margin-top:5px;flex:none}
 @media(max-width:860px){
@@ -663,7 +666,8 @@ table{border-collapse:collapse;width:100%}
   .news-summary{grid-template-columns:1fr 1fr}
   .news-summary .news-metric:nth-child(3){display:none}
   .news-layout{grid-template-columns:1fr}
-  .news-side{position:static;margin-top:0}
+  .news-layout > :first-child{grid-column:auto}
+  .news-side{grid-column:auto;position:static;margin-top:0}
 }
 
 /* ── INVESTMENTS ─────────────────────────────────────────────────────────────── */
@@ -678,7 +682,7 @@ table{border-collapse:collapse;width:100%}
 /* ── EDIT BUTTON ─────────────────────────────────────────────────────────────── */
 .edit-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;color:var(--faint);opacity:0;transition:opacity var(--trans),background var(--trans),color var(--trans)}
 .tx-table tbody tr:hover .edit-btn{opacity:1}
-.cat-card:hover .edit-btn{opacity:1}
+.cat-card:hover .cat-card-del,.cat-card:hover .edit-btn{opacity:1}
 .edit-btn:hover{background:rgba(0,113,227,.1);color:var(--primary)}
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1040,7 +1044,8 @@ table{border-collapse:collapse;width:100%}
 .cat-grid,.cats-grid.cat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .cat-grid .cat-card{padding:18px;border-radius:var(--rXl);border:1px solid var(--divider);background:var(--surface);display:block;position:relative;transition:transform .22s var(--ease,cubic-bezier(.22,1,.36,1)),border-color .22s;box-shadow:var(--shadow)}
 .cat-grid .cat-card:hover{transform:translateY(-2px);border-color:var(--border)}
-.cat-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cat-top{display:flex;align-items:flex-start;gap:10px;padding-right:64px}
+.cat-title-row{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
 .cat-grid .cat-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
 .cat-name{font-size:15px;font-weight:600}
 .cat-budget{margin-top:14px;font-size:22px;font-weight:600;letter-spacing:-.04em}
@@ -1049,7 +1054,7 @@ table{border-collapse:collapse;width:100%}
 .cat-card.over-budget{border-color:rgba(208,107,107,.28)}
 .cat-card.over-budget .progress>span{background:var(--error)}
 .cat-actions{display:flex;gap:4px;position:absolute;top:14px;right:14px}
-.news-grid,.news-layout.news-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);gap:16px}
+.news-grid,.news-layout.news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .news-card.sent-pos,.news-card.sent-neg,.news-card.sent-neu{border-left-width:3px;border-left-style:solid}
 .news-card.sent-pos{border-left-color:var(--success)}
 .news-card.sent-neg{border-left-color:var(--error)}
@@ -1699,17 +1704,10 @@ table{border-collapse:collapse;width:100%}
       </button>
       <div class="page-title-wrap">
         <h1 id="view-title">Monthly View</h1>
-        <p id="view-sub"></p>
-        <div class="live-time"><span class="live-dot" aria-hidden="true"></span><span id="liveClock">—</span></div>
       </div>
     </div>
     <div class="topbar-right top-actions">
       <input type="file" id="import-file-input" accept=".json" style="display:none">
-      <button class="primary-btn top-add-btn" id="addBtn" type="button">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"></path></svg>
-        <span id="addLabel">Add</span>
-      </button>
-
       <button class="icon-btn" id="themeBtn" type="button" title="切換主題" aria-label="切換主題">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
       </button>
@@ -2893,11 +2891,11 @@ function renderCategories(){
         </button>
       </div>
       <div class="cat-top">
-        <div style="display:flex;align-items:center;gap:8px;min-width:0">
+        <div class="cat-title-row">
           <span class="cat-dot" style="background:${col}"></span>
           <div class="cat-name">${c.name}</div>
+          ${recLabel}
         </div>
-        ${recLabel}
       </div>
       <div class="cat-budget masked">${fmt(spent)} <span style="font-size:13px;color:var(--muted);font-weight:500">/ ${fmt(budget)}</span></div>
       <div class="progress"><span style="width:${pct}%"></span></div>
@@ -3209,10 +3207,6 @@ function setView(v){
   document.querySelectorAll('.mini-apps-trigger').forEach(el=>el.classList.remove('active'));
   const vk = VIEW_KEYS[v];
   $('view-title').textContent = vk ? t(vk.title) : v;
-  if(v==='monthly'){
-    const s=ALL_MONTHS[0], e=ALL_MONTHS[ALL_MONTHS.length-1];
-    $('view-sub').textContent = monthYearLabel(s.m, s.y) + ' – ' + monthYearLabel(e.m, e.y) + ' · ' + t('sub-monthly-breakdown');
-  } else { $('view-sub').textContent = vk ? t(vk.sub) : ''; }
   $('month-strip').style.display=v==='monthly'?'':'none';
   if(v==='monthly'){ buildTabs(); renderMonthly(); }
   if(v==='transactions') renderAllTx();
@@ -3618,20 +3612,6 @@ Object.assign(I18N.en, {
   'demo-theme-light':'Light','demo-theme-dark':'Dark','demo-theme-trader':'Trader',
 });
 
-function updateClock(){
-  const el = $('liveClock');
-  if(!el) return;
-  const now = new Date();
-  const opts = { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' };
-  el.textContent = now.toLocaleString(curLang==='zh' ? 'zh-HK' : 'en-HK', opts);
-  updateProfileGreeting();
-}
-
-const VIEW_ADD_KEYS = {
-  monthly:'btn-add', categories:'btn-add-cat', investments:'btn-add-position',
-  news:'btn-refresh', fundflow:'btn-refresh', dashboard:'btn-add', transactions:'btn-add'
-};
-
 function updateTopbarLabels(){
   const themeBtn = $('themeBtn');
   if(themeBtn){
@@ -3640,16 +3620,6 @@ function updateTopbarLabels(){
     themeBtn.title = (curLang==='zh' ? '主題：' : 'Theme: ') + label;
     themeBtn.setAttribute('aria-label', themeBtn.title);
   }
-  const addLabel = $('addLabel');
-  if(addLabel) addLabel.textContent = t(VIEW_ADD_KEYS[curView] || 'btn-add');
-}
-
-function contextAdd(){
-  if(curView==='monthly' || curView==='dashboard' || curView==='transactions') $('add-tx-monthly-btn')?.click();
-  else if(curView==='categories') $('add-cat-btn')?.click();
-  else if(curView==='investments') $('add-inv-page-btn')?.click();
-  else if(curView==='news') renderNews(true);
-  else if(curView==='fundflow') renderFundFlow();
 }
 
 function closeSidebarDrawer(){
@@ -3709,7 +3679,6 @@ function applyLang(){
   document.querySelector('.nav-btn[data-view="stockresearch"]')?.setAttribute('data-tip', t('title-stockresearch'));
 
   updateTopbarLabels();
-  updateClock();
   renderProfile();
 
   // Settings menu (export/import are now inside settings) — values update via data-i18n
@@ -3819,27 +3788,20 @@ function applyLang(){
   if(curView==='stockresearch' && window.initStockResearch) window.initStockResearch(true);
   if(curView==='categories') renderCategories();
 
-  // View title/sub for current view
+  // View title for current view
   const vmeta = {
-    monthly:{title:t('title-monthly'),sub:t('sub-monthly')},
-    transactions:{title:t('title-transactions'),sub:t('sub-transactions')},
-    goals:{title:t('title-goals'),sub:t('sub-goals')},
-    dashboard:{title:t('title-dashboard'),sub:t('sub-dashboard')},
-    categories:{title:t('title-categories'),sub:t('sub-categories')},
-    investments:{title:t('title-investments'),sub:t('sub-investments')},
-    news:{title:t('title-news'),sub:t('sub-news')},
-    fundflow:{title:t('title-fundflow'),sub:t('sub-fundflow')},
-    stockresearch:{title:t('title-stockresearch'),sub:t('sub-stockresearch')},
+    monthly:{title:t('title-monthly')},
+    transactions:{title:t('title-transactions')},
+    goals:{title:t('title-goals')},
+    dashboard:{title:t('title-dashboard')},
+    categories:{title:t('title-categories')},
+    investments:{title:t('title-investments')},
+    news:{title:t('title-news')},
+    fundflow:{title:t('title-fundflow')},
+    stockresearch:{title:t('title-stockresearch')},
   };
   if(vmeta[curView]){
     $('view-title').textContent = vmeta[curView].title;
-    if(curView==='monthly'){
-      // Rebuild monthly sub-label in the new language
-      const s=ALL_MONTHS[0], e=ALL_MONTHS[ALL_MONTHS.length-1];
-      if(s && e) $('view-sub').textContent = monthYearLabel(s.m,s.y)+' – '+monthYearLabel(e.m,e.y)+' · '+t('sub-monthly-breakdown');
-    } else {
-      $('view-sub').textContent = vmeta[curView].sub;
-    }
   }
   if(typeof syncFundFlowScrollNav === 'function') syncFundFlowScrollNav();
   updateTopbarLabels();
@@ -3851,7 +3813,6 @@ function toggleLang(){
   applyLang();
   updateSettingsMenuValues();
   syncPrivacySetting();
-  updateClock();
   if(typeof bsiApplyLang === 'function') bsiApplyLang();
 }
 
@@ -3948,8 +3909,6 @@ $('range-submit').addEventListener('click', ()=>{
   closeRangeModal();
   buildTabs();
   renderMonthly();
-  const s=ALL_MONTHS[0], e=ALL_MONTHS[ALL_MONTHS.length-1];
-  $('view-sub').textContent = monthYearLabel(s.m,s.y)+' – '+monthYearLabel(e.m,e.y)+' · '+t('sub-monthly-breakdown');
 });
 
 // ── TX MODAL ──────────────────────────────────────────────
@@ -4106,7 +4065,7 @@ function onUserReady(){
   // Attach merchant → category auto-suggest
   attachMerchantAutoSuggest('f-merchant', 'f-category');
   attachMerchantAutoSuggest('et-merchant', 'et-category');
-  setTimeout(()=>{ applyLang(); syncPrivacySetting(); updateClock(); updateTopbarLabels(); }, 0);
+  setTimeout(()=>{ applyLang(); syncPrivacySetting(); updateTopbarLabels(); }, 0);
 }
 
 // Expose app data + callbacks for Firebase module
@@ -4338,9 +4297,6 @@ $('menuBtn')?.addEventListener('click', ()=>{
 });
 $('overlay')?.addEventListener('click', closeSidebarDrawer);
 $('themeBtn')?.addEventListener('click', toggleTheme);
-$('addBtn')?.addEventListener('click', contextAdd);
-updateClock();
-setInterval(updateClock, 60000);
 
 // ── CHANGE PASSWORD MODAL ─────────────────────────────────
 function openPasswordModal(){
@@ -5948,29 +5904,40 @@ window.addEventListener('resize', () => {
     .replace('autocomplete="off"', 'placeholder="AAPL, TSLA, NVDA" autocomplete="off"');
   const STOCK_RESEARCH_CSS_WITH_MOBILE_ORDER = STOCK_RESEARCH_CSS + `
     .news-controls {
-      padding: 12px;
-      margin-bottom: 10px;
-      width: fit-content;
-      max-width: 100%;
+      padding: 16px;
+      margin-bottom: 14px;
+      width: 100%;
+      box-sizing: border-box;
     }
     .news-control-grid {
-      gap: 8px;
-      grid-template-columns: minmax(280px, 420px) max-content;
-      width: fit-content;
+      display: grid;
+      grid-template-columns: minmax(280px, 420px) auto;
+      gap: 12px;
+      align-items: end;
+      width: 100%;
       max-width: 100%;
     }
     .news-field {
-      gap: 4px;
+      gap: 6px;
+      min-width: 0;
+    }
+    .news-input {
+      width: 100%;
+      min-width: 0;
+      height: 44px;
+      font-size: 15px;
+    }
+    .news-refresh {
+      min-width: 96px;
+      white-space: nowrap;
     }
     @media (max-width: 760px) {
-      .news-controls {
-        width: 100%;
-      }
       .news-control-grid {
-        gap: 8px;
         grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .news-refresh {
         width: 100%;
-        max-width: none;
       }
       .news-chips {
         margin-top: 2px;
