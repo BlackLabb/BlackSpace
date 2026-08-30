@@ -12,6 +12,9 @@
 	  document.write('<meta name="theme-color" content="'+c+'">');
 	  document.write('<meta name="color-scheme" content="'+(t==='light'?'light':'dark')+'">');
 	})();
+	window._pubSplashStartAt = Date.now();
+	window._pubUserAuthFlow = false;
+	window._pubAutoLoginHold = false;
 	</script>
 
 
@@ -1213,6 +1216,7 @@ table{border-collapse:collapse;width:100%}
     if(!u){ authErr('reg-err','Please enter a username.'); return; }
     if(p.length<8){ authErr('reg-err','Password must be at least 8 characters.'); return; }
     if(p!==p2){ authErr('reg-err','Passwords do not match.'); return; }
+    window._pubUserAuthFlow = true;
     const email = u + '@blackspace.app';
     showLoading('Creating account…');
     try {
@@ -1260,6 +1264,7 @@ table{border-collapse:collapse;width:100%}
     }
 
     if(!u||!p){ authErr('login-err','Please fill in all fields.'); return; }
+    window._pubUserAuthFlow = true;
     const email = u + '@blackspace.app';
     showLoading('Signing in…');
     try {
@@ -1355,6 +1360,23 @@ table{border-collapse:collapse;width:100%}
         try { localStorage.removeItem(SESSION_KEY); } catch(_){}
         await signOut(auth);
         return;
+      }
+      if(!window._pubUserAuthFlow){
+        window._pubAutoLoginHold = true;
+        const lpHold = document.getElementById('landing-page');
+        const authHold = document.getElementById('auth-screen');
+        const appHold = document.getElementById('app-wrapper');
+        if(authHold) authHold.style.display = 'none';
+        if(lpHold){
+          lpHold.style.display = 'grid';
+          document.documentElement.classList.add('landing-visible');
+        }
+        if(appHold) appHold.style.display = 'none';
+        hideLoading();
+        const splashStart = window._pubSplashStartAt || Date.now();
+        const waitMs = Math.max(0, 3000 - (Date.now() - splashStart));
+        if(waitMs > 0) await new Promise(r => setTimeout(r, waitMs));
+        window._pubAutoLoginHold = false;
       }
       // Hide landing page when logged in
       const lp = document.getElementById('landing-page');
@@ -1552,7 +1574,11 @@ table{border-collapse:collapse;width:100%}
     splash.dataset.pubReady = '1';
     document.documentElement.classList.add('landing-visible');
     splash.style.display = 'grid';
-    const enter = () => { if(typeof showAuth === 'function') showAuth('login'); };
+    const enter = () => {
+      if(window._pubAutoLoginHold) return;
+      window._pubUserAuthFlow = true;
+      if(typeof showAuth === 'function') showAuth('login');
+    };
     splash.addEventListener('click', enter);
     splash.addEventListener('keydown', (e) => {
       if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); enter(); }
