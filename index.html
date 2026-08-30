@@ -496,6 +496,8 @@ table{border-collapse:collapse;width:100%}
 .pub-auth-submit:disabled{opacity:.65;cursor:wait;transform:none}
 #auth-screen .auth-err{font-size:12px;color:#d06b6b;background:rgba(208,107,107,.08);border:1px solid rgba(208,107,107,.22);border-radius:10px;padding:10px 12px;display:none;margin-bottom:12px}
 #auth-screen .auth-err.show{display:block}
+.pub-lang-btn{position:absolute;top:calc(16px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right,0px));z-index:2;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#8d8980;font-size:12px;font-weight:700;letter-spacing:.04em;cursor:pointer;font-family:inherit;transition:border-color .18s ease,color .18s ease,background .18s ease}
+.pub-lang-btn:hover{color:#f3f1ec;border-color:rgba(212,181,106,.35);background:rgba(212,181,106,.08)}
 
 /* ── MOBILE RESPONSIVE ───────────────────────────────────────────────────────── */
 .inv-mobile-sub { display: none; }
@@ -1486,58 +1488,59 @@ table{border-collapse:collapse;width:100%}
 <body data-cc-id="cc-1" style="font-size: 14px; background-color: rgb(255, 255, 255);">
 
 <!-- ══ PUBLIC SHELL — Splash + Auth ══ -->
-<div id="landing-page" tabindex="0" aria-label="開場">
+<div id="landing-page" tabindex="0" data-i18n-aria="pub-splash-aria">
   <div class="pub-splash-inner">
     <div class="pub-splash-mark">
       <video src="BlackSpace.mp4" autoplay muted loop playsinline preload="auto" aria-label="BlackSpace"></video>
     </div>
     <div class="pub-splash-title">BlackSpace</div>
-    <div class="pub-splash-sub">Personal Finance Terminal</div>
+    <div class="pub-splash-sub" data-i18n="pub-splash-sub">Personal Finance Terminal</div>
     <div class="pub-splash-bar" aria-hidden="true"></div>
   </div>
 </div>
 <div id="auth-screen" style="display:none">
-  <button id="auth-back-btn" type="button" class="pub-auth-back" aria-label="返回開場">
+  <button id="auth-back-btn" type="button" class="pub-auth-back" data-i18n-aria="pub-auth-back-aria">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    返回
+    <span data-i18n="pub-auth-back">返回</span>
   </button>
+  <button type="button" id="pub-lang-btn" class="pub-lang-btn" aria-label="Language">EN</button>
   <div class="pub-auth-card">
     <div class="pub-auth-head">
       <div class="pub-auth-logo"><img src="BlackSpace.png" alt="BlackSpace"></div>
-      <h3 class="pub-auth-title-text">登入 BlackSpace</h3>
-      <p class="pub-auth-sub-text">輸入帳號密碼以繼續</p>
+      <h3 class="pub-auth-title-text" data-i18n="pub-auth-title-login">登入 BlackSpace</h3>
+      <p class="pub-auth-sub-text" data-i18n="pub-auth-sub-login">輸入帳號密碼以繼續</p>
     </div>
     <div class="pub-auth-tabs" role="tablist">
-      <button type="button" id="go-login" class="pub-auth-tab pub-auth-tab-active">登入</button>
-      <button type="button" id="go-register" class="pub-auth-tab">註冊</button>
+      <button type="button" id="go-login" class="pub-auth-tab pub-auth-tab-active" data-i18n="pub-auth-tab-login">登入</button>
+      <button type="button" id="go-register" class="pub-auth-tab" data-i18n="pub-auth-tab-register">註冊</button>
     </div>
     <div id="auth-login-panel" class="pub-auth-panel">
       <div id="login-err" class="auth-err"></div>
       <div class="pub-field">
-        <label class="pub-field-lbl" for="login-user">帳號</label>
-        <div class="pub-field-wrap"><input id="login-user" class="pub-field-inp" type="text" autocomplete="username" placeholder="username"></div>
+        <label class="pub-field-lbl" for="login-user"><span data-i18n="pub-auth-username">帳號</span></label>
+        <div class="pub-field-wrap"><input id="login-user" class="pub-field-inp" type="text" autocomplete="username" data-i18n-ph="pub-auth-ph-username" placeholder="username"></div>
       </div>
       <div class="pub-field">
-        <label class="pub-field-lbl" for="login-pass">密碼</label>
+        <label class="pub-field-lbl" for="login-pass"><span data-i18n="pub-auth-password">密碼</span></label>
         <div class="pub-field-wrap"><input id="login-pass" class="pub-field-inp" type="password" autocomplete="current-password" placeholder="••••••••"></div>
       </div>
-      <button id="login-submit-btn" type="button" class="pub-auth-submit">登入</button>
+      <button id="login-submit-btn" type="button" class="pub-auth-submit" data-i18n="pub-auth-btn-login">登入</button>
     </div>
     <div id="auth-register-panel" class="pub-auth-panel" style="display:none">
       <div id="reg-err" class="auth-err"></div>
       <div class="pub-field">
-        <label class="pub-field-lbl" for="reg-user">帳號</label>
-        <div class="pub-field-wrap"><input id="reg-user" class="pub-field-inp" type="text" autocomplete="username" placeholder="username"></div>
+        <label class="pub-field-lbl" for="reg-user"><span data-i18n="pub-auth-username">帳號</span></label>
+        <div class="pub-field-wrap"><input id="reg-user" class="pub-field-inp" type="text" autocomplete="username" data-i18n-ph="pub-auth-ph-username" placeholder="username"></div>
       </div>
       <div class="pub-field">
-        <label class="pub-field-lbl" for="reg-pass">密碼</label>
+        <label class="pub-field-lbl" for="reg-pass"><span data-i18n="pub-auth-password">密碼</span></label>
         <div class="pub-field-wrap"><input id="reg-pass" class="pub-field-inp" type="password" autocomplete="new-password" placeholder="••••••••"></div>
       </div>
       <div class="pub-field">
-        <label class="pub-field-lbl" for="reg-pass2">確認密碼</label>
+        <label class="pub-field-lbl" for="reg-pass2"><span data-i18n="pub-auth-password2">確認密碼</span></label>
         <div class="pub-field-wrap"><input id="reg-pass2" class="pub-field-inp" type="password" autocomplete="new-password" placeholder="••••••••"></div>
       </div>
-      <button id="reg-submit-btn" type="button" class="pub-auth-submit">建立帳戶</button>
+      <button id="reg-submit-btn" type="button" class="pub-auth-submit" data-i18n="pub-auth-btn-register">建立帳戶</button>
     </div>
   </div>
 </div>
@@ -3414,6 +3417,14 @@ const I18N = {
     'bnav-dashboard':'總覽','bnav-monthly':'每月','bnav-invest':'投資','bnav-news':'新聞','bnav-categories':'類別','bnav-goals':'目標','nav-blackinvest':'模擬交易','bnav-blackinvest':'模擬交易',
     // Sign out / auth
     'btn-signout':'登出',
+    // Public shell — splash + auth
+    'pub-splash-aria':'開場','pub-splash-sub':'個人財務終端',
+    'pub-auth-back':'返回','pub-auth-back-aria':'返回開場',
+    'pub-auth-title-login':'登入 BlackSpace','pub-auth-title-register':'建立 BlackSpace 帳戶',
+    'pub-auth-sub-login':'輸入帳號密碼以繼續','pub-auth-sub-register':'設定帳號密碼以開始使用',
+    'pub-auth-tab-login':'登入','pub-auth-tab-register':'註冊',
+    'pub-auth-username':'帳號','pub-auth-password':'密碼','pub-auth-password2':'確認密碼',
+    'pub-auth-ph-username':'username','pub-auth-btn-login':'登入','pub-auth-btn-register':'建立帳戶',
     // Search
     'ph-search-tx':'搜尋交易…','ph-search-all':'搜尋…',
     // Spending by cat
@@ -3496,6 +3507,13 @@ const I18N = {
     'btn-add-position':'Add Position',
     'bnav-dashboard':'Dashboard','bnav-monthly':'Monthly','bnav-invest':'Invest','bnav-news':'News','bnav-categories':'Categories','bnav-goals':'Goals','nav-blackinvest':'Sim Trading','bnav-blackinvest':'Sim Trade',
     'btn-signout':'Sign Out',
+    'pub-splash-aria':'Splash','pub-splash-sub':'Personal Finance Terminal',
+    'pub-auth-back':'Back','pub-auth-back-aria':'Back to splash',
+    'pub-auth-title-login':'Sign in to BlackSpace','pub-auth-title-register':'Create BlackSpace Account',
+    'pub-auth-sub-login':'Enter your credentials to continue','pub-auth-sub-register':'Set up your username and password',
+    'pub-auth-tab-login':'Sign In','pub-auth-tab-register':'Register',
+    'pub-auth-username':'Username','pub-auth-password':'Password','pub-auth-password2':'Confirm Password',
+    'pub-auth-ph-username':'username','pub-auth-btn-login':'Sign In','pub-auth-btn-register':'Create Account',
     'ph-search-tx':'Search transactions…','ph-search-all':'Search…',
     'card-spending':'Spending by Category','card-bva':'Budget vs Actual',
     'card-monthly-trend':'Monthly Spending Trend','card-cat-annual':'Annual Category Breakdown','card-cat-monthly':'Monthly Category Breakdown',
@@ -3582,6 +3600,20 @@ function closeSidebarDrawer(){
 
 function t(key){ return (I18N[curLang]||I18N['en'])[key] || (I18N['en'][key] || key); }
 
+function applyPubShellLang(){
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+    el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
+  });
+  const langBtn = document.getElementById('pub-lang-btn');
+  if(langBtn) langBtn.textContent = curLang === 'zh' ? 'EN' : '中文';
+  const regPanel = document.getElementById('auth-register-panel');
+  const isReg = regPanel && regPanel.style.display !== 'none';
+  const title = document.querySelector('.pub-auth-title-text');
+  const sub = document.querySelector('.pub-auth-sub-text');
+  if(title) title.textContent = t(isReg ? 'pub-auth-title-register' : 'pub-auth-title-login');
+  if(sub) sub.textContent = t(isReg ? 'pub-auth-sub-register' : 'pub-auth-sub-login');
+}
+
 function applyLang(){
   // Generic: all elements with data-i18n get translated automatically
   document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -3593,6 +3625,7 @@ function applyLang(){
   document.querySelectorAll('[data-i18n-ph]').forEach(el => {
     el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph')));
   });
+  applyPubShellLang();
 
   // Nav buttons + tooltips
   document.querySelector('.nav-btn[data-view="dashboard"] .nav-btn-label').textContent = t('nav-dashboard');
@@ -3972,6 +4005,7 @@ $('a-search').addEventListener('input',function(){ renderAllTx(this.value); });
 buildTabs();
 renderProfile();
 renderMonthly();
+applyLang();
 
 // ── AUTH ──────────────────────────────────────────────────
 // ── FIREBASE AUTH BRIDGE ──────────────────────────────────────────────────────
@@ -5065,8 +5099,8 @@ function syncAuthPanel(panel){
   if(regPanel) regPanel.style.display = isReg ? 'block' : 'none';
   if(goLogin) goLogin.classList.toggle('pub-auth-tab-active', !isReg);
   if(goReg) goReg.classList.toggle('pub-auth-tab-active', isReg);
-  if(title) title.textContent = isReg ? '建立 BlackSpace 帳戶' : '登入 BlackSpace';
-  if(sub) sub.textContent = isReg ? '設定帳號密碼以開始使用' : '輸入帳號密碼以繼續';
+  if(title) title.textContent = t(isReg ? 'pub-auth-title-register' : 'pub-auth-title-login');
+  if(sub) sub.textContent = t(isReg ? 'pub-auth-sub-register' : 'pub-auth-sub-login');
   setTimeout(() => {
     const el = document.getElementById(isReg ? 'reg-user' : 'login-user');
     if(el) el.focus({ preventScroll: true });
@@ -5096,6 +5130,8 @@ function showAuth(panel){
 
 const authBackBtn = document.getElementById('auth-back-btn');
 if(authBackBtn) authBackBtn.addEventListener('click', () => showLanding());
+const pubLangBtn = document.getElementById('pub-lang-btn');
+if(pubLangBtn) pubLangBtn.addEventListener('click', () => toggleLang());
 
 window.showLanding = showLanding;
 window.syncAuthPanel = syncAuthPanel;
