@@ -319,16 +319,20 @@ table{border-collapse:collapse;width:100%}
 .hero-stack{display:grid;gap:14px}
 .mini-kpi{padding:20px;border-radius:20px;border:1px solid var(--divider);background:var(--surface);box-shadow:var(--shadow)}
 #inv-hero-wrap{margin-bottom:16px}
-#inv-hero-wrap .hero-stack .mini-kpi{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;gap:10px}
-#inv-hero-wrap .hero-row .hero-card{min-height:auto;padding:16px 18px;border-radius:16px}
+#inv-hero-wrap .hero-row{grid-template-columns:max-content minmax(220px,1fr);align-items:start;gap:12px;margin-bottom:0}
+#inv-hero-wrap .hero-stack .mini-kpi{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;gap:8px}
+#inv-hero-wrap .hero-row .hero-card{min-height:0;height:auto;padding:14px 16px;border-radius:14px;justify-self:start;width:max-content;max-width:100%;align-self:start}
 #inv-hero-wrap .hero-label{margin-top:0;font-size:10px}
-#inv-hero-wrap .hero-value{margin-top:6px;font-size:clamp(24px,3vw,34px)}
-#inv-hero-wrap .hero-sub{margin-top:8px;gap:8px 14px}
+#inv-hero-wrap .hero-value{margin-top:4px;font-size:clamp(22px,2.6vw,30px)}
+#inv-hero-wrap .hero-sub{margin-top:8px;gap:6px 12px}
 #inv-hero-wrap .hero-chip-lbl{font-size:10px}
-#inv-hero-wrap .hero-card::after{width:120px;height:120px}
-#inv-hero-wrap .hero-sub .chip{font-size:12px;padding:4px 10px}
-#inv-hero-wrap .mini-kpi{padding:16px 18px;border-radius:16px}
-#inv-hero-wrap .mini-value{font-size:24px}
+#inv-hero-wrap .hero-card::after{width:96px;height:96px;inset:auto -16% -48% auto;opacity:.85}
+#inv-hero-wrap .hero-sub .chip{font-size:11px;padding:3px 9px}
+#inv-hero-wrap .hero-stack{gap:10px}
+#inv-hero-wrap .mini-kpi{padding:12px 14px;border-radius:14px}
+#inv-hero-wrap .mini-value{font-size:22px}
+#inv-hero-wrap .mini-top{margin-bottom:6px}
+#inv-hero-wrap .mini-sub{margin-top:4px;font-size:11px}
 .mini-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .mini-label{font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)}
 .mini-value{font-size:28px;font-weight:600;letter-spacing:-0.04em;line-height:1}
