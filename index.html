@@ -308,7 +308,7 @@ table{border-collapse:collapse;width:100%}
 .hero-row .hero-card{min-height:260px}
 .hero-card{position:relative;overflow:hidden;padding:28px;border-radius:22px;border:1px solid var(--border);background:radial-gradient(circle at top right,rgba(212,181,106,0.14),transparent 34%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01)),var(--surface);box-shadow:var(--shadow)}
 .hero-card::after{content:"";position:absolute;inset:auto -10% -40% auto;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(212,181,106,0.28),transparent 70%);pointer-events:none}
-.hero-mark{position:relative;z-index:1;width:56px;height:56px;border-radius:50%;overflow:hidden;border:1px solid var(--border);background:#0b0b0b;box-shadow:0 0 0 4px var(--primaryHL)}
+.hero-mark{position:relative;z-index:1;width:56px;height:56px;border-radius:50%;overflow:hidden;border:1px solid var(--border);background:#0b0b0b}
 .hero-mark video{width:100%;height:100%;object-fit:cover;display:block}
 .hero-brand{position:absolute;z-index:1;top:28px;right:28px;font-size:18px;font-weight:600;opacity:0.72;letter-spacing:-0.03em}
 .hero-label{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);position:relative;z-index:1;margin-top:20px}
@@ -370,7 +370,6 @@ table{border-collapse:collapse;width:100%}
     grid-column:1;
     grid-row:1 / span 3;
     align-self:center;
-    box-shadow:0 0 0 3px var(--primaryHL);
   }
   #dash-kpis .hero-brand{display:none}
   #dash-kpis .hero-label{
@@ -1057,7 +1056,7 @@ table{border-collapse:collapse;width:100%}
 @keyframes orbFloat{from{transform:translate(0,0) scale(1)}to{transform:translate(24px,-18px) scale(1.08)}}
 [data-theme="light"] .ambient,[data-theme="light"] .grain,[data-theme="trader"] .ambient,[data-theme="trader"] .grain{display:none}
 #app-wrapper{position:relative;z-index:1}
-.privacy-on .masked,.privacy-on .kpi-val,.privacy-on .kpi-sub,.privacy-on .mini-value,.privacy-on .hero-value,.privacy-on .cat-budget,.privacy-on .amt,.privacy-on .tx-amt,.privacy-on .tx-merchant,.privacy-on .bva-amt,.privacy-on .bva-pct,.privacy-on .bar-amt,.privacy-on .donut-center-val,.privacy-on .donut-legend-pct,.privacy-on .donut-legend-amt,.privacy-on .inv-pos,.privacy-on .inv-neg,.privacy-on .fund-flow-value{filter:blur(7px);user-select:none}
+.privacy-on .masked,.privacy-on .kpi-val,.privacy-on .kpi-sub,.privacy-on .mini-value,.privacy-on .hero-value,.privacy-on .cat-budget,.privacy-on .amt,.privacy-on .tx-amt,.privacy-on .tx-merchant,.privacy-on .bva-amt,.privacy-on .bva-pct,.privacy-on .bar-amt,.privacy-on .donut-center-val,.privacy-on .donut-legend-pct,.privacy-on .donut-legend-amt,.privacy-on .fund-flow-value{filter:blur(7px);user-select:none}
 .privacy-on .privacy-block .panel-body,.privacy-on .privacy-block .panel-head .card-date,.privacy-on .privacy-block .tx-table,.privacy-on .privacy-block .x-axis,.privacy-on .privacy-block .bva-list{filter:blur(7px);user-select:none;pointer-events:none}
 .brand{display:flex;align-items:center;gap:12px;padding:4px 8px 10px;flex-shrink:0}
 .brand-mark{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:linear-gradient(145deg,#1a1a1f,#09090b);display:grid;place-items:center;overflow:hidden;box-shadow:0 0 0 4px var(--primaryHL)}
@@ -1111,6 +1110,7 @@ table{border-collapse:collapse;width:100%}
 .ai-panel,.ai-card.ai-panel{padding:18px;border-radius:var(--rXl);border:1px solid rgba(212,181,106,.18);background:linear-gradient(180deg,rgba(212,181,106,.08),rgba(212,181,106,.02)),var(--surface);box-shadow:var(--shadow)}
 .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 18px;border-bottom:1px solid var(--divider)}
 .search-field{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 14px;border-radius:999px;border:1px solid var(--divider);background:var(--surface);flex:1;min-width:200px}
+.search-field .search-ico{position:static;transform:none;flex-shrink:0;width:14px;height:14px}
 .search-field input,.search-field .search-inp{flex:1;min-width:0;border:0;background:transparent;outline:none;width:100%;padding:6px 0;box-shadow:none}
 .note-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid var(--divider);background:var(--primaryHL);color:var(--primary);font-size:12px;font-weight:600;margin-bottom:14px}
 .rules-panel{padding:16px;border-radius:12px;border:1px solid var(--divider);background:rgba(255,255,255,.02)}
@@ -1880,7 +1880,7 @@ table{border-collapse:collapse;width:100%}
       <div class="table-wrap tx-card privacy-block" id="monthly-tx-card">
         <div class="toolbar tx-hdr">
           <div class="tx-title"><span data-i18n="card-transactions">Transactions</span> <span class="badge" id="m-badge">0</span></div>
-          <div class="search-field search-wrap">
+          <div class="search-field">
             <svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             <input class="search-inp" id="m-search" type="text" placeholder="Search transactions…" data-i18n-ph="ph-search-tx">
           </div>
