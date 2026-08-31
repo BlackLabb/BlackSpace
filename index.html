@@ -856,11 +856,6 @@ table{border-collapse:collapse;width:100%}
 .ai-loading-dots span:nth-child(2){animation-delay:.2s}
 .ai-loading-dots span:nth-child(3){animation-delay:.4s}
 @keyframes aiDot{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
-#dash-ai-refresh{cursor:pointer;user-select:none}
-#dash-ai-refresh:hover{background:var(--surfaceDyn);color:var(--text);border-color:var(--muted)}
-#dash-ai-refresh:active{transform:scale(.97)}
-#dash-ai-refresh.refreshing svg{animation:aiSpin .6s ease-in-out}
-@keyframes aiSpin{from{transform:rotate(0)}to{transform:rotate(-360deg)}}
 
 /* FUND FLOW ESTIMATE */
 .fund-flow-card{margin-top:12px;overflow:hidden}
@@ -1000,7 +995,7 @@ table{border-collapse:collapse;width:100%}
 }
 
 /* ── DASHBOARD v2 ────────────────────────────────────────────────── */
-.dash-v2-grid,.dash-panel-grid{display:grid;grid-template-columns:minmax(0,1.2fr) 320px;gap:14px;margin-top:14px}
+.dash-v2-grid,.dash-panel-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
 @media(max-width:900px){.dash-v2-grid,.dash-panel-grid{grid-template-columns:1fr}}
 .dash-v2-charts{display:flex;flex-direction:column;gap:12px}
 
@@ -1062,8 +1057,8 @@ table{border-collapse:collapse;width:100%}
 @keyframes orbFloat{from{transform:translate(0,0) scale(1)}to{transform:translate(24px,-18px) scale(1.08)}}
 [data-theme="light"] .ambient,[data-theme="light"] .grain,[data-theme="trader"] .ambient,[data-theme="trader"] .grain{display:none}
 #app-wrapper{position:relative;z-index:1}
-.privacy-on .masked,.privacy-on .kpi-val,.privacy-on .mini-value,.privacy-on .hero-value,.privacy-on .cat-budget,.privacy-on .amt,.privacy-on .tx-amt,.privacy-on .bva-amt,.privacy-on .bva-pct,.privacy-on .bar-amt,.privacy-on .donut-center-val,.privacy-on .donut-legend-pct,.privacy-on .donut-legend-amt,.privacy-on .inv-pos,.privacy-on .inv-neg,.privacy-on .fund-flow-value{filter:blur(7px);user-select:none}
-.privacy-on .privacy-block{display:none!important}
+.privacy-on .masked,.privacy-on .kpi-val,.privacy-on .kpi-sub,.privacy-on .mini-value,.privacy-on .hero-value,.privacy-on .cat-budget,.privacy-on .amt,.privacy-on .tx-amt,.privacy-on .tx-merchant,.privacy-on .bva-amt,.privacy-on .bva-pct,.privacy-on .bar-amt,.privacy-on .donut-center-val,.privacy-on .donut-legend-pct,.privacy-on .donut-legend-amt,.privacy-on .inv-pos,.privacy-on .inv-neg,.privacy-on .fund-flow-value{filter:blur(7px);user-select:none}
+.privacy-on .privacy-block .panel-body,.privacy-on .privacy-block .panel-head .card-date,.privacy-on .privacy-block .tx-table,.privacy-on .privacy-block .x-axis,.privacy-on .privacy-block .bva-list{filter:blur(7px);user-select:none;pointer-events:none}
 .brand{display:flex;align-items:center;gap:12px;padding:4px 8px 10px;flex-shrink:0}
 .brand-mark{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:linear-gradient(145deg,#1a1a1f,#09090b);display:grid;place-items:center;overflow:hidden;box-shadow:0 0 0 4px var(--primaryHL)}
 .brand-mark img{width:100%;height:100%;object-fit:cover}
@@ -1918,7 +1913,7 @@ table{border-collapse:collapse;width:100%}
       <div class="page-hdr"><div class="page-title" id="pt-dashboard">Dashboard</div></div>
       <div id="dash-kpis"></div>
 
-      <!-- v2: Charts + AI row -->
+      <!-- v2: Charts row -->
       <div class="panel-grid dash-v2-grid" id="dash-v2-section" style="display:none">
         <div class="dash-v2-charts">
           <div class="panel card privacy-block" id="dash-trend-card">
@@ -1948,31 +1943,6 @@ table{border-collapse:collapse;width:100%}
               <div id="dash-bar-wrap" style="display:none"></div>
             </div>
           </div>
-        </div>
-        <div class="ai-card ai-panel privacy-block" id="dash-ai-card">
-          <div class="ai-card-header">
-            <div class="ai-card-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            </div>
-            <div>
-              <div class="ai-card-title" data-i18n="card-ai-title">財務分析</div>
-              <div style="font-size:11px;color:var(--muted);margin-top:1px" data-i18n="card-ai-sub">基於你的真實數據</div>
-            </div>
-          </div>
-          <div class="ai-card-body" id="dash-ai-body">
-            <div class="ai-loading">
-              <span>分析中</span>
-              <span class="ai-loading-dots">
-                <span style="display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--primary);margin:0 1px">·</span>
-                <span style="display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--primary);margin:0 1px">·</span>
-                <span style="display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--primary);margin:0 1px">·</span>
-              </span>
-            </div>
-          </div>
-          <button id="dash-ai-refresh" style="margin-top:14px;display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surfaceOff);transition:all var(--trans)">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-            <span data-i18n="card-ai-refresh">重新分析</span>
-          </button>
         </div>
       </div>
     </div>
@@ -4894,7 +4864,7 @@ function renderAllocationChart(totalValueHKD, totalCostHKD){
   const card = $('inv-alloc-card');
   const wrap = $('inv-alloc-wrap');
   if(!card || !wrap) return;
-  if(privacyMode || !investments.length){ card.style.display = 'none'; return; }
+  if(!investments.length){ card.style.display = 'none'; return; }
   card.style.display = '';
 
   // Calculate value per asset type (prefer market value, fallback to cost)
@@ -5532,253 +5502,22 @@ document.addEventListener('click', e => {
   redrawDashCategoryChart();
 });
 
-// ── PATCHED renderDashboard — add charts + AI after original ─────
+// ── PATCHED renderDashboard — add charts after original ─────
 const _origRenderDashboard = renderDashboard;
-window._v2DashLoaded = false;
 renderDashboard = function() {
   _origRenderDashboard.apply(this, arguments);
 
-  // Decide whether the charts half has anything to show based on the full range.
-  // (Monthly range's empty state is handled inside redrawDashCategoryChart.)
   const rangeS = new Date(rangeStartYear, rangeStartMonth, 1);
   const rangeE = new Date(rangeEndYear, rangeEndMonth + 1, 0);
   const yearTx = transactions.filter(t => t.type !== 'income' && new Date(t.date) >= rangeS && new Date(t.date) <= rangeE);
   const hasData = yearTx.length > 0;
 
-  // v2 section is always visible so the AI card & refresh button are reachable
-  $('dash-v2-section').style.display = '';
-  // Hide only the charts half when there's nothing to chart
-  const chartsWrap = document.querySelector('.dash-v2-charts');
-  if (chartsWrap) chartsWrap.style.display = hasData ? '' : 'none';
-
-  // Always render AI insights card — even with no data, so users see the
-  // data requirements and can tap the refresh button after adding data.
-  // (The AI card itself handles the empty-state messaging.)
-  if (!window._v2DashLoaded) {
-    window._v2DashLoaded = true;
-    loadAIInsights();
-  }
-  const rb = $('dash-ai-refresh');
-  if (rb) {
-    rb.onclick = () => {
-      // Visual feedback: spin icon + flash background so user knows the tap registered
-      rb.classList.add('refreshing');
-      window._v2DashLoaded = false;
-      loadAIInsights();
-      setTimeout(() => rb.classList.remove('refreshing'), 600);
-    };
-  }
-
+  $('dash-v2-section').style.display = hasData ? '' : 'none';
   if (!hasData) return;
 
   renderLineChart('dash-line-chart');
-  // Draw category chart using whichever range is currently selected
   redrawDashCategoryChart();
 };
-
-// ── AI INSIGHTS ──────────────────────────────────────────────────
-// Minimum data requirements before analysis is meaningful
-const AI_MIN_TX = 5;              // 至少 5 筆交易
-const AI_MIN_INCOME_MONTHS = 1;   // 至少設定 1 個月的收入
-const AI_MIN_CATEGORIES = 2;      // 至少 2 個分類有支出
-
-async function loadAIInsights() {
-  const bodyEl = $('dash-ai-body');
-  if (!bodyEl) return;
-  if (privacyMode) return;
-
-  // Brief loading flash so the refresh button always has visible feedback,
-  // even when the final render is near-instant (local rules / empty state).
-  bodyEl.innerHTML = `<div class="ai-loading"><span style="color:var(--muted);font-size:12px">分析中</span><span class="ai-loading-dots">${'<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--primary);margin:0 2px">•</span>'.repeat(3)}</span></div>`;
-  await new Promise(r => setTimeout(r, 250));
-
-  // ── 1. DATA SUFFICIENCY CHECK ───────────────────────────────────
-  const rangeS = new Date(rangeStartYear, rangeStartMonth, 1);
-  const rangeE = new Date(rangeEndYear, rangeEndMonth + 1, 0);
-  const yearTx = transactions.filter(t => t.type !== 'income' && new Date(t.date) >= rangeS && new Date(t.date) <= rangeE);
-  const totalSpend = yearTx.reduce((s,t) => s + Math.abs(t.amount), 0);
-  const catMap = {};
-  CATS.forEach(c => catMap[c.name] = 0);
-  yearTx.forEach(t => { if (catMap[t.category] !== undefined) catMap[t.category] += Math.abs(t.amount); });
-  const usedCats = Object.values(catMap).filter(v => v > 0).length;
-  const topCats = Object.entries(catMap).filter(([,v])=>v>0).sort(([,a],[,b])=>b-a).slice(0,4);
-  const totalMonths = (rangeEndYear - rangeStartYear)*12 + (rangeEndMonth - rangeStartMonth) + 1;
-  const avgMonthly = totalSpend / totalMonths;
-
-  // Exclude investment categories from "spend" when computing savings rate
-  // (investment is a capital transfer, not consumption). Matches Annual Summary.
-  const invCatNames = CATS.filter(c => /invest|投資/i.test(c.name)).map(c => c.name);
-  const annualInvAmt = yearTx
-    .filter(t => t.type === 'expense' && invCatNames.includes(t.category))
-    .reduce((s,t) => s + Math.abs(t.amount), 0);
-  const netSpend = totalSpend - annualInvAmt;
-
-  const incomeMonths = Object.keys(incomeMap).filter(k => {
-    const [y,m] = k.split('-').map(Number); const d = new Date(y,m,1);
-    return d >= rangeS && d <= rangeE && incomeMap[k] > 0;
-  }).length;
-  const totalIncome = Object.keys(incomeMap).filter(k => {
-    const [y,m] = k.split('-').map(Number); const d = new Date(y,m,1);
-    return d >= rangeS && d <= rangeE;
-  }).reduce((s,k) => s + incomeMap[k], 0);
-
-  // Build list of what's missing
-  const missing = [];
-  const zhMode = curLang === 'zh';
-  if (yearTx.length < AI_MIN_TX) {
-    missing.push({
-      icon: '📝',
-      label: zhMode ? `交易紀錄` : `Transactions`,
-      detail: zhMode ? `目前 ${yearTx.length} 筆，還需要 ${AI_MIN_TX - yearTx.length} 筆` : `${yearTx.length} logged, ${AI_MIN_TX - yearTx.length} more needed`,
-      action: { text: zhMode ? '新增交易' : 'Add', view: 'monthly' }
-    });
-  }
-  if (incomeMonths < AI_MIN_INCOME_MONTHS) {
-    missing.push({
-      icon: '💰',
-      label: zhMode ? `本月收入` : `Monthly income`,
-      detail: zhMode ? `還未設定本月收入，無法計算儲蓄率` : `Income not set — savings rate can't be calculated`,
-      action: { text: zhMode ? '設定收入' : 'Set', fn: 'openIncomeModal' }
-    });
-  }
-  if (usedCats < AI_MIN_CATEGORIES && yearTx.length >= AI_MIN_TX) {
-    missing.push({
-      icon: '🏷️',
-      label: zhMode ? `分類多樣性` : `Category diversity`,
-      detail: zhMode
-        ? `目前只用了 ${usedCats} 個分類，建議使用至少 ${AI_MIN_CATEGORIES} 個以分析消費結構`
-        : `Only ${usedCats} categor${usedCats===1?'y':'ies'} used. Use at least ${AI_MIN_CATEGORIES} for meaningful analysis.`,
-      action: null
-    });
-  }
-
-  if (missing.length) {
-    bodyEl.innerHTML = `
-      <div style="padding:4px 0">
-        <div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          ${zhMode ? '再補充一些資料，即可獲得個人化分析' : 'Add a bit more data to unlock personalized insights'}
-        </div>
-        ${missing.map(m => `
-          <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surfaceOff);border-radius:10px;margin-bottom:8px">
-            <div style="font-size:16px;line-height:1;flex-shrink:0;margin-top:1px">${m.icon}</div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px">${m.label}</div>
-              <div style="font-size:11.5px;color:var(--muted);line-height:1.5">${m.detail}</div>
-            </div>
-            ${m.action ? `<button onclick="${m.action.fn ? m.action.fn + '()' : `setView('${m.action.view}')`}" style="flex-shrink:0;font-size:11px;font-weight:600;color:var(--primary);background:var(--surface);border:1px solid var(--border);padding:5px 10px;border-radius:6px;white-space:nowrap;cursor:pointer">${m.action.text}</button>` : ''}
-          </div>
-        `).join('')}
-      </div>`;
-    return;
-  }
-
-  // ── 2. DATA IS SUFFICIENT — compute derived metrics ─────────────
-  const savingsRate = totalIncome > 0 ? ((totalIncome - netSpend) / totalIncome * 100).toFixed(1) : null;
-  const budgetWarnings = CATS.filter(c => {
-    const spent = catMap[c.name] || 0;
-    return c.budget > 0 && (spent / totalMonths) > c.budget;
-  }).map(c => c.name);
-
-  // ── 3. LOCAL RULE-BASED INSIGHTS (fallback and primary path) ────
-  function buildLocalInsights() {
-    const out = [];
-    const sRate = parseFloat(savingsRate);
-    const zh = curLang === 'zh';
-
-    if (!isNaN(sRate)) {
-      if (sRate >= 30) {
-        out.push({ type: 'ok', text: zh
-          ? `儲蓄率 ${sRate}%，表現優秀！繼續維持這個節奏，考慮把多出的儲蓄投入長期投資。`
-          : `Savings rate ${sRate}% — excellent! Keep it up and consider investing the surplus for long-term growth.` });
-      } else if (sRate >= 15) {
-        out.push({ type: 'tip', text: zh
-          ? `儲蓄率 ${sRate}%，屬健康水平。嘗試每月再多儲 5%，一年後的累積效果相當可觀。`
-          : `Savings rate ${sRate}% is healthy. Try saving an extra 5% each month — the cumulative effect over a year is significant.` });
-      } else if (sRate >= 0) {
-        out.push({ type: 'warn', text: zh
-          ? `儲蓄率只有 ${sRate}%，建議先釐清最大的 1-2 項支出，看看有沒有可以削減的空間。`
-          : `Savings rate is only ${sRate}%. Identify your top 1-2 expense categories and look for areas to cut back.` });
-      } else {
-        out.push({ type: 'warn', text: zh
-          ? `目前支出超過收入（赤字 ${Math.abs(sRate)}%），請優先檢視支出，避免動用儲蓄或借貸。`
-          : `Spending exceeds income (deficit ${Math.abs(sRate)}%). Review expenses urgently to avoid dipping into savings or debt.` });
-      }
-    }
-
-    if (topCats.length) {
-      const [topName, topVal] = topCats[0];
-      const pct = totalSpend > 0 ? (topVal / totalSpend * 100).toFixed(0) : 0;
-      if (pct >= 40) {
-        out.push({ type: 'warn', text: zh
-          ? `${topName}佔總支出 ${pct}%，比重偏高。可以檢視這類消費是否有可替代的選擇。`
-          : `${topName} accounts for ${pct}% of total spending — quite high. Consider whether there are alternatives for this category.` });
-      } else {
-        out.push({ type: 'tip', text: zh
-          ? `最大支出類別是${topName}（$${topVal.toLocaleString()}，佔 ${pct}%），分佈還算平均。`
-          : `Your largest category is ${topName} ($${topVal.toLocaleString()}, ${pct}%). Spending distribution looks balanced.` });
-      }
-    }
-
-    if (budgetWarnings.length) {
-      out.push({ type: 'warn', text: zh
-        ? `${budgetWarnings.slice(0,2).join('、')}${budgetWarnings.length > 2 ? '等' : ''}已超出預算，建議重新檢視預算設定或調整消費習慣。`
-        : `${budgetWarnings.slice(0,2).join(', ')}${budgetWarnings.length > 2 ? ', etc.' : ''} over budget. Review budget limits or adjust spending habits.` });
-    } else if (CATS.some(c => c.budget > 0)) {
-      out.push({ type: 'ok', text: zh
-        ? `所有已設定預算的分類都在控制範圍內，預算執行力不錯。`
-        : `All categories with budgets are within limits — great budget discipline.` });
-    }
-
-    if (goals.length === 0) {
-      out.push({ type: 'tip', text: zh
-        ? `還未設定儲蓄目標。設定明確目標（例如旅行、緊急基金）能顯著提升儲蓄動力。`
-        : `No savings goals set yet. Concrete goals (e.g. travel, emergency fund) significantly boost motivation to save.` });
-    } else if (goals.length >= 1 && out.length < 3) {
-      out.push({ type: 'ok', text: zh
-        ? `已設定 ${goals.length} 個儲蓄目標，持續追蹤有助於保持理財動力。`
-        : `You have ${goals.length} savings goal${goals.length > 1 ? 's' : ''} — tracking them consistently keeps you motivated.` });
-    }
-
-    return out.slice(0, 3);
-  }
-
-  function renderInsights(items) {
-    bodyEl.innerHTML = items.map(item => `
-      <div class="ai-insight-item">
-        <div class="ai-insight-dot ${item.type === 'warn' ? 'warn' : item.type === 'ok' ? 'ok' : ''}"></div>
-        <div>${item.text}</div>
-      </div>`).join('');
-  }
-
-  // ── 4. TRY AI (Claude Artifacts sandbox only), ELSE LOCAL ───────
-  const prompt = `你是一位香港個人財務顧問。請用繁體中文，基於以下數據給出 3 條精簡財務建議（每條 1-2 句）。
-
-數據摘要（港幣 HKD）：
-- 分析期間：${totalMonths} 個月
-- 總支出：$${totalSpend.toLocaleString()}
-- 月均支出：$${Math.round(avgMonthly).toLocaleString()}
-${savingsRate !== null ? `- 儲蓄率：${savingsRate}%` : ''}
-- 主要支出分類：${topCats.map(([n,v]) => `${n}($${v.toLocaleString()})`).join('、')}
-${budgetWarnings.length ? `- 超出預算分類：${budgetWarnings.join('、')}` : ''}
-${goals.length ? `- 儲蓄目標數量：${goals.length}` : ''}
-
-請返回 JSON 格式：{"insights":[{"type":"ok|warn|tip","text":"建議內容"},...]，只含 insights 陣列}`;
-
-  try {
-    if (!window.claude || typeof window.claude.complete !== 'function') {
-      throw new Error('no-api');
-    }
-    const raw = await window.claude.complete({ messages: [{ role: 'user', content: prompt }] });
-    const json = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] || '{}');
-    const items = json.insights || [];
-    if (!items.length) throw new Error('empty');
-    renderInsights(items);
-  } catch(e) {
-    // Fallback to local rule-based insights — always produces output
-    renderInsights(buildLocalInsights());
-  }
-}
 
 // ── GOAL RINGS UPGRADE ───────────────────────────────────────────
 const _origRenderGoals = renderGoals;
@@ -5850,7 +5589,7 @@ renderGoals = function() {
   });
 };
 
-// ── FIXED: Blue theme + Donut chart + AI insights always on ──────
+// ── FIXED: Blue theme + Donut chart always on ──────
 // No Tweaks panel needed — settings are locked in.
 
 // Keep iOS PWA viewport height in sync after keyboard open/close.
