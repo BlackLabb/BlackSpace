@@ -4,13 +4,15 @@
 	(function(){
 	  var t='dark';
 	  try { var s=localStorage.getItem('bs_theme'); if(s==='light'||s==='dark'||s==='trader') t=s; } catch(_){}
-	  var c=t==='light'?'#f5f5f7':t==='trader'?'#000000':'#0d0d10';
+	  var c=t==='light'?'#ffffff':'#000000';
+	  var apple=t==='light'?'default':'black-translucent';
 	  document.documentElement.setAttribute('data-theme',t);
 	  document.documentElement.style.colorScheme=t==='light'?'light':'dark';
 	  document.documentElement.style.backgroundColor=c;
 	  document.documentElement.style.setProperty('--chrome-bg',c);
 	  document.write('<meta name="theme-color" content="'+c+'">');
 	  document.write('<meta name="color-scheme" content="'+(t==='light'?'light':'dark')+'">');
+	  document.write('<meta name="apple-mobile-web-app-status-bar-style" content="'+apple+'">');
 	})();
 	window._pubSplashStartAt = Date.now();
 	window._pubUserAuthFlow = false;
@@ -21,8 +23,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="color-scheme" content="dark">
 <title>BlackSpace</title>
 <template id="__bundler_thumbnail" data-bg-color="#f5f5f7">
   <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
@@ -62,7 +62,7 @@
 <style>
 :root,[data-theme="light"]{
   /* Apple-inspired palette — clean whites, cool grays, blue accent */
-  --bg:#f5f5f7;--chrome-bg:#f5f5f7;--surface:#ffffff;--surface2:#fafafa;--surfaceOff:#f2f2f7;--surfaceDyn:#e8e8ed;
+  --bg:#f5f5f7;--chrome-bg:#ffffff;--surface:#ffffff;--surface2:#fafafa;--surfaceOff:#f2f2f7;--surfaceDyn:#e8e8ed;
   --divider:#e5e5ea;--border:#d1d1d6;
   --text:#1d1d1f;--muted:#6e6e73;--faint:#aeaeb2;
   --primary:#0071e3;--primaryHov:#0077ed;--primaryHL:#e3f0ff;
@@ -75,7 +75,7 @@
   --trans:200ms cubic-bezier(.25,.46,.45,.94);
 }
 [data-theme="dark"]{
-  --bg:#070708;--chrome-bg:#0d0d10;--surface:#121216;--surface2:#0d0d10;--surfaceOff:#121216;--surfaceDyn:#1a1a1f;
+  --bg:#070708;--chrome-bg:#000000;--surface:#121216;--surface2:#0d0d10;--surfaceOff:#121216;--surfaceDyn:#1a1a1f;
   --divider:rgba(255,255,255,0.08);--border:rgba(255,255,255,0.14);
   --text:#f3f1ec;--muted:#8d8980;--faint:#5c5954;
   --primary:#d4b56a;--primaryHov:#e8cf8d;--primaryHL:rgba(212,181,106,0.12);
@@ -251,7 +251,6 @@ table{border-collapse:collapse;width:100%}
 .settings-menu.open{opacity:1;visibility:visible;transform:translateY(0) scale(1);pointer-events:auto}
 .settings-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;font-size:13px;color:var(--text);font-weight:500;transition:background var(--trans);text-align:left;cursor:pointer;background:none;border:none;font-family:inherit}
 .settings-item:hover{background:var(--surfaceOff)}
-#settings-theme{display:none!important}
 .settings-ico{flex-shrink:0;color:var(--muted)}
 .settings-lbl{flex:1}
 .settings-val{font-size:12px;color:var(--muted);font-weight:500;padding:2px 8px;background:var(--surfaceOff);border-radius:var(--rFull)}
@@ -591,6 +590,7 @@ table{border-collapse:collapse;width:100%}
   #app-wrapper { flex-direction: column; height: var(--app-height); min-height: var(--app-height); }
   .main { width: 100%; }
   .topbar { padding: calc(10px + env(safe-area-inset-top)) 16px 10px; padding-top: calc(10px + constant(safe-area-inset-top)); background: var(--chrome-bg) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  [data-theme="light"] .topbar { background: rgba(255,255,255,.96) !important; }
   .mobile-menu-btn { display: none !important; }
   .page-title-wrap h1 { font-size: 15px; line-height: 1.15; }
   .topbar-left { gap: 0; min-width: 0; }
@@ -1062,7 +1062,8 @@ table{border-collapse:collapse;width:100%}
 @keyframes orbFloat{from{transform:translate(0,0) scale(1)}to{transform:translate(24px,-18px) scale(1.08)}}
 [data-theme="light"] .ambient,[data-theme="light"] .grain,[data-theme="trader"] .ambient,[data-theme="trader"] .grain{display:none}
 #app-wrapper{position:relative;z-index:1}
-.privacy-on .masked,.privacy-on .kpi-val,.privacy-on .mini-value,.privacy-on .hero-value,.privacy-on .cat-budget,.privacy-on .amt{filter:blur(7px);user-select:none}
+.privacy-on .masked,.privacy-on .kpi-val,.privacy-on .mini-value,.privacy-on .hero-value,.privacy-on .cat-budget,.privacy-on .amt,.privacy-on .tx-amt,.privacy-on .bva-amt,.privacy-on .bva-pct,.privacy-on .bar-amt,.privacy-on .donut-center-val,.privacy-on .donut-legend-pct,.privacy-on .donut-legend-amt,.privacy-on .inv-pos,.privacy-on .inv-neg,.privacy-on .fund-flow-value{filter:blur(7px);user-select:none}
+.privacy-on .privacy-block{display:none!important}
 .brand{display:flex;align-items:center;gap:12px;padding:4px 8px 10px;flex-shrink:0}
 .brand-mark{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:linear-gradient(145deg,#1a1a1f,#09090b);display:grid;place-items:center;overflow:hidden;box-shadow:0 0 0 4px var(--primaryHL)}
 .brand-mark img{width:100%;height:100%;object-fit:cover}
@@ -1789,9 +1790,6 @@ table{border-collapse:collapse;width:100%}
     </div>
     <div class="topbar-right top-actions">
       <input type="file" id="import-file-input" accept=".json" style="display:none">
-      <button class="icon-btn" id="themeBtn" type="button" title="切換主題" aria-label="切換主題">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
-      </button>
 
       <!-- Settings dropdown -->
       <div class="settings-wrap" id="settings-wrap" style="position:relative">
@@ -1872,19 +1870,19 @@ table{border-collapse:collapse;width:100%}
         <div class="kpi-card kpi-tile"><div class="kpi-lbl" id="k-count-lbl" data-i18n="lbl-tx-count">Transactions</div><div class="kpi-val" id="k-count">0</div><div class="kpi-sub" id="k-avg">—</div></div>
       </div>
       <div class="panel-grid dash-grid">
-        <div class="panel card">
+        <div class="panel card privacy-block" id="monthly-spending-card">
           <div class="panel-head card-hdr"><span class="card-title" id="card-spending-title" data-i18n="card-spending">Spending by Category</span><span class="card-date" id="chart-lbl">Apr 2026</span></div>
           <div class="panel-body">
             <div class="bar-chart chart-bars" id="bar-chart"></div>
             <div class="x-axis"><div></div><div class="x-labels"><span>$0</span><span>$500</span><span>$1k</span><span>$2k</span><span>$3k</span></div></div>
           </div>
         </div>
-        <div class="panel card">
+        <div class="panel card privacy-block" id="monthly-bva-card">
           <div class="panel-head card-hdr"><span class="card-title" id="card-bva-title" data-i18n="card-bva">Budget vs Actual</span></div>
           <div class="panel-body"><div class="bva-list" id="bva-list"></div></div>
         </div>
       </div>
-      <div class="table-wrap tx-card">
+      <div class="table-wrap tx-card privacy-block" id="monthly-tx-card">
         <div class="toolbar tx-hdr">
           <div class="tx-title"><span data-i18n="card-transactions">Transactions</span> <span class="badge" id="m-badge">0</span></div>
           <div class="search-field search-wrap">
@@ -1902,7 +1900,7 @@ table{border-collapse:collapse;width:100%}
       <div class="page-hdr">
         <div class="page-title" data-i18n="title-transactions">All Transactions</div>
       </div>
-      <div class="tx-card">
+      <div class="tx-card privacy-block">
         <div class="tx-hdr">
           <div class="tx-title"><span data-i18n="card-all">All</span> <span class="badge" id="a-badge">0</span></div>
           <div class="search-wrap">
@@ -1923,14 +1921,14 @@ table{border-collapse:collapse;width:100%}
       <!-- v2: Charts + AI row -->
       <div class="panel-grid dash-v2-grid" id="dash-v2-section" style="display:none">
         <div class="dash-v2-charts">
-          <div class="panel card" id="dash-trend-card">
+          <div class="panel card privacy-block" id="dash-trend-card">
             <div class="panel-head card-hdr">
               <span class="card-title" data-i18n="card-monthly-trend">月度支出趨勢</span>
               <span class="card-date" id="dash-trend-range"></span>
             </div>
             <div class="panel-body"><div id="dash-line-chart" style="position:relative;height:160px"></div></div>
           </div>
-          <div class="panel card" id="dash-donut-card">
+          <div class="panel card privacy-block" id="dash-donut-card">
             <div class="panel-head card-hdr">
               <div class="chart-range-toggle toggle" id="dash-range-toggle">
                 <button class="chart-range-btn active" data-range="annual" data-i18n="card-cat-annual">年度分類佔比</button>
@@ -1951,7 +1949,7 @@ table{border-collapse:collapse;width:100%}
             </div>
           </div>
         </div>
-        <div class="ai-card ai-panel" id="dash-ai-card">
+        <div class="ai-card ai-panel privacy-block" id="dash-ai-card">
           <div class="ai-card-header">
             <div class="ai-card-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
@@ -2091,7 +2089,7 @@ table{border-collapse:collapse;width:100%}
       <div id="inv-hero-wrap"></div>
 
       <!-- Portfolio Allocation Card -->
-      <div class="panel card" id="inv-alloc-card" style="display:none;margin-bottom:12px">
+      <div class="panel card privacy-block" id="inv-alloc-card" style="display:none;margin-bottom:12px">
         <div class="panel-head card-hdr">
           <span class="card-title" data-i18n="card-inv-alloc">投資組合分配</span>
           <span class="card-date" id="inv-alloc-total"></span>
@@ -3267,7 +3265,7 @@ function setView(v){
   document.querySelectorAll('.bottom-nav-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.view===v);
   });
-  updateTopbarLabels();
+  updateSettingsMenuValues();
 }
 $('nav').addEventListener('click', e=>{
   const btn=e.target.closest('.nav-btn');
@@ -3342,10 +3340,10 @@ const LANG_KEY  = 'bs_lang';
 const THEMES = ['light', 'dark', 'trader'];
 let curTheme = 'dark';
 function syncThemeChrome(theme){
-  const colors = { light: '#f5f5f7', dark: '#0d0d10', trader: '#000000' };
-  const color = colors[theme] || '#0d0d10';
   const scheme = theme === 'light' ? 'light' : 'dark';
   const appleStyle = theme === 'light' ? 'default' : 'black-translucent';
+  const colors = { light: '#ffffff', dark: '#000000', trader: '#000000' };
+  const color = colors[theme] || '#000000';
 
   document.documentElement.style.colorScheme = scheme;
   document.documentElement.style.backgroundColor = color;
@@ -3367,6 +3365,12 @@ function syncThemeChrome(theme){
 
   const appleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
   if(appleMeta) appleMeta.setAttribute('content', appleStyle);
+  else {
+    const m = document.createElement('meta');
+    m.setAttribute('name', 'apple-mobile-web-app-status-bar-style');
+    m.setAttribute('content', appleStyle);
+    document.head.appendChild(m);
+  }
 }
 // Restore saved theme on load
 try {
@@ -3384,7 +3388,6 @@ function toggleTheme(){
   syncThemeChrome(curTheme);
   updateSettingsMenuValues();
   try { localStorage.setItem(THEME_KEY, curTheme); } catch(_){}
-  updateTopbarLabels();
   if(typeof window.initStockResearch === 'function') window.initStockResearch(true);
 }
 // Backward compat for any code that reads `dark`
@@ -3660,16 +3663,6 @@ Object.assign(I18N.en, {
   'demo-theme-light':'Light','demo-theme-dark':'Dark','demo-theme-trader':'Trader',
 });
 
-function updateTopbarLabels(){
-  const themeBtn = $('themeBtn');
-  if(themeBtn){
-    const themeKeys = { light:'demo-theme-light', dark:'demo-theme-dark', trader:'demo-theme-trader' };
-    const label = t(themeKeys[curTheme] || 'demo-theme-dark');
-    themeBtn.title = (curLang==='zh' ? '主題：' : 'Theme: ') + label;
-    themeBtn.setAttribute('aria-label', themeBtn.title);
-  }
-}
-
 function closeSidebarDrawer(){
   $('sidebar')?.classList.remove('open');
   $('overlay')?.classList.remove('open');
@@ -3726,7 +3719,7 @@ function applyLang(){
   document.querySelector('.nav-btn[data-view="fundflow"]')?.setAttribute('data-tip', t('title-fundflow'));
   document.querySelector('.nav-btn[data-view="stockresearch"]')?.setAttribute('data-tip', t('title-stockresearch'));
 
-  updateTopbarLabels();
+  updateSettingsMenuValues();
   renderProfile();
 
   // Settings menu (export/import are now inside settings) — values update via data-i18n
@@ -3842,7 +3835,7 @@ function applyLang(){
     $('view-title').textContent = vmeta[curView].title;
   }
   if(typeof syncFundFlowScrollNav === 'function') syncFundFlowScrollNav();
-  updateTopbarLabels();
+  updateSettingsMenuValues();
 }
 
 function toggleLang(){
@@ -4103,7 +4096,7 @@ function onUserReady(){
   // Attach merchant → category auto-suggest
   attachMerchantAutoSuggest('f-merchant', 'f-category');
   attachMerchantAutoSuggest('et-merchant', 'et-category');
-  setTimeout(()=>{ applyLang(); syncPrivacySetting(); updateTopbarLabels(); }, 0);
+  setTimeout(()=>{ applyLang(); syncPrivacySetting(); updateSettingsMenuValues(); }, 0);
 }
 
 // Expose app data + callbacks for Firebase module
@@ -4334,7 +4327,6 @@ $('menuBtn')?.addEventListener('click', ()=>{
   $('overlay')?.classList.add('open');
 });
 $('overlay')?.addEventListener('click', closeSidebarDrawer);
-$('themeBtn')?.addEventListener('click', toggleTheme);
 
 // ── CHANGE PASSWORD MODAL ─────────────────────────────────
 function openPasswordModal(){
@@ -4902,7 +4894,7 @@ function renderAllocationChart(totalValueHKD, totalCostHKD){
   const card = $('inv-alloc-card');
   const wrap = $('inv-alloc-wrap');
   if(!card || !wrap) return;
-  if(!investments.length){ card.style.display = 'none'; return; }
+  if(privacyMode || !investments.length){ card.style.display = 'none'; return; }
   card.style.display = '';
 
   // Calculate value per asset type (prefer market value, fallback to cost)
@@ -5593,6 +5585,7 @@ const AI_MIN_CATEGORIES = 2;      // 至少 2 個分類有支出
 async function loadAIInsights() {
   const bodyEl = $('dash-ai-body');
   if (!bodyEl) return;
+  if (privacyMode) return;
 
   // Brief loading flash so the refresh button always has visible feedback,
   // even when the final render is near-instant (local rules / empty state).
