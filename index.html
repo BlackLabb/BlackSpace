@@ -198,8 +198,8 @@ body::after{bottom:0;height:calc(env(safe-area-inset-bottom) + var(--keyboard-sa
 .kpi-val,.dash-silver-value,.dash-silver-mini,.hero-value,.mini-value,.tx-amt,.bva-amt,.bar-amt,.fund-flow-value,.fund-flow-day,.donut-legend-amt,td.amt,th.amt,.inv-pos,.inv-neg{font-family:var(--num-font);font-variant-numeric:tabular-nums}
 html.landing-visible,html.landing-visible body{background:#000!important}
 html.landing-visible body::before,html.landing-visible body::after{background:#000!important}
-html:has(#landing-page:not(:empty)),html:has(#landing-page:not(:empty)) body{background:#000!important}
-html:has(#landing-page:not(:empty)) body::before,html:has(#landing-page:not(:empty)) body::after{background:#000!important}
+[data-theme="light"]:not(.landing-visible) html{background:#ffffff!important}
+[data-theme="light"]:not(.landing-visible) body::before,[data-theme="light"]:not(.landing-visible) body::after{background:#ffffff!important}
 #landing-page{display:block;min-height:100vh;background:#000!important}
 button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
 input,select{font:inherit;color:inherit}
@@ -589,7 +589,7 @@ table{border-collapse:collapse;width:100%}
   #app-wrapper { flex-direction: column; height: var(--app-height); min-height: var(--app-height); }
   .main { width: 100%; }
   .topbar { padding: calc(10px + env(safe-area-inset-top)) 16px 10px; padding-top: calc(10px + constant(safe-area-inset-top)); background: var(--chrome-bg) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
-  [data-theme="light"] .topbar { background: rgba(255,255,255,.96) !important; }
+  [data-theme="light"] .topbar { background: #ffffff !important; }
   .mobile-menu-btn { display: none !important; }
   .page-title-wrap h1 { font-size: 15px; line-height: 1.15; }
   .topbar-left { gap: 0; min-width: 0; }
@@ -3329,7 +3329,7 @@ function syncThemeChrome(theme){
   const themeMeta = document.createElement('meta');
   themeMeta.setAttribute('name', 'theme-color');
   themeMeta.setAttribute('content', color);
-  document.head.appendChild(themeMeta);
+  document.head.insertBefore(themeMeta, document.head.firstChild);
 
   let schemeMeta = document.querySelector('meta[name="color-scheme"]');
   if(!schemeMeta){
@@ -3339,14 +3339,11 @@ function syncThemeChrome(theme){
   }
   schemeMeta.setAttribute('content', scheme);
 
-  const appleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-  if(appleMeta) appleMeta.setAttribute('content', appleStyle);
-  else {
-    const m = document.createElement('meta');
-    m.setAttribute('name', 'apple-mobile-web-app-status-bar-style');
-    m.setAttribute('content', appleStyle);
-    document.head.appendChild(m);
-  }
+  document.querySelectorAll('meta[name="apple-mobile-web-app-status-bar-style"]').forEach(m => m.remove());
+  const appleMeta = document.createElement('meta');
+  appleMeta.setAttribute('name', 'apple-mobile-web-app-status-bar-style');
+  appleMeta.setAttribute('content', appleStyle);
+  document.head.insertBefore(appleMeta, document.head.firstChild);
 }
 // Restore saved theme on load
 try {
@@ -4064,6 +4061,7 @@ function onUserReady(){
   const lp=document.getElementById('landing-page');
   if(lp) lp.style.display='none';
   document.documentElement.classList.remove('landing-visible');
+  syncThemeChrome(curTheme);
   aw.style.display='flex';
   buildTabs(); applyRecurringTransactions(); setView('dashboard');
   // Attach DD/MM/YYYY auto-format to date inputs
@@ -4112,6 +4110,7 @@ function showApp(){
   document.documentElement.classList.remove('landing-visible');
   const lp=document.getElementById('landing-page');
   if(lp) lp.style.display='none';
+  syncThemeChrome(curTheme);
   const aw=$('app-wrapper');
   aw.style.removeProperty('display');
   aw.style.display='flex';
@@ -4126,6 +4125,7 @@ function showLocalNewsPreview(){
   if(lp) lp.style.display = 'none';
   if(auth) auth.style.display = 'none';
   document.documentElement.classList.remove('landing-visible');
+  syncThemeChrome(curTheme);
   if(app){
     app.style.removeProperty('display');
     app.style.display = 'flex';

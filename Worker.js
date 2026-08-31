@@ -2026,28 +2026,72 @@ async function fetchFinnhubPriceSeries(symbol, env) {
   return normalizePriceSeries(finnhub.t, finnhub.c, 'Finnhub historical closes');
 }
 
-async function fetchPriceCloses(symbol, env) {
-  let yahooSeries = null;
+async function fetchYahooPriceSeries(symbol) {
   const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=3mo&events=history`;
   try {
     const response = await fetch(yahooUrl, { headers: { Accept: 'application/json', 'User-Agent': 'BlackSpace/1.0' }, cf: { cacheEverything: true, cacheTtl: 900 } });
-    if (response.ok) {
-      const payload = await response.json();
-      const result = payload?.chart?.result?.[0];
-      yahooSeries = normalizePriceSeries(
-        result?.timestamp,
-        result?.indicators?.quote?.[0]?.close,
-        'Yahoo Finance historical closes',
-      );
-    }
-  } catch (_) {}
+    if (!response.ok) return null;
+    const payload = await response.json();
+    const result = payload?.chart?.result?.[0];
+    return normalizePriceSeries(
+      result?.timestamp,
+      result?.indicators?.quote?.[0]?.close,
+      'Yahoo Finance historical closes',
+    );
+  } catch (_) {
+    return null;
+  }
+}
 
+async function fetchPriceCloses(symbol, env) {
   const finnhubSeries = await fetchFinnhubPriceSeries(symbol, env);
-  if (yahooSeries && !hasRecentSessionGap(yahooSeries.points)) return yahooSeries;
-  if (finnhubSeries && !hasRecentSessionGap(finnhubSeries.points)) return finnhubSeries;
+  const yahooSeries = await fetchYahooPriceSeries(symbol);
+  const finnhubOk = finnhubSeries && !hasRecentSessionGap(finnhubSeries.points);
+  const yahooOk = yahooSeries && !hasRecentSessionGap(yahooSeries.points);
+  if (finnhubOk) return finnhubSeries;
+  if (yahooOk) return yahooSeries;
   if (finnhubSeries) return finnhubSeries;
   if (yahooSeries) return yahooSeries;
   throw new Error('No valid Yahoo Finance or Finnhub historical closes');
+}
+
+async function fetchFinnhubQuote(symbol, env) {
+  return fetchFinnhubData(symbol, env, 'quote', 60).catch(() => null);
+}
+
+function quoteOneDayPct(quote) {
+  if (!quote || !Number.isFinite(quote.pc) || quote.pc <= 0) return null;
+  if (Number.isFinite(quote.dp)) return quote.dp;
+  if (!Number.isFinite(quote.c)) return null;
+  return ((quote.c / quote.pc) - 1) * 100;
+}
+
+function dailyChangeSign(changePct) {
+  return changePct > 0 ? 1 : changePct < 0 ? -1 : 0;
+}
+
+function buildDailyChanges(points) {
+  const dailyChanges = [];
+  for (let i = 1; i < points.length; i += 1) {
+    const close = points[i].close;
+    const previous = points[i - 1].close;
+    if (!Number.isFinite(close) || !Number.isFinite(previous) || previous <= 0) continue;
+    const changePct = ((close / previous) - 1) * 100;
+    dailyChanges.push({ changePct, sign: dailyChangeSign(changePct) });
+  }
+  return dailyChanges;
+}
+
+function applyQuoteToLastDailyChange(dailyChanges, points, quote) {
+  const oneDayPct = quoteOneDayPct(quote);
+  if (!Number.isFinite(oneDayPct)) return oneDayPct;
+  const entry = { changePct: oneDayPct, sign: dailyChangeSign(oneDayPct) };
+  if (dailyChanges.length && hasRecentSessionGap(points)) {
+    dailyChanges[dailyChanges.length - 1] = entry;
+  } else if (!dailyChanges.length) {
+    dailyChanges.push(entry);
+  }
+  return oneDayPct;
 }
 
 function roundPriceChange(value, digits = 2) {
@@ -2055,32 +2099,50 @@ function roundPriceChange(value, digits = 2) {
 }
 
 async function buildPriceTrendRow(symbol, env) {
+  const quote = await fetchFinnhubQuote(symbol, env);
   let candles = await fetchFinnhubPriceSeries(symbol, env);
   if (!candles) {
     try { candles = await fetchPriceCloses(symbol, env); } catch (_) {}
   }
-  if (!candles?.points?.length) throw new Error('No historical close data');
-  const { points, source } = candles;
-  const dailyChanges = [];
-  for (let i = 1; i < points.length; i += 1) {
-    const close = points[i].close;
-    const previous = points[i - 1].close;
-    if (!Number.isFinite(close) || !Number.isFinite(previous) || previous <= 0) continue;
-    const changePct = ((close / previous) - 1) * 100;
-    dailyChanges.push({ changePct, sign: changePct > 0 ? 1 : changePct < 0 ? -1 : 0 });
+  if (!candles?.points?.length) {
+    const oneDayPct = quoteOneDayPct(quote);
+    if (!Number.isFinite(oneDayPct)) throw new Error('No historical close data');
+    const sign = dailyChangeSign(oneDayPct);
+    return {
+      symbol,
+      sector: FUND_FLOW_UNIVERSE[symbol],
+      oneDayPct: roundPriceChange(oneDayPct),
+      fiveDayPct: null,
+      streakDays: sign === 0 ? 0 : 1,
+      streakDirection: sign > 0 ? 'up' : sign < 0 ? 'down' : 'neutral',
+      source: 'Finnhub quote',
+    };
   }
+
+  const { points, source: historySource } = candles;
+  const dailyChanges = buildDailyChanges(points);
   if (dailyChanges.length < 5 || points.length < 6) throw new Error('Insufficient historical close data');
-  const last = dailyChanges[dailyChanges.length - 1];
+
+  const quoteOneDay = applyQuoteToLastDailyChange(dailyChanges, points, quote);
+  const oneDayPct = Number.isFinite(quoteOneDay)
+    ? quoteOneDay
+    : dailyChanges[dailyChanges.length - 1].changePct;
+
   const latestClose = points[points.length - 1].close;
   const fiveDayBase = points[points.length - 6].close;
   const fiveDayPct = ((latestClose / fiveDayBase) - 1) * 100;
-  const streakSign = last.sign;
+  const streakSign = dailyChanges[dailyChanges.length - 1].sign;
   let streakDays = 0;
   for (let i = dailyChanges.length - 1; i >= 0 && dailyChanges[i].sign === streakSign && streakSign !== 0; i -= 1) streakDays += 1;
+
+  const source = Number.isFinite(quoteOneDay)
+    ? `Finnhub quote + ${historySource}`
+    : historySource;
+
   return {
     symbol,
     sector: FUND_FLOW_UNIVERSE[symbol],
-    oneDayPct: roundPriceChange(last.changePct),
+    oneDayPct: roundPriceChange(oneDayPct),
     fiveDayPct: roundPriceChange(fiveDayPct),
     streakDays,
     streakDirection: streakSign > 0 ? 'up' : streakSign < 0 ? 'down' : 'neutral',
@@ -2101,7 +2163,7 @@ async function handleFundFlow(url, env, corsHeaders) {
     const signed = row => row.streakDirection === 'up' ? row.streakDays || 0 : row.streakDirection === 'down' ? -(row.streakDays || 0) : 0;
     return signed(b) - signed(a);
   });
-  return json({ model: 'finnhub-historical-close-v2', dataType: 'historical-close-price-changes', items: results }, 200, corsHeaders);
+  return json({ model: 'finnhub-quote-v3', dataType: 'historical-close-price-changes', items: results }, 200, corsHeaders);
 }
 
 async function handleFundFlowAnalysis(request, env, corsHeaders) {
