@@ -186,7 +186,7 @@
 /* Trader: landing page stays light (don't override the marketing site) */
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--app-height:100svh;--keyboard-safe-bottom:0px;--num-font:'Inter','Noto Sans TC',-apple-system,BlinkMacSystemFont,sans-serif}
+:root{--app-height:100lvh;--keyboard-safe-bottom:0px;--num-font:'Inter','Noto Sans TC',-apple-system,BlinkMacSystemFont,sans-serif}
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation;height:100%;min-height:100%;background:var(--chrome-bg);color-scheme:light;overscroll-behavior:none}
 [data-theme="dark"],[data-theme="trader"]{color-scheme:dark}
 body{height:var(--app-height);min-height:var(--app-height);font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:var(--text);background:var(--bg);display:flex;overflow:hidden;letter-spacing:-.01em;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
@@ -661,7 +661,6 @@ table{border-collapse:collapse;width:100%}
   .overlay { align-items: flex-end; padding: 0; }
   .modal { border-radius: var(--rXl) var(--rXl) 0 0; max-width: 100% !important; width: 100%; padding: 24px 20px 36px; max-height: min(90svh, var(--app-height)); overflow-y: auto; -webkit-overflow-scrolling: touch; }
   html.keyboard-open .bottom-nav { opacity: 0; visibility: hidden; pointer-events: none; }
-  html, body { position: fixed; width: 100%; left: 0; top: 0; }
   .pub-auth-card { padding: 24px 20px; }
   :root { --mobile-nav-bottom: max(10px, env(safe-area-inset-bottom)); }
   .bottom-nav { display: flex !important; position: fixed; bottom: var(--mobile-nav-bottom); left: 50%; transform: translateX(-50%); width: auto; max-width: min(320px, calc(100% - 48px)); height: 50px; margin: 0; padding: 4px 6px; gap: 2px; background: rgba(255,255,255,.65); backdrop-filter: saturate(200%) blur(28px); -webkit-backdrop-filter: saturate(200%) blur(28px); border: 1px solid rgba(255,255,255,.55); border-radius: 999px; z-index: 50; align-items: center; justify-content: center; box-shadow: 0 12px 34px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06), 0 0 0 .5px rgba(255,255,255,.42) inset; }
@@ -5594,27 +5593,17 @@ renderGoals = function() {
 // ── FIXED: Blue theme + Donut chart always on ──────
 // No Tweaks panel needed — settings are locked in.
 
-// Lock iOS PWA layout height; prevent keyboard from shrinking or shifting the shell.
+// iOS PWA: keep CSS viewport height; only manage keyboard UI state.
 (function syncAppViewport(){
   const root = document.documentElement;
   let timer = null;
-  let stableHeight = 0;
-
-  function readStableHeight(){
-    const vv = window.visualViewport;
-    const visualHeight = vv ? Math.round(vv.height + (vv.offsetTop || 0)) : 0;
-    return Math.max(window.innerHeight, document.documentElement.clientHeight, visualHeight, stableHeight);
-  }
 
   function applyViewportVars(){
     const vv = window.visualViewport;
     const gap = vv ? Math.max(0, window.innerHeight - vv.height - (vv.offsetTop || 0)) : 0;
     const keyboardOpen = gap > 80;
 
-    if(!keyboardOpen) stableHeight = readStableHeight();
-    if(!stableHeight) stableHeight = readStableHeight();
-
-    root.style.setProperty('--app-height', `${stableHeight}px`);
+    root.style.removeProperty('--app-height');
     root.style.setProperty('--keyboard-safe-bottom', '0px');
     root.classList.toggle('keyboard-open', keyboardOpen);
 
@@ -5629,10 +5618,7 @@ renderGoals = function() {
 
   applyViewportVars();
   window.addEventListener('resize', scheduleViewportSync);
-  window.addEventListener('orientationchange', () => {
-    stableHeight = 0;
-    setTimeout(scheduleViewportSync, 320);
-  });
+  window.addEventListener('orientationchange', scheduleViewportSync);
   window.addEventListener('focusin', scheduleViewportSync);
   window.addEventListener('focusout', scheduleViewportSync);
   if(window.visualViewport){
