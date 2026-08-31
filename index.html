@@ -5593,17 +5593,24 @@ renderGoals = function() {
 // No Tweaks panel needed — settings are locked in.
 
 // Keep iOS PWA viewport height in sync after keyboard open/close.
-// Without this, Safari can leave a white strip below the app until restart.
+// Use full-screen height by default; only shrink when the keyboard is actually open.
 (function syncAppViewport(){
   const root = document.documentElement;
   let timer = null;
 
   function applyViewportVars(){
     const vv = window.visualViewport;
-    const height = vv ? vv.height : window.innerHeight;
-    const gap = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
-    root.style.setProperty('--app-height', `${Math.round(height)}px`);
-    root.style.setProperty('--keyboard-safe-bottom', gap > 80 ? `${Math.round(gap)}px` : '0px');
+    const layoutHeight = window.innerHeight;
+    const gap = vv ? Math.max(0, layoutHeight - vv.height - (vv.offsetTop || 0)) : 0;
+    const keyboardOpen = gap > 80;
+
+    if(keyboardOpen && vv){
+      root.style.setProperty('--app-height', `${Math.round(vv.height + vv.offsetTop)}px`);
+      root.style.setProperty('--keyboard-safe-bottom', `${Math.round(gap)}px`);
+    } else {
+      root.style.setProperty('--app-height', '100dvh');
+      root.style.setProperty('--keyboard-safe-bottom', '0px');
+    }
   }
 
   function scheduleViewportSync(){
