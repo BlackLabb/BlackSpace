@@ -3113,118 +3113,6 @@ function initFundFlowScrollNav(){
 }
 function fundFlowEsc(value){ return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])); }
 function fundFlowFormat(value, suffix=''){ return Number.isFinite(Number(value)) ? `${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(1)}${suffix}` : '--'; }
-function fundFlowRound(value, digits = 2){
-  return Number.isFinite(Number(value)) ? Number(Number(value).toFixed(digits)) : null;
-}
-function buildFundFlowSeries(timestamps, closes){
-  if(!Array.isArray(timestamps) || !Array.isArray(closes)) return [];
-  const rows = [];
-  for(let i = 0; i < closes.length; i += 1){
-    const ts = Number(timestamps[i]);
-    const close = Number(closes[i]);
-    if(!Number.isFinite(ts)) continue;
-    rows.push({ ts, close: Number.isFinite(close) && close > 0 ? close : null });
-  }
-  return rows;
-}
-function latestFundFlowIndex(rows){
-  for(let i = rows.length - 1; i >= 0; i -= 1) if(rows[i].close) return i;
-  return -1;
-}
-function previousFundFlowIndex(rows, fromIdx){
-  for(let i = fromIdx - 1; i >= 0; i -= 1) if(rows[i].close) return i;
-  return -1;
-}
-async function fetchFundFlowQuote(symbol){
-  try{
-    const response = await fetch(`${FUND_FLOW_API}/quote?symbol=${encodeURIComponent(symbol)}`, { signal:AbortSignal.timeout(10000) });
-    if(!response.ok) return null;
-    return await response.json();
-  }catch(_){ return null; }
-}
-async function fetchFundFlowChart(symbol){
-  try{
-    const response = await fetch(`${FUND_FLOW_API}/chart?symbol=${encodeURIComponent(symbol)}`, { signal:AbortSignal.timeout(15000) });
-    if(response.ok){
-      const payload = await response.json();
-      const rows = buildFundFlowSeries(payload?.timestamps, payload?.closes);
-      if(rows.length) return rows;
-    }
-  }catch(_){}
-  try{
-    const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=3mo`, { signal:AbortSignal.timeout(15000) });
-    if(!response.ok) return null;
-    const payload = await response.json();
-    const result = payload?.chart?.result?.[0];
-    return buildFundFlowSeries(result?.timestamp, result?.indicators?.quote?.[0]?.close);
-  }catch(_){ return null; }
-}
-function computeFundFlowTrend(rows, quote, sector){
-  const latestIdx = latestFundFlowIndex(rows);
-  if(latestIdx < 0) return null;
-  const latestClose = rows[latestIdx].close;
-  const prevIdx = previousFundFlowIndex(rows, latestIdx);
-  const quotePct = fundFlowRound(quote?.dp);
-  const quotePrev = Number(quote?.pc);
-  let oneDayPct = quotePct;
-  if(oneDayPct == null){
-    if(prevIdx >= 0) oneDayPct = fundFlowRound(((latestClose / rows[prevIdx].close) - 1) * 100);
-    else if(Number.isFinite(quotePrev) && quotePrev > 0) oneDayPct = fundFlowRound(((latestClose / quotePrev) - 1) * 100);
-  }
-  let fiveDayPct = null;
-  const fiveIdx = latestIdx - 5;
-  if(fiveIdx >= 0 && rows[fiveIdx].close) fiveDayPct = fundFlowRound(((latestClose / rows[fiveIdx].close) - 1) * 100);
-  const dailyChanges = [];
-  for(let i = 1; i < rows.length; i += 1){
-    if(!rows[i].close || !rows[i - 1].close) continue;
-    const changePct = ((rows[i].close / rows[i - 1].close) - 1) * 100;
-    dailyChanges.push({ changePct, sign: changePct > 0 ? 1 : changePct < 0 ? -1 : 0 });
-  }
-  const last = dailyChanges[dailyChanges.length - 1];
-  let streakDays = 0;
-  let streakDirection = 'neutral';
-  if(last){
-    const streakSign = last.sign;
-    for(let i = dailyChanges.length - 1; i >= 0 && dailyChanges[i].sign === streakSign && streakSign !== 0; i -= 1) streakDays += 1;
-    streakDirection = streakSign > 0 ? 'up' : streakSign < 0 ? 'down' : 'neutral';
-  }
-  return { oneDayPct, fiveDayPct, streakDays, streakDirection, sector };
-}
-async function buildFundFlowItem(symbol, sector, apiRow){
-  const [rows, quote] = await Promise.all([fetchFundFlowChart(symbol), fetchFundFlowQuote(symbol)]);
-  if(rows?.length){
-    const trend = computeFundFlowTrend(rows, quote, sector);
-    if(trend) return { symbol, sector, ...trend, source: quote ? 'Yahoo Finance + live quote' : 'Yahoo Finance historical closes' };
-  }
-  if(apiRow && !apiRow.error){
-    return {
-      symbol,
-      sector,
-      oneDayPct: fundFlowRound(quote?.dp) ?? apiRow.oneDayPct,
-      fiveDayPct: apiRow.fiveDayPct,
-      streakDays: apiRow.streakDays,
-      streakDirection: apiRow.streakDirection,
-      source: fundFlowRound(quote?.dp) != null ? 'Live quote + API fallback' : apiRow.source,
-    };
-  }
-  return { symbol, sector, error: 'Unavailable' };
-}
-async function buildFundFlowItems(){
-  let apiItems = [];
-  try{
-    const symbols = FUND_FLOW_SYMBOLS.map(([symbol]) => symbol).join(',');
-    const response = await fetch(`${FUND_FLOW_API}/fund-flow?symbols=${encodeURIComponent(symbols)}`, { signal:AbortSignal.timeout(20000) });
-    const data = await response.json();
-    if(response.ok && Array.isArray(data.items)) apiItems = data.items;
-  }catch(_){}
-  const apiMap = Object.fromEntries(apiItems.map(item => [item.symbol, item]));
-  const items = await Promise.all(FUND_FLOW_SYMBOLS.map(([symbol, sector]) => buildFundFlowItem(symbol, sector, apiMap[symbol])));
-  items.sort((a, b) => {
-    const signed = row => row.streakDirection === 'up' ? row.streakDays || 0 : row.streakDirection === 'down' ? -(row.streakDays || 0) : 0;
-    return signed(b) - signed(a);
-  });
-  return items;
-}
 function renderFundFlowRows(items){
   const tbody = $('fund-flow-tbody');
   if(!tbody) return;
@@ -3292,14 +3180,16 @@ async function renderFundFlow(){
   tbody.innerHTML = `<tr><td colspan="4">${fundFlowEsc(t('fund-flow-loading'))}</td></tr>`;
   renderFundFlowAiLoading();
   try{
-    const items = await buildFundFlowItems();
+    const symbols = FUND_FLOW_SYMBOLS.map(([symbol]) => symbol).join(',');
+    const response = await fetch(`${FUND_FLOW_API}/fund-flow?symbols=${encodeURIComponent(symbols)}`, { signal:AbortSignal.timeout(45000) });
+    const data = await response.json();
     if(token !== fundFlowRenderToken) return;
-    if(!items.some(item => Number.isFinite(Number(item.oneDayPct)))) throw new Error('Fund Flow unavailable');
-    renderFundFlowRows(items);
+    if(!response.ok || !Array.isArray(data.items)) throw new Error(data.error || 'Fund Flow unavailable');
+    renderFundFlowRows(data.items);
     $('fund-flow-updated').textContent = new Date().toLocaleTimeString(curLang === 'zh' ? 'zh-HK' : 'en-US',{hour:'2-digit',minute:'2-digit'});
     initFundFlowScrollNav();
     requestAnimationFrame(syncFundFlowScrollNav);
-    await renderFundFlowAi(items, token);
+    await renderFundFlowAi(data.items, token);
   }catch(error){
     console.warn('Fund Flow data unavailable:', error);
     tbody.innerHTML = `<tr><td colspan="4">${fundFlowEsc(curLang === 'zh' ? '價格資料暫時未能載入。' : 'Price data is temporarily unavailable.')}</td></tr>`;
