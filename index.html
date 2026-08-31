@@ -152,7 +152,7 @@
 /* Trader: sidebar same treatment */
 [data-theme="trader"] .sidebar { background:var(--surface)!important; border-right:1px solid var(--divider); backdrop-filter:none; -webkit-backdrop-filter:none; }
 [data-theme="trader"] .topbar { background:var(--chrome-bg)!important; border-bottom:1px solid var(--divider); backdrop-filter:none; -webkit-backdrop-filter:none; }
-[data-theme="trader"] .month-strip { background:var(--surface)!important; border-bottom:1px solid var(--divider); backdrop-filter:none; -webkit-backdrop-filter:none; }
+[data-theme="trader"] .month-strip { background:var(--chrome-bg)!important; border-bottom:1px solid var(--divider); backdrop-filter:none; -webkit-backdrop-filter:none; }
 /* Trader: nav-btn active orange + bottom bar */
 [data-theme="trader"] .nav-btn.active { background:var(--primaryHL); color:var(--primary); }
 /* Trader: positive/negative colors */
@@ -271,7 +271,7 @@ table{border-collapse:collapse;width:100%}
 
 /* ── MONTH TABS ──────────────────────────────────────────────────────────────── */
 .month-strip{display:flex;gap:4px;padding:10px 24px;overflow-x:auto;scrollbar-width:none;background:rgba(255,255,255,.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--divider);flex-shrink:0}
-[data-theme="dark"] .month-strip{background:rgba(18,18,22,0.72);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%)}
+[data-theme="dark"] .month-strip{background:var(--chrome-bg);backdrop-filter:none;-webkit-backdrop-filter:none}
 .month-strip::-webkit-scrollbar{display:none}
 .month-tab{padding:5px 14px;border-radius:var(--rFull);font-size:12px;font-weight:500;white-space:nowrap;color:var(--muted);border:1px solid transparent;transition:all var(--trans);flex-shrink:0}
 .month-tab:hover{background:var(--surfaceOff);color:var(--text)}
@@ -1836,7 +1836,7 @@ table{border-collapse:collapse;width:100%}
     </div>
   </header>
 
-  <div class="month-strip" id="month-strip" style="background:var(--surface);border-bottom:1px solid var(--border);"><button class="month-tab" data-idx="0">Jan 2026</button><button class="month-tab" data-idx="1">Feb 2026</button><button class="month-tab" data-idx="2">Mar 2026</button><button class="month-tab active" data-idx="3">Apr 2026</button><button class="month-tab" data-idx="4">May 2026</button><button class="month-tab" data-idx="5">Jun 2026</button><button class="month-tab" data-idx="6">Jul 2026</button><button class="month-tab" data-idx="7">Aug 2026</button><button class="month-tab" data-idx="8">Sep 2026</button><button class="month-tab" data-idx="9">Oct 2026</button><button class="month-tab" data-idx="10">Nov 2026</button><button class="month-tab" data-idx="11">Dec 2026</button><button id="range-btn" title="Set year range" style="display:flex;align-items:center;gap:5px;padding:5px 13px;border-radius:var(--rFull);font-size:12px;white-space:nowrap;color:var(--muted);border:1px solid var(--border);flex-shrink:0;transition:all var(--trans)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"></path></svg><span data-i18n="btn-range">Range</span></button></div>
+  <div class="month-strip" id="month-strip"><button class="month-tab" data-idx="0">Jan 2026</button><button class="month-tab" data-idx="1">Feb 2026</button><button class="month-tab" data-idx="2">Mar 2026</button><button class="month-tab active" data-idx="3">Apr 2026</button><button class="month-tab" data-idx="4">May 2026</button><button class="month-tab" data-idx="5">Jun 2026</button><button class="month-tab" data-idx="6">Jul 2026</button><button class="month-tab" data-idx="7">Aug 2026</button><button class="month-tab" data-idx="8">Sep 2026</button><button class="month-tab" data-idx="9">Oct 2026</button><button class="month-tab" data-idx="10">Nov 2026</button><button class="month-tab" data-idx="11">Dec 2026</button><button id="range-btn" title="Set year range" style="display:flex;align-items:center;gap:5px;padding:5px 13px;border-radius:var(--rFull);font-size:12px;white-space:nowrap;color:var(--muted);border:1px solid var(--border);flex-shrink:0;transition:all var(--trans)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"></path></svg><span data-i18n="btn-range">Range</span></button></div>
 
   <div class="content">
 
@@ -5592,8 +5592,7 @@ renderGoals = function() {
 // ── FIXED: Blue theme + Donut chart always on ──────
 // No Tweaks panel needed — settings are locked in.
 
-// Keep iOS PWA viewport height in sync after keyboard open/close.
-// Use full-screen height by default; only shrink when the keyboard is actually open.
+// Keep iOS PWA viewport height stable; paint over keyboard gap without shrinking the app.
 (function syncAppViewport(){
   const root = document.documentElement;
   let timer = null;
@@ -5604,13 +5603,8 @@ renderGoals = function() {
     const gap = vv ? Math.max(0, layoutHeight - vv.height - (vv.offsetTop || 0)) : 0;
     const keyboardOpen = gap > 80;
 
-    if(keyboardOpen && vv){
-      root.style.setProperty('--app-height', `${Math.round(vv.height + vv.offsetTop)}px`);
-      root.style.setProperty('--keyboard-safe-bottom', `${Math.round(gap)}px`);
-    } else {
-      root.style.setProperty('--app-height', '100dvh');
-      root.style.setProperty('--keyboard-safe-bottom', '0px');
-    }
+    root.style.setProperty('--app-height', '100dvh');
+    root.style.setProperty('--keyboard-safe-bottom', keyboardOpen ? `${Math.round(gap)}px` : '0px');
   }
 
   function scheduleViewportSync(){
