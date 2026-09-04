@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel Brand Typography Demo · BlackSpace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600;700&family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070708;
+    --chrome-bg: #0b0b0f;
+    --surface: #111116;
+    --surfaceOff: #14131a;
+    --divider: rgba(255,255,255,.08);
+    --border: rgba(255,255,255,.12);
+    --text: #f3f1ec;
+    --muted: #8d8980;
+    --faint: #5c5954;
+    --primary: #d4b56a;
+    --primaryHL: rgba(212,181,106,.12);
+    --rXl: 1.25rem;
+    --shadow: 0 2px 8px rgba(0,0,0,.35);
+    --pixel-smooth: never;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 20px 48px; }
+  h1 { margin: 0 0 6px; font-size: 22px; letter-spacing: -.03em; }
+  .sub { margin: 0 0 20px; color: var(--muted); font-size: 13px; line-height: 1.6; max-width: 680px; }
+
+  .pick-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .pick-tab {
+    padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surfaceOff); color: var(--muted); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: .2s;
+  }
+  .pick-tab.active { background: var(--primaryHL); border-color: rgba(212,181,106,.35); color: var(--primary); }
+  .pick-tab .tag { font-size: 10px; opacity: .75; margin-left: 4px; font-weight: 500; }
+
+  .layout-panel { display: none; animation: fade .25s ease; }
+  .layout-panel.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .note {
+    margin: 0 0 16px; padding: 10px 14px; border-radius: 12px;
+    background: var(--primaryHL); border: 1px solid rgba(212,181,106,.2);
+    color: var(--muted); font-size: 12px; line-height: 1.55;
+  }
+  .note strong { color: var(--primary); }
+
+  .demo-grid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 16px;
+    align-items: start;
+  }
+  @media (max-width: 820px) { .demo-grid { grid-template-columns: 1fr; } }
+
+  /* Splash mock */
+  .splash-mock {
+    min-height: 420px;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    background: radial-gradient(circle at 50% 20%, rgba(212,181,106,.08), transparent 45%), var(--chrome-bg);
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px 20px;
+    box-shadow: var(--shadow);
+  }
+  .splash-inner { display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; }
+  .splash-mark {
+    width: 96px; height: 96px; border-radius: 28px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,.14);
+    box-shadow: 0 0 0 8px rgba(212,181,106,.12), 0 30px 80px rgba(0,0,0,.55);
+    background: #0b0b0b;
+  }
+  .splash-mark img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .splash-bar {
+    width: 120px; height: 2px; border-radius: 999px;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  }
+
+  /* Sidebar mock */
+  .sidebar-mock {
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface);
+    padding: 16px 14px;
+    box-shadow: var(--shadow);
+  }
+  .sidebar-mock .lbl {
+    font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--faint); margin-bottom: 12px; padding: 0 6px;
+  }
+  .brand-row { display: flex; align-items: center; gap: 12px; padding: 4px 6px 14px; }
+  .brand-mark {
+    width: 38px; height: 38px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
+    border: 1px solid var(--border); box-shadow: 0 0 0 4px var(--primaryHL);
+  }
+  .brand-mark img { width: 100%; height: 100%; object-fit: cover; }
+  .fake-nav {
+    display: flex; flex-direction: column; gap: 4px; padding-top: 8px;
+    border-top: 1px solid var(--divider);
+  }
+  .fake-nav div {
+    padding: 10px 12px; border-radius: 10px; font-size: 13px; color: var(--muted);
+  }
+  .fake-nav div.on { background: var(--primaryHL); color: var(--primary); font-weight: 600; }
+
+  /* Pixel font presets */
+  .pixel-title, .pixel-sub, .pixel-brand, .pixel-brand-sub {
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: unset;
+    text-rendering: geometricPrecision;
+  }
+
+  /* A · Current */
+  .font-a .pixel-title { font-size: 28px; font-weight: 700; letter-spacing: -.04em; }
+  .font-a .pixel-sub { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: #8d8980; }
+  .font-a .pixel-brand { font-size: 17px; font-weight: 600; letter-spacing: -.03em; display: block; }
+  .font-a .pixel-brand-sub { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); display: block; margin-top: 4px; }
+
+  /* B · Press Start 2P */
+  .font-b .pixel-title { font-family: 'Press Start 2P', monospace; font-size: 18px; line-height: 1.6; letter-spacing: 0; }
+  .font-b .pixel-sub { font-family: 'Press Start 2P', monospace; font-size: 8px; line-height: 1.8; letter-spacing: .04em; text-transform: uppercase; color: #8d8980; max-width: 280px; }
+  .font-b .pixel-brand { font-family: 'Press Start 2P', monospace; font-size: 11px; line-height: 1.5; display: block; }
+  .font-b .pixel-brand-sub { font-family: 'Press Start 2P', monospace; font-size: 6px; line-height: 1.7; letter-spacing: .02em; text-transform: uppercase; color: var(--muted); display: block; margin-top: 6px; max-width: 160px; }
+
+  /* C · VT323 */
+  .font-c .pixel-title { font-family: 'VT323', monospace; font-size: 42px; line-height: 1; letter-spacing: .02em; }
+  .font-c .pixel-sub { font-family: 'VT323', monospace; font-size: 20px; letter-spacing: .12em; text-transform: uppercase; color: #8d8980; }
+  .font-c .pixel-brand { font-family: 'VT323', monospace; font-size: 26px; line-height: 1; display: block; }
+  .font-c .pixel-brand-sub { font-family: 'VT323', monospace; font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: block; margin-top: 2px; }
+
+  /* D · Silkscreen */
+  .font-d .pixel-title { font-family: 'Silkscreen', monospace; font-size: 26px; line-height: 1.3; letter-spacing: .02em; }
+  .font-d .pixel-sub { font-family: 'Silkscreen', monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8d8980; }
+  .font-d .pixel-brand { font-family: 'Silkscreen', monospace; font-size: 16px; line-height: 1.3; display: block; }
+  .font-d .pixel-brand-sub { font-family: 'Silkscreen', monospace; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: block; margin-top: 4px; }
+
+  /* E · Pixelify Sans */
+  .font-e .pixel-title { font-family: 'Pixelify Sans', sans-serif; font-size: 32px; font-weight: 700; letter-spacing: .02em; }
+  .font-e .pixel-sub { font-family: 'Pixelify Sans', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #8d8980; }
+  .font-e .pixel-brand { font-family: 'Pixelify Sans', sans-serif; font-size: 20px; font-weight: 700; display: block; }
+  .font-e .pixel-brand-sub { font-family: 'Pixelify Sans', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: block; margin-top: 3px; }
+
+  /* F · DotGothic16 (JP pixel — works for Latin too) */
+  .font-f .pixel-title { font-family: 'DotGothic16', sans-serif; font-size: 30px; letter-spacing: .04em; }
+  .font-f .pixel-sub { font-family: 'DotGothic16', sans-serif; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: #8d8980; }
+  .font-f .pixel-brand { font-family: 'DotGothic16', sans-serif; font-size: 19px; display: block; }
+  .font-f .pixel-brand-sub { font-family: 'DotGothic16', sans-serif; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: block; margin-top: 3px; }
+
+  .meta-card {
+    margin-top: 16px; padding: 14px 16px; border-radius: 14px;
+    border: 1px solid var(--divider); background: var(--surfaceOff);
+    font-size: 12px; color: var(--muted); line-height: 1.6;
+  }
+  .meta-card b { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Pixel Brand Typography Demo</h1>
+  <p class="sub">BlackSpace 開場 Splash + Sidebar 品牌字 — 6 款字體對比。建議用 Chrome 全屏預覽；Pixel 字體關閉 anti-alias 效果最清晰。</p>
+
+  <div class="pick-tabs">
+    <button class="pick-tab active" data-font="a">A · 現況 <span class="tag">System</span></button>
+    <button class="pick-tab" data-font="b">B · Press Start 2P <span class="tag">8-bit</span></button>
+    <button class="pick-tab" data-font="c">C · VT323 <span class="tag">CRT terminal</span></button>
+    <button class="pick-tab" data-font="d">D · Silkscreen <span class="tag">clean pixel</span></button>
+    <button class="pick-tab" data-font="e">E · Pixelify Sans <span class="tag">modern</span></button>
+    <button class="pick-tab" data-font="f">F · DotGothic16 <span class="tag">soft pixel</span></button>
+  </div>
+
+  <div class="layout-panel active font-a" id="panel-a">
+    <p class="note"><strong>A · 現況</strong> — 你 app 而家用緊嘅 sans-serif，乾淨但唔係 pixel 風格。</p>
+    <div class="demo-grid" id="mock-a"></div>
+    <div class="meta-card" id="meta-a"></div>
+  </div>
+  <div class="layout-panel font-b" id="panel-b">
+    <p class="note"><strong>B · Press Start 2P</strong> — 最經典 8-bit pixel。品牌感強，但 subtitle 要細字、行距要鬆。</p>
+    <div class="demo-grid" id="mock-b"></div>
+    <div class="meta-card" id="meta-b"></div>
+  </div>
+  <div class="layout-panel font-c" id="panel-c">
+    <p class="note"><strong>C · VT323</strong> — 老式終端機 CRT 感，同「Finance Terminal」概念最夾。</p>
+    <div class="demo-grid" id="mock-c"></div>
+    <div class="meta-card" id="meta-c"></div>
+  </div>
+  <div class="layout-panel font-d" id="panel-d">
+    <p class="note"><strong>D · Silkscreen</strong> — 像素感但比 Press Start 易讀，適合 sidebar 長駐顯示。</p>
+    <div class="demo-grid" id="mock-d"></div>
+    <div class="meta-card" id="meta-d"></div>
+  </div>
+  <div class="layout-panel font-e" id="panel-e">
+    <p class="note"><strong>E · Pixelify Sans</strong> — 現代 pixel sans，Splash 大字清晰，整體最平衡。</p>
+    <div class="demo-grid" id="mock-e"></div>
+    <div class="meta-card" id="meta-e"></div>
+  </div>
+  <div class="layout-panel font-f" id="panel-f">
+    <p class="note"><strong>F · DotGothic16</strong> — 稍軟嘅 pixel 感，中日英混排都 OK。</p>
+    <div class="demo-grid" id="mock-f"></div>
+    <div class="meta-card" id="meta-f"></div>
+  </div>
+</div>
+
+<script>
+const META = {
+  a: { name: 'System UI', pros: '清晰、專業、零載入', cons: '無 retro / terminal 個性' },
+  b: { name: 'Press Start 2P', pros: '強烈 8-bit 辨識度', cons: '字細時難讀；subtitle 要 8px' },
+  c: { name: 'VT323', pros: 'Terminal 氛圍最強；Splash 大 title 好睇', cons: 'Sidebar 略大隻' },
+  d: { name: 'Silkscreen', pros: 'Pixel 感 + 可讀性平衡', cons: '8-bit 味冇 B 咁重' },
+  e: { name: 'Pixelify Sans', pros: '現代、Splash/Sidebar 都適合', cons: 'Pixel 感較柔和' },
+  f: { name: 'DotGothic16', pros: '中英混排友好', cons: 'Latin 像素感較弱' }
+};
+
+function brandMock() {
+  return `
+    <div class="sidebar-mock">
+      <div class="lbl">Sidebar</div>
+      <div class="brand-row">
+        <div class="brand-mark"><img src="../BlackSpace.png" alt="" onerror="this.style.background='#222'"></div>
+        <div>
+          <strong class="pixel-brand">BlackSpace</strong>
+          <span class="pixel-brand-sub">Personal Finance Terminal</span>
+        </div>
+      </div>
+      <div class="fake-nav">
+        <div class="on">Dashboard</div>
+        <div>Monthly</div>
+        <div>Investments</div>
+      </div>
+    </div>`;
+}
+
+function splashMock() {
+  return `
+    <div class="splash-mock">
+      <div class="splash-inner">
+        <div class="splash-mark"><img src="../BlackSpace.png" alt="" onerror="this.style.background='#222'"></div>
+        <div class="pixel-title">BlackSpace</div>
+        <div class="pixel-sub">Personal Finance Terminal</div>
+        <div class="splash-bar" aria-hidden="true"></div>
+      </div>
+    </div>`;
+}
+
+['a','b','c','d','e','f'].forEach(k => {
+  const mock = document.getElementById('mock-' + k);
+  if (mock) mock.innerHTML = splashMock() + brandMock();
+  const metaEl = document.getElementById('meta-' + k);
+  const m = META[k];
+  if (metaEl && m) {
+    metaEl.innerHTML = `<b>${m.name}</b> — 優點：${m.pros}。注意：${m.cons}。`;
+  }
+});
+
+document.querySelectorAll('.pick-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.pick-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.layout-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.font).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
