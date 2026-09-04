@@ -34,12 +34,11 @@ const STOCK_AI_CACHE_TTL = 24 * 60 * 60 * 1000;
 const STOCK_AI_EDGE_CACHE_TTL = 24 * 60 * 60;
 const SEC_CACHE_TTL = 24 * 60 * 60 * 1000;
 const SEC_SECTION_MAX_CHARS = 16000;
-const DEEPSEEK_ENDPOINT = 'https://api.deepseek.com/chat/completions';
-const DEEPSEEK_MODEL = 'deepseek-v4-flash';
-const DEEPSEEK_THINKING = { type: 'enabled' };
-const DEEPSEEK_THINKING_DISABLED = { type: 'disabled' };
-const DEEPSEEK_REASONING_EFFORT = 'max';
-const DEEPSEEK_STOCK_JSON_MAX_TOKENS = 8192;
+const GLM_ENDPOINT = 'https://api.z.ai/api/paas/v4/chat/completions';
+const GLM_MODEL = 'glm-5.3';
+const GLM_THINKING = { type: 'enabled' };
+const GLM_REASONING_EFFORT = 'max';
+const GLM_STOCK_JSON_MAX_TOKENS = 8192;
 const FULL_TEXT_MAX_ITEMS = 10;
 const FULL_TEXT_MAX_CHARS = 6000;
 const ARTICLE_HEADERS = {
@@ -301,8 +300,8 @@ function fallbackPriceImpact(item) {
   return normalizeImpact(null, sentiment);
 }
 
-async function analyzeSentimentWithDeepSeek(items, env) {
-  const apiKey = env.DEEPSEEK_API_KEY;
+async function analyzeSentimentWithGlm(items, env) {
+  const apiKey = env.GLM_API_KEY;
   if (!apiKey || !items.length) {
     return items.map(item => ({ ...item, sentiment: fallbackSentiment(item), priceImpact: fallbackPriceImpact(item), sentimentProvider: 'rules' }));
   }
@@ -315,24 +314,24 @@ async function analyzeSentimentWithDeepSeek(items, env) {
     tickers: item.tickers,
   }));
   try {
-    const resp = await fetch(DEEPSEEK_ENDPOINT, {
+    const resp = await fetch(GLM_ENDPOINT, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: DEEPSEEK_MODEL,
+        model: GLM_MODEL,
         response_format: { type: 'json_object' },
-        thinking: DEEPSEEK_THINKING,
-        reasoning_effort: DEEPSEEK_REASONING_EFFORT,
+        thinking: GLM_THINKING,
+        reasoning_effort: GLM_REASONING_EFFORT,
         messages: [
           { role: 'system', content: 'Return only JSON. Analyze investment news for the named ticker. Use content as the primary evidence when contentSource is fulltext; otherwise use title and summary. For each item, return sentiment from -1 to 1 and priceImpact. priceImpact must classify expected stock impact by horizon and direction: horizon is one of short, medium, long, neutral; direction is one of positive, negative, neutral; label must be Traditional Chinese and one of 短期正面, 中期正面, 長期正面, 短期負面, 中期負面, 長期負面, 中性. Confidence is 0 to 1. Output {"items":[{"index":0,"sentiment":0.2,"priceImpact":{"horizon":"short","direction":"positive","label":"短期正面","confidence":0.7,"reason":"brief reason"}}]}. No prose.' },
           { role: 'user', content: JSON.stringify({ items: payload }) },
         ],
       }),
     });
-    if (!resp.ok) throw new Error('DeepSeek upstream error');
+    if (!resp.ok) throw new Error('GLM upstream error');
     const data = await resp.json();
     const content = data?.choices?.[0]?.message?.content || '{}';
     const parsed = JSON.parse(content);
@@ -341,7 +340,7 @@ async function analyzeSentimentWithDeepSeek(items, env) {
       ...item,
       sentiment: scored.has(index) ? normalizeSentimentValue(scored.get(index).sentiment) : fallbackSentiment(item),
       priceImpact: scored.has(index) ? normalizeImpact(scored.get(index).priceImpact, normalizeSentimentValue(scored.get(index).sentiment)) : fallbackPriceImpact(item),
-      sentimentProvider: scored.has(index) ? 'deepseek' : 'rules',
+      sentimentProvider: scored.has(index) ? 'glm' : 'rules',
       fullText: undefined,
     }));
   } catch (_) {
@@ -373,8 +372,8 @@ function fallbackNewsDigest(items, tickers, lang = 'zh') {
   };
 }
 
-async function analyzeNewsDigestWithDeepSeek(items, env, tickers, lang = 'zh') {
-  const apiKey = env.DEEPSEEK_API_KEY;
+async function analyzeNewsDigestWithGlm(items, env, tickers, lang = 'zh') {
+  const apiKey = env.GLM_API_KEY;
   const topItems = items.slice(0, FULL_TEXT_MAX_ITEMS);
   if (!apiKey || !topItems.length) return fallbackNewsDigest(topItems, tickers, lang);
   const languageName = lang === 'en' ? 'English' : 'Traditional Chinese';
@@ -388,24 +387,24 @@ async function analyzeNewsDigestWithDeepSeek(items, env, tickers, lang = 'zh') {
     tickers: item.tickers,
   }));
   try {
-    const resp = await fetch(DEEPSEEK_ENDPOINT, {
+    const resp = await fetch(GLM_ENDPOINT, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: DEEPSEEK_MODEL,
+        model: GLM_MODEL,
         response_format: { type: 'json_object' },
-        thinking: DEEPSEEK_THINKING,
-        reasoning_effort: DEEPSEEK_REASONING_EFFORT,
+        thinking: GLM_THINKING,
+        reasoning_effort: GLM_REASONING_EFFORT,
         messages: [
           { role: 'system', content: `Return only JSON in ${languageName}. You are analyzing the first 10 full-text investment news items for the requested stock tickers. Focus on company-specific implications, not generic market commentary. Output {"title":"${outputTitle}","overall":"2-3 sentences","stockImpact":"2-3 sentences about likely stock impact","risks":"1-2 sentences","keyPoints":["point 1","point 2","point 3"],"tone":"positive|negative|neutral"}. Do not give financial advice.` },
           { role: 'user', content: JSON.stringify({ tickers, items: payload }) },
         ],
       }),
     });
-    if (!resp.ok) throw new Error('DeepSeek digest upstream error');
+    if (!resp.ok) throw new Error('GLM digest upstream error');
     const data = await resp.json();
     const content = data?.choices?.[0]?.message?.content || '{}';
     const parsed = JSON.parse(content);
@@ -418,7 +417,7 @@ async function analyzeNewsDigestWithDeepSeek(items, env, tickers, lang = 'zh') {
       keyPoints: Array.isArray(parsed.keyPoints) ? parsed.keyPoints.map(point => String(point).trim()).filter(Boolean).slice(0, 4) : [],
       tone,
       itemsAnalyzed: topItems.length,
-      provider: 'deepseek',
+      provider: 'glm',
     };
   } catch (_) {
     return fallbackNewsDigest(topItems, tickers, lang);
@@ -1260,8 +1259,8 @@ async function getSecFilingSections(symbol) {
   };
 }
 
-async function analyzeSecSectionsWithDeepSeek(sections, env, lang = 'zh') {
-  const apiKey = env.DEEPSEEK_API_KEY;
+async function analyzeSecSectionsWithGlm(sections, env, lang = 'zh') {
+  const apiKey = env.GLM_API_KEY;
   const business = sections?.sections?.business || '';
   const riskFactors = sections?.sections?.riskFactors || '';
   if (!apiKey || (!business && !riskFactors)) {
@@ -1275,17 +1274,17 @@ async function analyzeSecSectionsWithDeepSeek(sections, env, lang = 'zh') {
   }
   const languageName = lang === 'en' ? 'English' : 'Traditional Chinese';
   try {
-    const resp = await fetch(DEEPSEEK_ENDPOINT, {
+    const resp = await fetch(GLM_ENDPOINT, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: DEEPSEEK_MODEL,
+        model: GLM_MODEL,
         response_format: { type: 'json_object' },
-        thinking: DEEPSEEK_THINKING,
-        reasoning_effort: DEEPSEEK_REASONING_EFFORT,
+        thinking: GLM_THINKING,
+        reasoning_effort: GLM_REASONING_EFFORT,
         messages: [
           { role: 'system', content: `Return only JSON in ${languageName}. Use only the supplied SEC 10-K text. Do not invent missing facts. Output {"businessOverview":"3-5 sentences","businessPoints":["point"],"riskFactors":["risk"],"riskSummary":"2-3 sentences","sourceCaveat":"one sentence"}. This is educational analysis, not financial advice.` },
           { role: 'user', content: JSON.stringify({
@@ -1298,11 +1297,11 @@ async function analyzeSecSectionsWithDeepSeek(sections, env, lang = 'zh') {
         ],
       }),
     });
-    if (!resp.ok) throw new Error('DeepSeek SEC summary upstream error');
+    if (!resp.ok) throw new Error('GLM SEC summary upstream error');
     const data = await resp.json();
     const parsed = JSON.parse(data?.choices?.[0]?.message?.content || '{}');
     return {
-      provider: 'deepseek',
+      provider: 'glm',
       businessOverview: String(parsed.businessOverview || '').trim(),
       businessPoints: Array.isArray(parsed.businessPoints) ? parsed.businessPoints.map(v => String(v).trim()).filter(Boolean).slice(0, 8) : [],
       riskFactors: Array.isArray(parsed.riskFactors) ? parsed.riskFactors.map(v => String(v).trim()).filter(Boolean).slice(0, 10) : [],
@@ -1335,11 +1334,11 @@ async function handleSecFilingSections(url, env, corsHeaders) {
 
   try {
     const sections = await getSecFilingSections(symbol);
-    const aiSummary = includeAi ? await analyzeSecSectionsWithDeepSeek(sections, env, lang) : null;
+    const aiSummary = includeAi ? await analyzeSecSectionsWithGlm(sections, env, lang) : null;
     const data = {
       ...sections,
       aiSummary,
-      deepseekConfigured: Boolean(env.DEEPSEEK_API_KEY),
+      glmConfigured: Boolean(env.GLM_API_KEY),
     };
     cache.set(cacheKey, { ts: Date.now(), data });
     return json(data, 200, corsHeaders, { 'X-Cache': 'MISS' });
@@ -1394,14 +1393,14 @@ async function handleNews(url, env, corsHeaders) {
     const analysisFeed = useFullText ? await enrichWithFullText(feed) : { feed: feed.map(item => ({ ...item, contentSource: 'summary' })), stats: [] };
     fullTextDebug = analysisFeed.stats;
 
-    const scoredFeed = await analyzeSentimentWithDeepSeek(analysisFeed.feed, env);
-    const aiAnalysis = useAiAnalysis ? await analyzeNewsDigestWithDeepSeek(analysisFeed.feed, env, tickers, lang) : null;
+    const scoredFeed = await analyzeSentimentWithGlm(analysisFeed.feed, env);
+    const aiAnalysis = useAiAnalysis ? await analyzeNewsDigestWithGlm(analysisFeed.feed, env, tickers, lang) : null;
 
     sortNews(scoredFeed, sort);
     const limitedFeed = scoredFeed.slice(0, limit);
 
     const data = {
-      provider: 'finnhub_deepseek',
+      provider: 'finnhub_glm',
       sentimentInput: useFullText ? 'fulltext-with-summary-fallback' : 'summary',
       requestedTickers: tickers,
       count: limitedFeed.length,
@@ -1413,7 +1412,7 @@ async function handleNews(url, env, corsHeaders) {
       data.debug = {
         rawFeedCount: rawFeed.length,
         filteredFeedCount: feed.length,
-        deepseekConfigured: Boolean(env.DEEPSEEK_API_KEY),
+        glmConfigured: Boolean(env.GLM_API_KEY),
         sourceVersion: NEWS_SOURCE_VERSION,
         sources: ['Finnhub Company News'],
         fullTextEnabled: useFullText,
@@ -1437,7 +1436,7 @@ async function handleNews(url, env, corsHeaders) {
   } catch (err) {
     const stale = await readCachedNews(cacheKey, corsHeaders, true);
     if (stale) return stale;
-    return json({ error: err.message || 'Finnhub/DeepSeek news fetch failed', status: err.status || 502 }, err.status || 502, corsHeaders);
+    return json({ error: err.message || 'Finnhub/GLM news fetch failed', status: err.status || 502 }, err.status || 502, corsHeaders);
   } finally {
     inFlight.delete(cacheKey);
   }
@@ -1477,9 +1476,9 @@ async function handleNewsAnalysis(url, env, corsHeaders) {
     });
     sortNews(feed, sort === 'sentiment' ? 'latest' : sort);
     const analysisFeed = await enrichWithFullText(feed);
-    const aiAnalysis = await analyzeNewsDigestWithDeepSeek(analysisFeed.feed, env, tickers, lang);
+    const aiAnalysis = await analyzeNewsDigestWithGlm(analysisFeed.feed, env, tickers, lang);
     const data = {
-      provider: 'finnhub_deepseek',
+      provider: 'finnhub_glm',
       requestedTickers: tickers,
       aiAnalysis,
       updatedAt: new Date().toISOString(),
@@ -1488,7 +1487,7 @@ async function handleNewsAnalysis(url, env, corsHeaders) {
       data.debug = {
         rawFeedCount: rawFeed.length,
         filteredFeedCount: feed.length,
-        deepseekConfigured: Boolean(env.DEEPSEEK_API_KEY),
+        glmConfigured: Boolean(env.GLM_API_KEY),
         sourceVersion: NEWS_SOURCE_VERSION,
         fullTextMaxItems: FULL_TEXT_MAX_ITEMS,
         fullTextDebug: analysisFeed.stats,
@@ -1503,7 +1502,7 @@ async function handleNewsAnalysis(url, env, corsHeaders) {
   } catch (err) {
     const stale = await readCachedNews(cacheKey, corsHeaders, true);
     if (stale) return stale;
-    return json({ error: err.message || 'DeepSeek news analysis failed', status: err.status || 502 }, err.status || 502, corsHeaders);
+    return json({ error: err.message || 'GLM news analysis failed', status: err.status || 502 }, err.status || 502, corsHeaders);
   }
 }
 
@@ -1767,14 +1766,14 @@ function calculateInstitutionalScore(input) {
   };
 }
 
-function extractDeepSeekMessageContent(data) {
+function extractGlmMessageContent(data) {
   const content = String(data?.choices?.[0]?.message?.content || '').trim();
   if (!content) return '';
   return content.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim();
 }
 
-function parseDeepSeekJson(data) {
-  const content = extractDeepSeekMessageContent(data);
+function parseGlmJson(data) {
+  const content = extractGlmMessageContent(data);
   if (!content) return null;
   try {
     return JSON.parse(content);
@@ -1792,8 +1791,8 @@ function hasStockNarrative(analysis) {
 
 function buildStockAnalysisFromParsed(parsed, input) {
   return {
-    provider: 'deepseek',
-    model: DEEPSEEK_MODEL,
+    provider: 'glm',
+    model: GLM_MODEL,
     thesis: String(parsed.thesis || '').trim(),
     financialRead: String(parsed.financialRead || '').trim(),
     valuationRead: String(parsed.valuationRead || '').trim(),
@@ -1806,10 +1805,10 @@ function buildStockAnalysisFromParsed(parsed, input) {
   };
 }
 
-async function analyzeStockWithDeepSeek(input, env, lang = 'zh') {
-  const apiKey = env.DEEPSEEK_API_KEY;
+async function analyzeStockWithGlm(input, env, lang = 'zh') {
+  const apiKey = env.GLM_API_KEY;
   if (!apiKey) {
-    const error = new Error('DEEPSEEK_API_KEY missing');
+    const error = new Error('GLM_API_KEY missing');
     error.status = 503;
     throw error;
   }
@@ -1834,24 +1833,24 @@ For stagedEntry, produce two independent scenario-based entry plans using curren
 
 Output {"researchScore":{"total":0-100,"label":"Strong watchlist|Balanced watchlist|High caution","lines":{"priceFairValue":0-100,"economicMoat":0-100,"uncertainty":0-100,"financialHealth":0-100,"capitalAllocation":0-100}},"stagedEntry":{"riskLevel":"low|medium|high","basis":"${lang === 'en' ? 'English basis' : '繁體中文整體依據'}","halfPlan":[{"allocation":50,"low":0,"high":0,"reason":"${lang === 'en' ? 'English reason' : '繁體中文原因'}"},{"allocation":50,"low":0,"high":0,"reason":"${lang === 'en' ? 'English reason' : '繁體中文原因'}"}],"quarterPlan":[{"allocation":25,"low":0,"high":0,"reason":"${lang === 'en' ? 'English reason' : '繁體中文原因'}"},{"allocation":25,"low":0,"high":0,"reason":"${lang === 'en' ? 'English reason' : '繁體中文原因'}"},{"allocation":25,"low":0,"high":0,"reason":"${lang === 'en' ? 'English reason' : '繁體中文原因'}"},{"allocation":25,"low":0,"high":0,"reason":"${lang === 'en' ? 'English reason' : '繁體中文原因'}"}]},"thesis":"${lang === 'en' ? '2-3 English sentences' : '2-3 句繁體中文'}","financialRead":"${lang === 'en' ? '1-2 English sentences' : '1-2 句繁體中文'}","valuationRead":"${lang === 'en' ? '1-2 English sentences' : '1-2 句繁體中文'}","riskRead":"${lang === 'en' ? '1-2 English sentences' : '1-2 句繁體中文'}","watchItems":"${lang === 'en' ? '1 English sentence' : '1 句繁體中文'}","keyPoints":["${lang === 'en' ? 'English point 1' : '繁體中文重點 1'}","${lang === 'en' ? 'English point 2' : '繁體中文重點 2'}","${lang === 'en' ? 'English point 3' : '繁體中文重點 3'}"],"tone":"positive|negative|neutral"}.`;
   const attempts = [
-    { thinking: DEEPSEEK_THINKING_DISABLED, reasoning_effort: undefined, label: 'disabled' },
-    { thinking: DEEPSEEK_THINKING, reasoning_effort: DEEPSEEK_REASONING_EFFORT, label: 'enabled' },
+    { reasoning_effort: GLM_REASONING_EFFORT, label: 'max' },
+    { reasoning_effort: 'low', label: 'low' },
   ];
   let lastFinishReason = '';
   try {
     for (const attempt of attempts) {
       const body = {
-        model: DEEPSEEK_MODEL,
+        model: GLM_MODEL,
         response_format: { type: 'json_object' },
-        max_tokens: DEEPSEEK_STOCK_JSON_MAX_TOKENS,
+        max_tokens: GLM_STOCK_JSON_MAX_TOKENS,
+        thinking: GLM_THINKING,
+        reasoning_effort: attempt.reasoning_effort,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: JSON.stringify(input) },
         ],
       };
-      if (attempt.thinking) body.thinking = attempt.thinking;
-      if (attempt.reasoning_effort) body.reasoning_effort = attempt.reasoning_effort;
-      const resp = await fetch(DEEPSEEK_ENDPOINT, {
+      const resp = await fetch(GLM_ENDPOINT, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
@@ -1859,21 +1858,21 @@ Output {"researchScore":{"total":0-100,"label":"Strong watchlist|Balanced watchl
         },
         body: JSON.stringify(body),
       });
-      if (!resp.ok) throw new Error('DeepSeek stock analysis upstream error');
+      if (!resp.ok) throw new Error('GLM stock analysis upstream error');
       const data = await resp.json();
       lastFinishReason = data?.choices?.[0]?.finish_reason || '';
-      const parsed = parseDeepSeekJson(data);
+      const parsed = parseGlmJson(data);
       if (!parsed) continue;
       const analysis = buildStockAnalysisFromParsed(parsed, input);
       if (hasStockNarrative(analysis)) return analysis;
     }
     const error = new Error(lastFinishReason === 'length'
-      ? 'DeepSeek stock analysis returned empty content (output token limit reached)'
-      : 'DeepSeek stock analysis returned empty narrative content');
+      ? 'GLM stock analysis returned empty content (output token limit reached)'
+      : 'GLM stock analysis returned empty narrative content');
     error.status = 502;
     throw error;
   } catch (err) {
-    const error = new Error(err.message || 'DeepSeek stock analysis failed');
+    const error = new Error(err.message || 'GLM stock analysis failed');
     error.status = err.status || 502;
     throw error;
   }
@@ -1969,19 +1968,19 @@ async function handleStockAiAnalysis(url, env, corsHeaders) {
       technicalLevels,
     };
     input.institutionalScore = calculateInstitutionalScore(input);
-    const analysis = await analyzeStockWithDeepSeek(input, env, lang);
+    const analysis = await analyzeStockWithGlm(input, env, lang);
     analysis.researchScore = input.institutionalScore;
     const data = {
-      provider: 'deepseek_stock_research',
+      provider: 'glm_stock_research',
       model: analysis.model,
       symbol,
       analysis,
       technicalLevels,
       updatedAt: new Date().toISOString(),
-      deepseekConfigured: Boolean(env.DEEPSEEK_API_KEY),
+      glmConfigured: Boolean(env.GLM_API_KEY),
     };
     if (!isValidStockAnalysisPayload(data)) {
-      const error = new Error('DeepSeek stock analysis returned empty narrative content');
+      const error = new Error('GLM stock analysis returned empty narrative content');
       error.status = 502;
       throw error;
     }
@@ -2171,22 +2170,22 @@ async function handleFundFlowAnalysis(request, env, corsHeaders) {
   const items = Array.isArray(body.items) ? body.items.slice(0, 13) : [];
   const locale = String(body.locale || body.lang || 'zh').toLowerCase();
   const lang = locale === 'en' || locale.startsWith('en-') ? 'en' : 'zh';
-  const apiKey = env.DEEPSEEK_API_KEY;
-  if (!apiKey) return json({ error: 'DEEPSEEK_API_KEY is not configured', model: DEEPSEEK_MODEL }, 503, corsHeaders);
+  const apiKey = env.GLM_API_KEY;
+  if (!apiKey) return json({ error: 'GLM_API_KEY is not configured', model: GLM_MODEL }, 503, corsHeaders);
   const language = lang === 'en'
     ? 'English only. Do not output Chinese sentences.'
     : 'Traditional Chinese only (繁體中文／正體中文). Do not output English sentences; keep only ticker symbols and unavoidable metric abbreviations in Latin characters.';
-  const response = await fetch(DEEPSEEK_ENDPOINT, {
+  const response = await fetch(GLM_ENDPOINT, {
     method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: DEEPSEEK_MODEL, response_format: { type: 'json_object' }, thinking: DEEPSEEK_THINKING, reasoning_effort: DEEPSEEK_REASONING_EFFORT,
+      model: GLM_MODEL, response_format: { type: 'json_object' }, thinking: GLM_THINKING, reasoning_effort: GLM_REASONING_EFFORT,
       messages: [
         { role: 'system', content: `Return only JSON in ${language}. Use only the supplied historical-close fields symbol, sector, oneDayPct, fiveDayPct, streakDays, and streakDirection. These are actual percentage changes calculated from historical closing prices. Discuss price trend and momentum only. Do not mention fund flows, money flows, turnover, volume, AUM, creations, redemptions, news, fundamentals, targets, guarantees, or buy/sell instructions. Produce a concise but detailed structured analysis with six sections: overall price-trend regime; strongest upward groups; weakest or downward groups; consistency and possible turning points using one-day change, five-day change, and streaks; risks and caveats; and a conditional observation plan. Each section should be practical, explain only what the supplied price metrics show, use conditional language, and avoid definitive recommendations. Output {"analysis":{"overall":"...","stronger":"...","weaker":"...","consistency":"...","risk":"...","plan":"..."}} with all six fields filled.` },
         { role: 'user', content: JSON.stringify({ items, limitation: 'Use only the supplied historical closing-price changes and streaks.' }) },
       ],
     }),
   });
-  if (!response.ok) return json({ error: 'DeepSeek upstream error', model: DEEPSEEK_MODEL }, 502, corsHeaders);
+  if (!response.ok) return json({ error: 'GLM upstream error', model: GLM_MODEL }, 502, corsHeaders);
   const data = await response.json();
   const content = data?.choices?.[0]?.message?.content || '{}';
   const parsed = JSON.parse(content.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim());
@@ -2194,8 +2193,8 @@ async function handleFundFlowAnalysis(request, env, corsHeaders) {
   const analysis = Object.fromEntries(keys.map(key => [key, typeof parsed?.analysis?.[key] === 'string' ? parsed.analysis[key].trim().slice(0, 700) : '']));
   const hasCjk = text => /[\u3400-\u9fff]/.test(text);
   const localeMatches = keys.every(key => lang === 'zh' ? hasCjk(analysis[key]) : !hasCjk(analysis[key]));
-  if (!localeMatches) return json({ error: 'DeepSeek returned analysis in the wrong locale', model: DEEPSEEK_MODEL, locale: lang }, 502, corsHeaders);
-  return json({ model: DEEPSEEK_MODEL, provider: 'DeepSeek', dataType: 'historical-close-price-analysis', analysis, bullets: keys.map(key => analysis[key]).filter(Boolean) }, 200, corsHeaders);
+  if (!localeMatches) return json({ error: 'GLM returned analysis in the wrong locale', model: GLM_MODEL, locale: lang }, 502, corsHeaders);
+  return json({ model: GLM_MODEL, provider: 'GLM', dataType: 'historical-close-price-analysis', analysis, bullets: keys.map(key => analysis[key]).filter(Boolean) }, 200, corsHeaders);
 }
 
 async function handleChart(url, env, corsHeaders) {
