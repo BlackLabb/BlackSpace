@@ -1,0 +1,2 @@
+# Backend proxy — deploy via Cloudflare only; do not commit API logic to public repo
+Worker.js
