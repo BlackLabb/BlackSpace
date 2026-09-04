@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Month Strip Layout Demo · BlackSpace</title>
+<style>
+  :root {
+    --bg: #070708;
+    --chrome-bg: #0b0b0f;
+    --surface: #111116;
+    --surfaceOff: #14131a;
+    --divider: rgba(255,255,255,.08);
+    --border: rgba(255,255,255,.12);
+    --text: #f3f1ec;
+    --muted: #8d8980;
+    --faint: #5c5954;
+    --primary: #d4b56a;
+    --primaryHL: rgba(212,181,106,.14);
+    --rFull: 9999px;
+    --rXl: 1.25rem;
+    --trans: .2s ease;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 28px 20px 48px; }
+  h1 { margin: 0 0 6px; font-size: 22px; letter-spacing: -.03em; }
+  .sub { margin: 0 0 20px; color: var(--muted); font-size: 13px; line-height: 1.6; max-width: 620px; }
+  .pick-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .pick-tab {
+    padding: 8px 14px; border-radius: var(--rFull); border: 1px solid var(--border);
+    background: var(--surfaceOff); color: var(--muted); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: var(--trans);
+  }
+  .pick-tab.active { background: var(--primaryHL); border-color: rgba(212,181,106,.35); color: var(--primary); }
+  .pick-tab .tag { font-size: 10px; opacity: .7; margin-left: 4px; }
+  .layout-panel { display: none; animation: fade .25s ease; }
+  .layout-panel.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .note {
+    margin: 0 0 14px; padding: 10px 14px; border-radius: 12px;
+    background: var(--primaryHL); border: 1px solid rgba(212,181,106,.2);
+    color: var(--muted); font-size: 12px; line-height: 1.55;
+  }
+  .note strong { color: var(--primary); }
+
+  /* Phone frame */
+  .phone {
+    width: min(390px, 100%);
+    margin: 0 auto;
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    overflow: hidden;
+    background: var(--chrome-bg);
+    box-shadow: 0 24px 60px rgba(0,0,0,.45);
+  }
+  .phone-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .phone-topbar h2 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -.02em; }
+  .phone-icons { display: flex; gap: 6px; color: var(--muted); }
+  .phone-icons svg { width: 18px; height: 18px; }
+  .phone-content {
+    padding: 12px;
+    background: var(--bg);
+    min-height: 120px;
+  }
+  .fake-kpi {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .fake-kpi div {
+    background: var(--surface); border-radius: 14px; padding: 12px;
+    font-size: 11px; color: var(--muted);
+  }
+  .fake-kpi div b { display: block; font-size: 18px; color: var(--text); margin-top: 4px; }
+
+  /* ── A: Current scroll pills ── */
+  .strip-a {
+    display: flex; gap: 4px; padding: 8px 16px; overflow-x: auto;
+    scrollbar-width: none; border-bottom: 1px solid var(--divider); background: var(--chrome-bg);
+  }
+  .strip-a::-webkit-scrollbar { display: none; }
+  .pill {
+    padding: 5px 14px; border-radius: var(--rFull); font-size: 12px; font-weight: 500;
+    white-space: nowrap; color: var(--muted); border: 1px solid transparent;
+    background: transparent; cursor: pointer; flex-shrink: 0; transition: var(--trans);
+  }
+  .pill:hover { background: var(--surfaceOff); color: var(--text); }
+  .pill.active { background: var(--primary); color: #171512; font-weight: 700; }
+  .pill.range {
+    display: flex; align-items: center; gap: 5px;
+    border: 1px solid var(--border); color: var(--muted);
+  }
+
+  /* ── B: Chevron stepper ── */
+  .strip-b {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; border-bottom: 1px solid var(--divider); background: var(--chrome-bg);
+    gap: 8px;
+  }
+  .step-btn {
+    width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surfaceOff); color: var(--text); display: grid; place-items: center;
+    cursor: pointer; flex-shrink: 0; transition: var(--trans);
+  }
+  .step-btn:hover { border-color: rgba(212,181,106,.35); color: var(--primary); }
+  .step-btn:disabled { opacity: .35; cursor: default; }
+  .step-center { flex: 1; text-align: center; min-width: 0; }
+  .step-month { font-size: 16px; font-weight: 700; letter-spacing: -.02em; }
+  .step-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .step-range {
+    margin-left: auto; padding: 6px 10px; border-radius: var(--rFull);
+    border: 1px solid var(--border); background: transparent; color: var(--muted);
+    font-size: 11px; cursor: pointer; flex-shrink: 0;
+  }
+
+  /* ── C: 12-month grid ── */
+  .strip-c {
+    padding: 10px 14px 12px; border-bottom: 1px solid var(--divider); background: var(--chrome-bg);
+  }
+  .strip-c-head {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+  }
+  .year-label { font-size: 13px; font-weight: 700; color: var(--text); }
+  .year-nav { display: flex; gap: 4px; }
+  .year-nav button {
+    width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surfaceOff); color: var(--muted); cursor: pointer; font-size: 14px;
+  }
+  .month-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;
+  }
+  .month-grid button {
+    padding: 7px 0; border-radius: 10px; border: 1px solid transparent;
+    background: var(--surfaceOff); color: var(--muted); font-size: 11px; font-weight: 600;
+    cursor: pointer; transition: var(--trans);
+  }
+  .month-grid button.active {
+    background: var(--primary); color: #171512; font-weight: 700;
+    box-shadow: 0 2px 8px rgba(212,181,106,.25);
+  }
+  .month-grid button.future { opacity: .45; }
+
+  /* ── D: Dropdown picker ── */
+  .strip-d {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px; border-bottom: 1px solid var(--divider); background: var(--chrome-bg);
+  }
+  .month-select {
+    flex: 1; position: relative;
+  }
+  .month-select-btn {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--surfaceOff); color: var(--text); font-size: 14px; font-weight: 600;
+    cursor: pointer;
+  }
+  .month-select-btn svg { color: var(--muted); transition: transform .2s; }
+  .month-select.open .month-select-btn svg { transform: rotate(180deg); }
+  .month-drop {
+    display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 10;
+    max-height: 220px; overflow-y: auto; border-radius: 14px; border: 1px solid var(--border);
+    background: var(--surface); box-shadow: 0 12px 40px rgba(0,0,0,.45); padding: 6px;
+  }
+  .month-select.open .month-drop { display: block; }
+  .month-drop button {
+    width: 100%; text-align: left; padding: 10px 12px; border: none; border-radius: 8px;
+    background: transparent; color: var(--muted); font-size: 13px; cursor: pointer;
+  }
+  .month-drop button.active { background: var(--primaryHL); color: var(--primary); font-weight: 700; }
+  .month-drop button:hover { background: var(--surfaceOff); color: var(--text); }
+
+  /* ── E: Integrated topbar ── */
+  .strip-e .phone-topbar { border-bottom: none; padding-bottom: 4px; }
+  .strip-e .topbar-month {
+    display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;
+  }
+  .strip-e .topbar-month .step-btn { width: 32px; height: 32px; border-radius: 8px; }
+  .strip-e .topbar-month .step-month { font-size: 15px; text-align: left; }
+  .strip-e .topbar-month .step-sub { text-align: left; }
+  .strip-e-hint {
+    padding: 0 16px 10px; font-size: 11px; color: var(--faint);
+    border-bottom: 1px solid var(--divider);
+  }
+
+  /* ── F: Compact 3-window ── */
+  .strip-f {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 16px; border-bottom: 1px solid var(--divider); background: var(--chrome-bg);
+  }
+  .strip-f .pill { min-width: 72px; text-align: center; padding: 8px 12px; }
+  .strip-f .pill.active { transform: scale(1.05); }
+  .strip-f .pill.dim { opacity: .5; font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Month Strip 布局 Demo</h1>
+  <p class="sub">Monthly View 頂部月份切換 — 5 種方案對比。點選 tab 切換預覽，在 phone mock 內可點月份互動。</p>
+
+  <div class="pick-tabs">
+    <button class="pick-tab active" data-layout="a">A · 現況 <span class="tag">scroll pills</span></button>
+    <button class="pick-tab" data-layout="b">B · 步進器 <span class="tag">‹ Sep ›</span></button>
+    <button class="pick-tab" data-layout="c">C · 月份格 <span class="tag">6×2 grid</span></button>
+    <button class="pick-tab" data-layout="d">D · 下拉選單 <span class="tag">dropdown</span></button>
+    <button class="pick-tab" data-layout="e">E · 合併頂欄 <span class="tag">no strip</span></button>
+    <button class="pick-tab" data-layout="f">F · 三窗精簡 <span class="tag">prev/cur/next</span></button>
+  </div>
+
+  <!-- A -->
+  <div class="layout-panel active" id="panel-a">
+    <p class="note"><strong>A · 現況</strong> — 12 個 pill 橫向 scroll。問題：佔高度、要滑動才見到其他月份、Range 混在末尾。</p>
+    <div class="phone" id="demo-a"></div>
+  </div>
+
+  <!-- B -->
+  <div class="layout-panel" id="panel-b">
+    <p class="note"><strong>B · 步進器</strong> — 左右箭嘴切換，中間顯示當月 + 副標（如「第 9 個月」）。最適合手機，慳位又清晰。</p>
+    <div class="phone" id="demo-b"></div>
+  </div>
+
+  <!-- C -->
+  <div class="layout-panel" id="panel-c">
+    <p class="note"><strong>C · 月份格</strong> — 6×2 格一次睇晒 12 個月，年份可切換。適合想快速跳月、唔想 scroll 嘅用家。</p>
+    <div class="phone" id="demo-c"></div>
+  </div>
+
+  <!-- D -->
+  <div class="layout-panel" id="panel-d">
+    <p class="note"><strong>D · 下拉選單</strong> — 慳位，tap 展開完整月份列表。適合月份多、畫面要留畀 KPI 嘅情況。</p>
+    <div class="phone" id="demo-d"></div>
+  </div>
+
+  <!-- E -->
+  <div class="layout-panel" id="panel-e">
+    <p class="note"><strong>E · 合併頂欄</strong> — 取消獨立 month strip，月份放入 topbar 標題位置。整頁更乾淨，少一層 UI。</p>
+    <div class="phone" id="demo-e"></div>
+  </div>
+
+  <!-- F -->
+  <div class="layout-panel" id="panel-f">
+    <p class="note"><strong>F · 三窗精簡</strong> — 只顯示 上個月 / 當月 / 下個月，左右 dim。極簡，適合逐月翻查。</p>
+    <div class="phone" id="demo-f"></div>
+  </div>
+</div>
+
+<script>
+const MONTHS = [
+  [0,'Jan'],[1,'Feb'],[2,'Mar'],[3,'Apr'],[4,'May'],[5,'Jun'],
+  [6,'Jul'],[7,'Aug'],[8,'Sep'],[9,'Oct'],[10,'Nov'],[11,'Dec']
+];
+const YEAR = 2026;
+let idx = 8; // Sep 2026
+
+function label(i) {
+  const [m, ab] = MONTHS[i];
+  return `${ab} ${YEAR}`;
+}
+function labelFull(i) {
+  const names = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `${names[i]} ${YEAR}`;
+}
+
+function icons() {
+  return `<div class="phone-icons">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+  </div>`;
+}
+function content() {
+  return `<div class="phone-content"><div class="fake-kpi">
+    <div>Income<b>—</b></div>
+    <div>Total Spent<b>$4,230</b></div>
+    <div>Net Savings<b>—</b></div>
+    <div>Transactions<b>18</b></div>
+  </div></div>`;
+}
+function chev(d) {
+  return d < 0
+    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>'
+    : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>';
+}
+
+function renderA() {
+  const pills = MONTHS.map(([m, ab], i) =>
+    `<button class="pill${i===idx?' active':''}" data-i="${i}">${ab} ${YEAR}</button>`
+  ).join('') + `<button class="pill range"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg> Range</button>`;
+  document.getElementById('demo-a').innerHTML = `
+    <div class="phone-topbar"><h2>Monthly View</h2>${icons()}</div>
+    <div class="strip-a">${pills}</div>${content()}`;
+  document.getElementById('demo-a').querySelector('.strip-a').querySelectorAll('.pill[data-i]').forEach(b => {
+    b.onclick = () => { idx = +b.dataset.i; renderAll(); };
+  });
+  const active = document.getElementById('demo-a').querySelector('.pill.active');
+  if (active) active.scrollIntoView({ inline: 'center', block: 'nearest' });
+}
+
+function renderB() {
+  document.getElementById('demo-b').innerHTML = `
+    <div class="phone-topbar"><h2>Monthly View</h2>${icons()}</div>
+    <div class="strip-b">
+      <button class="step-btn" data-d="-1" ${idx===0?'disabled':''}>${chev(-1)}</button>
+      <div class="step-center">
+        <div class="step-month">${labelFull(idx)}</div>
+        <div class="step-sub">${idx+1} / 12 · ${YEAR}</div>
+      </div>
+      <button class="step-btn" data-d="1" ${idx===11?'disabled':''}>${chev(1)}</button>
+      <button class="step-range">Range</button>
+    </div>${content()}`;
+  document.getElementById('demo-b').querySelectorAll('.step-btn[data-d]').forEach(b => {
+    b.onclick = () => { idx = Math.max(0, Math.min(11, idx + +b.dataset.d)); renderAll(); };
+  });
+}
+
+function renderC() {
+  const cells = MONTHS.map(([m, ab], i) =>
+    `<button class="${i===idx?'active':''}${i>8?' future':''}" data-i="${i}">${ab}</button>`
+  ).join('');
+  document.getElementById('demo-c').innerHTML = `
+    <div class="phone-topbar"><h2>Monthly View</h2>${icons()}</div>
+    <div class="strip-c">
+      <div class="strip-c-head">
+        <span class="year-label">${YEAR}</span>
+        <div class="year-nav"><button>‹</button><button>›</button></div>
+      </div>
+      <div class="month-grid">${cells}</div>
+    </div>${content()}`;
+  document.getElementById('demo-c').querySelectorAll('.month-grid button').forEach(b => {
+    b.onclick = () => { idx = +b.dataset.i; renderAll(); };
+  });
+}
+
+function renderD() {
+  const opts = MONTHS.map(([m, ab], i) =>
+    `<button class="${i===idx?'active':''}" data-i="${i}">${labelFull(i)}</button>`
+  ).join('');
+  document.getElementById('demo-d').innerHTML = `
+    <div class="phone-topbar"><h2>Monthly View</h2>${icons()}</div>
+    <div class="strip-d">
+      <div class="month-select" id="ms-d">
+        <button class="month-select-btn" type="button">
+          <span>${labelFull(idx)}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="month-drop">${opts}</div>
+      </div>
+      <button class="step-range">Range</button>
+    </div>${content()}`;
+  const ms = document.getElementById('ms-d');
+  ms.querySelector('.month-select-btn').onclick = () => ms.classList.toggle('open');
+  ms.querySelectorAll('.month-drop button').forEach(b => {
+    b.onclick = () => { idx = +b.dataset.i; ms.classList.remove('open'); renderAll(); };
+  });
+}
+
+function renderE() {
+  document.getElementById('demo-e').innerHTML = `
+    <div class="phone strip-e">
+      <div class="phone-topbar">
+        <div class="topbar-month">
+          <button class="step-btn" data-d="-1" ${idx===0?'disabled':''}>${chev(-1)}</button>
+          <div style="min-width:0">
+            <div class="step-month">${labelFull(idx)}</div>
+            <div class="step-sub">Monthly View</div>
+          </div>
+          <button class="step-btn" data-d="1" ${idx===11?'disabled':''}>${chev(1)}</button>
+        </div>
+        ${icons()}
+      </div>
+      <div class="strip-e-hint">Tap arrows to change month · Range in settings</div>
+      ${content()}
+    </div>`;
+  document.getElementById('demo-e').querySelectorAll('.step-btn[data-d]').forEach(b => {
+    b.onclick = () => { idx = Math.max(0, Math.min(11, idx + +b.dataset.d)); renderAll(); };
+  });
+}
+
+function renderF() {
+  const prev = idx > 0 ? idx - 1 : null;
+  const next = idx < 11 ? idx + 1 : null;
+  document.getElementById('demo-f').innerHTML = `
+    <div class="phone-topbar"><h2>Monthly View</h2>${icons()}</div>
+    <div class="strip-f">
+      ${prev !== null ? `<button class="pill dim" data-i="${prev}">${label(prev)}</button>` : '<span style="width:72px"></span>'}
+      <button class="pill active">${label(idx)}</button>
+      ${next !== null ? `<button class="pill dim" data-i="${next}">${label(next)}</button>` : '<span style="width:72px"></span>'}
+    </div>${content()}`;
+  document.getElementById('demo-f').querySelectorAll('.pill[data-i]').forEach(b => {
+    b.onclick = () => { idx = +b.dataset.i; renderAll(); };
+  });
+}
+
+function renderAll() {
+  renderA(); renderB(); renderC(); renderD(); renderE(); renderF();
+}
+renderAll();
+
+document.querySelectorAll('.pick-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.pick-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.layout-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.layout).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
