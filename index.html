@@ -435,12 +435,13 @@ table{border-collapse:collapse;width:100%}
 .monthly-cat-unified{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,1.05fr);gap:20px;align-items:start}
 .monthly-bva-compact{display:flex;flex-direction:column;gap:10px;min-width:0}
 .monthly-bva-row{
-  display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) auto auto;gap:10px;align-items:center;
   padding:12px 14px;border:1px solid var(--divider);border-radius:14px;background:var(--surfaceOff);
 }
+.monthly-bva-head{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
 .monthly-bva-name{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;white-space:nowrap;flex-shrink:0}
-.monthly-bva-meta{display:flex;flex-direction:column;gap:6px;min-width:0}
-.monthly-bva-sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.monthly-bva-meta{display:flex;align-items:center;min-width:0}
+.monthly-bva-sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;min-width:0}
 .monthly-bva-spent{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;flex-shrink:0}
 .monthly-bva-badge{
   font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;min-width:44px;text-align:center;flex-shrink:0;
@@ -2870,10 +2871,12 @@ function renderMonthly(){
       ? (curLang==='zh' ? `預算 ${fmt(c.budget)}` : `Budget ${fmt(c.budget)}`)
       : (curLang==='zh' ? '未設預算' : 'No budget');
     return `<div class="monthly-bva-row">
-      <div class="monthly-bva-name"><span class="bva-dot" style="background:${c.col}"></span>${c.name}</div>
+      <div class="monthly-bva-head">
+        <div class="monthly-bva-name"><span class="bva-dot" style="background:${c.col}"></span>${c.name}</div>
+        <div class="monthly-bva-sub">${budgetTxt}</div>
+      </div>
       <div class="monthly-bva-meta">
         <div class="bva-track"><div class="bva-fill ${over?'over':'ok'}" style="width:${fillW}%"></div></div>
-        <div class="monthly-bva-sub">${budgetTxt}</div>
       </div>
       <div class="monthly-bva-spent">${fmt(spent)}</div>
       <div class="${badgeCls}">${badge}</div>
