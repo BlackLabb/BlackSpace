@@ -34,8 +34,8 @@ const STOCK_AI_CACHE_TTL = 24 * 60 * 60 * 1000;
 const STOCK_AI_EDGE_CACHE_TTL = 24 * 60 * 60;
 const SEC_CACHE_TTL = 24 * 60 * 60 * 1000;
 const SEC_SECTION_MAX_CHARS = 16000;
-const GLM_ENDPOINT = 'https://api.z.ai/api/paas/v4/chat/completions';
-const GLM_MODEL = 'glm-5.3';
+const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
+const GLM_MODEL = 'z-ai/glm-5.3';
 const GLM_THINKING = { type: 'enabled' };
 const GLM_REASONING_EFFORT = 'max';
 const GLM_STOCK_JSON_MAX_TOKENS = 8192;
@@ -50,6 +50,15 @@ const SEC_HEADERS = {
   'User-Agent': 'BlackSpace/1.0 contact: blackspace.markchanchun.workers.dev',
 };
 const SEC_READER_BASE = 'https://r.jina.ai/http://';
+
+function openRouterHeaders(apiKey) {
+  return {
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json',
+    'HTTP-Referer': 'https://blackspace.markchanchun.workers.dev',
+    'X-Title': 'BlackSpace',
+  };
+}
 
 function cors(origin) {
   const allowed = ALLOWED_ORIGINS.some(o => origin && origin.startsWith(o));
@@ -301,7 +310,7 @@ function fallbackPriceImpact(item) {
 }
 
 async function analyzeSentimentWithGlm(items, env) {
-  const apiKey = env.GLM_API_KEY;
+  const apiKey = env.OPENROUTER_API_KEY;
   if (!apiKey || !items.length) {
     return items.map(item => ({ ...item, sentiment: fallbackSentiment(item), priceImpact: fallbackPriceImpact(item), sentimentProvider: 'rules' }));
   }
@@ -314,12 +323,9 @@ async function analyzeSentimentWithGlm(items, env) {
     tickers: item.tickers,
   }));
   try {
-    const resp = await fetch(GLM_ENDPOINT, {
+    const resp = await fetch(OPENROUTER_ENDPOINT, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
+      headers: openRouterHeaders(apiKey),
       body: JSON.stringify({
         model: GLM_MODEL,
         response_format: { type: 'json_object' },
@@ -331,7 +337,7 @@ async function analyzeSentimentWithGlm(items, env) {
         ],
       }),
     });
-    if (!resp.ok) throw new Error('GLM upstream error');
+    if (!resp.ok) throw new Error('OpenRouter GLM upstream error');
     const data = await resp.json();
     const content = data?.choices?.[0]?.message?.content || '{}';
     const parsed = JSON.parse(content);
@@ -373,7 +379,7 @@ function fallbackNewsDigest(items, tickers, lang = 'zh') {
 }
 
 async function analyzeNewsDigestWithGlm(items, env, tickers, lang = 'zh') {
-  const apiKey = env.GLM_API_KEY;
+  const apiKey = env.OPENROUTER_API_KEY;
   const topItems = items.slice(0, FULL_TEXT_MAX_ITEMS);
   if (!apiKey || !topItems.length) return fallbackNewsDigest(topItems, tickers, lang);
   const languageName = lang === 'en' ? 'English' : 'Traditional Chinese';
@@ -387,12 +393,9 @@ async function analyzeNewsDigestWithGlm(items, env, tickers, lang = 'zh') {
     tickers: item.tickers,
   }));
   try {
-    const resp = await fetch(GLM_ENDPOINT, {
+    const resp = await fetch(OPENROUTER_ENDPOINT, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
+      headers: openRouterHeaders(apiKey),
       body: JSON.stringify({
         model: GLM_MODEL,
         response_format: { type: 'json_object' },
@@ -404,7 +407,7 @@ async function analyzeNewsDigestWithGlm(items, env, tickers, lang = 'zh') {
         ],
       }),
     });
-    if (!resp.ok) throw new Error('GLM digest upstream error');
+    if (!resp.ok) throw new Error('OpenRouter GLM digest upstream error');
     const data = await resp.json();
     const content = data?.choices?.[0]?.message?.content || '{}';
     const parsed = JSON.parse(content);
@@ -1260,7 +1263,7 @@ async function getSecFilingSections(symbol) {
 }
 
 async function analyzeSecSectionsWithGlm(sections, env, lang = 'zh') {
-  const apiKey = env.GLM_API_KEY;
+  const apiKey = env.OPENROUTER_API_KEY;
   const business = sections?.sections?.business || '';
   const riskFactors = sections?.sections?.riskFactors || '';
   if (!apiKey || (!business && !riskFactors)) {
@@ -1274,12 +1277,9 @@ async function analyzeSecSectionsWithGlm(sections, env, lang = 'zh') {
   }
   const languageName = lang === 'en' ? 'English' : 'Traditional Chinese';
   try {
-    const resp = await fetch(GLM_ENDPOINT, {
+    const resp = await fetch(OPENROUTER_ENDPOINT, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
+      headers: openRouterHeaders(apiKey),
       body: JSON.stringify({
         model: GLM_MODEL,
         response_format: { type: 'json_object' },
@@ -1297,7 +1297,7 @@ async function analyzeSecSectionsWithGlm(sections, env, lang = 'zh') {
         ],
       }),
     });
-    if (!resp.ok) throw new Error('GLM SEC summary upstream error');
+    if (!resp.ok) throw new Error('OpenRouter GLM SEC summary upstream error');
     const data = await resp.json();
     const parsed = JSON.parse(data?.choices?.[0]?.message?.content || '{}');
     return {
@@ -1338,7 +1338,7 @@ async function handleSecFilingSections(url, env, corsHeaders) {
     const data = {
       ...sections,
       aiSummary,
-      glmConfigured: Boolean(env.GLM_API_KEY),
+      openrouterConfigured: Boolean(env.OPENROUTER_API_KEY),
     };
     cache.set(cacheKey, { ts: Date.now(), data });
     return json(data, 200, corsHeaders, { 'X-Cache': 'MISS' });
@@ -1412,7 +1412,7 @@ async function handleNews(url, env, corsHeaders) {
       data.debug = {
         rawFeedCount: rawFeed.length,
         filteredFeedCount: feed.length,
-        glmConfigured: Boolean(env.GLM_API_KEY),
+        openrouterConfigured: Boolean(env.OPENROUTER_API_KEY),
         sourceVersion: NEWS_SOURCE_VERSION,
         sources: ['Finnhub Company News'],
         fullTextEnabled: useFullText,
@@ -1487,7 +1487,7 @@ async function handleNewsAnalysis(url, env, corsHeaders) {
       data.debug = {
         rawFeedCount: rawFeed.length,
         filteredFeedCount: feed.length,
-        glmConfigured: Boolean(env.GLM_API_KEY),
+        openrouterConfigured: Boolean(env.OPENROUTER_API_KEY),
         sourceVersion: NEWS_SOURCE_VERSION,
         fullTextMaxItems: FULL_TEXT_MAX_ITEMS,
         fullTextDebug: analysisFeed.stats,
@@ -1806,9 +1806,9 @@ function buildStockAnalysisFromParsed(parsed, input) {
 }
 
 async function analyzeStockWithGlm(input, env, lang = 'zh') {
-  const apiKey = env.GLM_API_KEY;
+  const apiKey = env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    const error = new Error('GLM_API_KEY missing');
+    const error = new Error('OPENROUTER_API_KEY missing');
     error.status = 503;
     throw error;
   }
@@ -1850,15 +1850,12 @@ Output {"researchScore":{"total":0-100,"label":"Strong watchlist|Balanced watchl
           { role: 'user', content: JSON.stringify(input) },
         ],
       };
-      const resp = await fetch(GLM_ENDPOINT, {
+      const resp = await fetch(OPENROUTER_ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
+        headers: openRouterHeaders(apiKey),
         body: JSON.stringify(body),
       });
-      if (!resp.ok) throw new Error('GLM stock analysis upstream error');
+      if (!resp.ok) throw new Error('OpenRouter GLM stock analysis upstream error');
       const data = await resp.json();
       lastFinishReason = data?.choices?.[0]?.finish_reason || '';
       const parsed = parseGlmJson(data);
@@ -1977,7 +1974,7 @@ async function handleStockAiAnalysis(url, env, corsHeaders) {
       analysis,
       technicalLevels,
       updatedAt: new Date().toISOString(),
-      glmConfigured: Boolean(env.GLM_API_KEY),
+      openrouterConfigured: Boolean(env.OPENROUTER_API_KEY),
     };
     if (!isValidStockAnalysisPayload(data)) {
       const error = new Error('GLM stock analysis returned empty narrative content');
@@ -2170,13 +2167,13 @@ async function handleFundFlowAnalysis(request, env, corsHeaders) {
   const items = Array.isArray(body.items) ? body.items.slice(0, 13) : [];
   const locale = String(body.locale || body.lang || 'zh').toLowerCase();
   const lang = locale === 'en' || locale.startsWith('en-') ? 'en' : 'zh';
-  const apiKey = env.GLM_API_KEY;
-  if (!apiKey) return json({ error: 'GLM_API_KEY is not configured', model: GLM_MODEL }, 503, corsHeaders);
+  const apiKey = env.OPENROUTER_API_KEY;
+  if (!apiKey) return json({ error: 'OPENROUTER_API_KEY is not configured', model: GLM_MODEL }, 503, corsHeaders);
   const language = lang === 'en'
     ? 'English only. Do not output Chinese sentences.'
     : 'Traditional Chinese only (繁體中文／正體中文). Do not output English sentences; keep only ticker symbols and unavoidable metric abbreviations in Latin characters.';
-  const response = await fetch(GLM_ENDPOINT, {
-    method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+  const response = await fetch(OPENROUTER_ENDPOINT, {
+    method: 'POST', headers: openRouterHeaders(apiKey),
     body: JSON.stringify({
       model: GLM_MODEL, response_format: { type: 'json_object' }, thinking: GLM_THINKING, reasoning_effort: GLM_REASONING_EFFORT,
       messages: [
@@ -2185,7 +2182,7 @@ async function handleFundFlowAnalysis(request, env, corsHeaders) {
       ],
     }),
   });
-  if (!response.ok) return json({ error: 'GLM upstream error', model: GLM_MODEL }, 502, corsHeaders);
+  if (!response.ok) return json({ error: 'OpenRouter GLM upstream error', model: GLM_MODEL }, 502, corsHeaders);
   const data = await response.json();
   const content = data?.choices?.[0]?.message?.content || '{}';
   const parsed = JSON.parse(content.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim());
@@ -2193,8 +2190,8 @@ async function handleFundFlowAnalysis(request, env, corsHeaders) {
   const analysis = Object.fromEntries(keys.map(key => [key, typeof parsed?.analysis?.[key] === 'string' ? parsed.analysis[key].trim().slice(0, 700) : '']));
   const hasCjk = text => /[\u3400-\u9fff]/.test(text);
   const localeMatches = keys.every(key => lang === 'zh' ? hasCjk(analysis[key]) : !hasCjk(analysis[key]));
-  if (!localeMatches) return json({ error: 'GLM returned analysis in the wrong locale', model: GLM_MODEL, locale: lang }, 502, corsHeaders);
-  return json({ model: GLM_MODEL, provider: 'GLM', dataType: 'historical-close-price-analysis', analysis, bullets: keys.map(key => analysis[key]).filter(Boolean) }, 200, corsHeaders);
+  if (!localeMatches) return json({ error: 'OpenRouter GLM returned analysis in the wrong locale', model: GLM_MODEL, locale: lang }, 502, corsHeaders);
+  return json({ model: GLM_MODEL, provider: 'openrouter', dataType: 'historical-close-price-analysis', analysis, bullets: keys.map(key => analysis[key]).filter(Boolean) }, 200, corsHeaders);
 }
 
 async function handleChart(url, env, corsHeaders) {

@@ -4676,7 +4676,7 @@ function sortNewsFeed(feed, mode){
 }
 function newsErrorText(){
   if(!newsLastError) return '';
-  return curLang==='zh' ? '新聞 API 暫時未能連線，請檢查 Worker 部署、Finnhub key 和 GLM API key。' : 'News API is unavailable. Check the Worker deployment, Finnhub key, and GLM API key.';
+  return curLang==='zh' ? '新聞 API 暫時未能連線，請檢查 Worker 部署、Finnhub key 和 OpenRouter API key。' : 'News API is unavailable. Check the Worker deployment, Finnhub key, and OpenRouter API key.';
 }
 function setNewsPositiveValue(value){
   const el = $('news-positive');
