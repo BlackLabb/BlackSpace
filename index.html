@@ -3166,7 +3166,7 @@ function renderFundFlowAiLoading(){
 function renderFundFlowAiFailure(error){
   const list = $('fund-flow-ai-list');
   if(!list) return;
-  const message = curLang === 'zh' ? 'DeepSeek 價格趨勢分析暫時未能載入，以下為價格資料觀察提示；請稍後重試。' : 'DeepSeek price-trend analysis is temporarily unavailable. The price-data observation prompts below are shown; please retry later.';
+  const message = curLang === 'zh' ? 'GLM 5.3 價格趨勢分析暫時未能載入，以下為價格資料觀察提示；請稍後重試。' : 'GLM 5.3 price-trend analysis is temporarily unavailable. The price-data observation prompts below are shown; please retry later.';
   list.innerHTML = `<li class="fund-flow-ai-state">${fundFlowEsc(message)}</li>`;
   renderFundFlowAiFallback();
   const state = document.createElement('li');
@@ -4676,7 +4676,7 @@ function sortNewsFeed(feed, mode){
 }
 function newsErrorText(){
   if(!newsLastError) return '';
-  return curLang==='zh' ? '新聞 API 暫時未能連線，請檢查 Worker 部署、Finnhub key 和 DeepSeek key。' : 'News API is unavailable. Check the Worker deployment, Finnhub key, and DeepSeek key.';
+  return curLang==='zh' ? '新聞 API 暫時未能連線，請檢查 Worker 部署、Finnhub key 和 OpenRouter API key。' : 'News API is unavailable. Check the Worker deployment, Finnhub key, and OpenRouter API key.';
 }
 function setNewsPositiveValue(value){
   const el = $('news-positive');
@@ -6561,9 +6561,9 @@ const API = 'https://blackspace.markchanchun.workers.dev';
   
       function aiConclusionPanel(aiConclusion) {
         const data = aiConclusion?.analysis || aiConclusion;
-        if (!data || data.error) return panel(t('aiAnalysis'), 'DeepSeek V4 Flash 0731', `<div class="empty">${esc(t('aiAnalysisUnavailable'))}</div>`, t('aiAnalysisNote'), 'ai-analysis-panel');
+        if (!data || data.error) return panel(t('aiAnalysis'), 'GLM 5.3', `<div class="empty">${esc(t('aiAnalysisUnavailable'))}</div>`, t('aiAnalysisNote'), 'ai-analysis-panel');
         const points = Array.isArray(data.keyPoints) ? data.keyPoints.slice(0, 4) : [];
-        const source = data.provider === 'deepseek' || aiConclusion?.provider === 'deepseek_stock_research' ? 'DeepSeek V4 Flash 0731' : 'DeepSeek V4 Flash 0731';
+        const source = data.provider === 'glm' || aiConclusion?.provider === 'glm_stock_research' ? 'GLM 5.3' : 'GLM 5.3';
         const sections = [
           data.thesis ? `<p><strong>${esc(t('thesis'))}:</strong> ${esc(data.thesis)}</p>` : '',
           data.financialRead ? `<p><strong>${esc(t('financialRead'))}:</strong> ${esc(data.financialRead)}</p>` : '',
@@ -6578,7 +6578,7 @@ const API = 'https://blackspace.markchanchun.workers.dev';
       }
   
       function aiConclusionLoading() {
-        return panel(t('aiAnalysis'), 'DeepSeek V4 Flash 0731', `<div class="empty">${esc(t('aiAnalysisLoading'))}</div>`, t('aiAnalysisNote'), 'ai-analysis-panel');
+        return panel(t('aiAnalysis'), 'GLM 5.3', `<div class="empty">${esc(t('aiAnalysisLoading'))}</div>`, t('aiAnalysisNote'), 'ai-analysis-panel');
       }
   
       async function loadStockAiAnalysis(symbol) {
@@ -7406,9 +7406,9 @@ const API = 'https://blackspace.markchanchun.workers.dev';
 
     function aiConclusionPanel(aiConclusion) {
       const data = aiConclusion?.analysis || aiConclusion;
-      if (!data || data.error) return panel(t('aiAnalysis'), 'DeepSeek V4 Flash 0731', `<div class="empty">${esc(t('aiAnalysisUnavailable'))}</div>`, t('aiAnalysisNote'), 'ai-analysis-panel');
+      if (!data || data.error) return panel(t('aiAnalysis'), 'GLM 5.3', `<div class="empty">${esc(t('aiAnalysisUnavailable'))}</div>`, t('aiAnalysisNote'), 'ai-analysis-panel');
       const points = Array.isArray(data.keyPoints) ? data.keyPoints.slice(0, 4) : [];
-      const source = data.provider === 'deepseek' || aiConclusion?.provider === 'deepseek_stock_research' ? 'DeepSeek V4 Flash 0731' : 'DeepSeek V4 Flash 0731';
+      const source = data.provider === 'glm' || aiConclusion?.provider === 'glm_stock_research' ? 'GLM 5.3' : 'GLM 5.3';
       const sections = [
         data.thesis ? `<p><strong>${esc(t('thesis'))}:</strong> ${esc(data.thesis)}</p>` : '',
         data.financialRead ? `<p><strong>${esc(t('financialRead'))}:</strong> ${esc(data.financialRead)}</p>` : '',
@@ -7423,7 +7423,7 @@ const API = 'https://blackspace.markchanchun.workers.dev';
     }
 
     function aiConclusionLoading() {
-      return panel(t('aiAnalysis'), 'DeepSeek V4 Flash 0731', `<div class="empty">${esc(t('aiAnalysisLoading'))}</div>`, t('aiAnalysisNote'), 'ai-analysis-panel');
+      return panel(t('aiAnalysis'), 'GLM 5.3', `<div class="empty">${esc(t('aiAnalysisLoading'))}</div>`, t('aiAnalysisNote'), 'ai-analysis-panel');
     }
 
     async function loadStockAiAnalysis(symbol) {
