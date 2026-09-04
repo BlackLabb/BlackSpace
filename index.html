@@ -435,14 +435,17 @@ table{border-collapse:collapse;width:100%}
 .monthly-cat-unified{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,1.05fr);gap:20px;align-items:start}
 .monthly-bva-compact{display:flex;flex-direction:column;gap:10px;min-width:0}
 .monthly-bva-row{
-  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) auto auto;gap:10px;align-items:center;
+  display:grid;grid-template-columns:minmax(0,1fr) auto auto;
+  grid-template-areas:"head spent badge" "bar bar bar";
+  gap:8px 10px;align-items:center;
   padding:12px 14px;border:1px solid var(--divider);border-radius:14px;background:var(--surfaceOff);
 }
-.monthly-bva-head{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
+.monthly-bva-head{grid-area:head;display:flex;align-items:baseline;gap:8px;min-width:0;flex-wrap:nowrap;overflow:hidden}
 .monthly-bva-name{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;white-space:nowrap;flex-shrink:0}
-.monthly-bva-meta{display:flex;align-items:center;min-width:0}
+.monthly-bva-meta{grid-area:bar;display:flex;align-items:center;min-width:0}
 .monthly-bva-sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;min-width:0}
-.monthly-bva-spent{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;flex-shrink:0}
+.monthly-bva-spent{grid-area:spent;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;flex-shrink:0}
+.monthly-bva-row>.monthly-bva-badge{grid-area:badge}
 .monthly-bva-badge{
   font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;min-width:44px;text-align:center;flex-shrink:0;
   background:rgba(84,224,143,.12);color:var(--success);
@@ -955,7 +958,9 @@ table{border-collapse:collapse;width:100%}
 }
 .donut-legend-row:hover{background:var(--surfaceOff)}
 .donut-legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.donut-legend-name{color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.donut-legend-label{display:flex;align-items:baseline;gap:8px;min-width:0;overflow:hidden}
+.donut-legend-name{color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.donut-legend-budget{font-size:11px;color:var(--muted);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;min-width:0}
 .donut-legend-pct{color:var(--muted);font-weight:600;font-size:11px;text-align:right;white-space:nowrap}
 .donut-legend-amt{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums;font-size:11px;text-align:right;white-space:nowrap}
 @media(max-width:768px){
@@ -964,6 +969,7 @@ table{border-collapse:collapse;width:100%}
   .donut-legend{width:100%;flex:none;min-width:0}
   .donut-legend-row{grid-template-columns:10px minmax(5em,1fr) auto auto;gap:10px;font-size:13px;padding:4px 2px}
   .donut-legend-name{font-size:13px}
+  .donut-legend-budget{font-size:11px}
   .donut-legend-pct,.donut-legend-amt{font-size:12px}
 }
 
@@ -2870,10 +2876,11 @@ function renderMonthly(){
     const budgetTxt = hasBudget
       ? (curLang==='zh' ? `預算 ${fmt(c.budget)}` : `Budget ${fmt(c.budget)}`)
       : (curLang==='zh' ? '未設預算' : 'No budget');
+    const budgetInline = spent === 0 ? `<span class="monthly-bva-sub">${budgetTxt}</span>` : '';
     return `<div class="monthly-bva-row">
       <div class="monthly-bva-head">
         <div class="monthly-bva-name"><span class="bva-dot" style="background:${c.col}"></span>${c.name}</div>
-        <div class="monthly-bva-sub">${budgetTxt}</div>
+        ${budgetInline}
       </div>
       <div class="monthly-bva-meta">
         <div class="bva-track"><div class="bva-fill ${over?'over':'ok'}" style="width:${fillW}%"></div></div>
@@ -5550,9 +5557,16 @@ function applyRecurringTransactions(){
 // ═══════════════════════════════════════════════════════════════════
 
 // ── SVG DONUT CHART ──────────────────────────────────────────────
-function renderDonut(catMap, containerId, total) {
+function renderDonut(catMap, containerId, total, opts = {}) {
   const el = $(containerId);
   if (!el) return;
+  const showBudget = opts.showBudget ?? containerId === 'monthly-donut-wrap';
+  const budgetLabel = cat => {
+    if (!cat) return curLang === 'zh' ? '未設預算' : 'No budget';
+    return cat.budget > 0
+      ? (curLang === 'zh' ? `預算 ${fmt(cat.budget)}` : `Budget ${fmt(cat.budget)}`)
+      : (curLang === 'zh' ? '未設預算' : 'No budget');
+  };
   const entries = Object.entries(catMap)
     .map(([name, val]) => ({ name, val, col: (CATS.find(c=>c.name===name)||{}).col || '#888' }))
     .filter(e => e.val > 0)
@@ -5575,13 +5589,19 @@ function renderDonut(catMap, containerId, total) {
   });
 
   const fmtK = n => n >= 1000 ? '$'+(n/1000).toFixed(1)+'k' : '$'+n.toLocaleString();
-  const legendRows = entries.map(e => `
+  const legendRows = entries.map(e => {
+    const cat = CATS.find(c => c.name === e.name);
+    const labelHtml = showBudget
+      ? `<div class="donut-legend-label"><span class="donut-legend-name">${e.name}</span><span class="donut-legend-budget">${budgetLabel(cat)}</span></div>`
+      : `<div class="donut-legend-name">${e.name}</div>`;
+    return `
     <div class="donut-legend-row">
       <div class="donut-legend-dot" style="background:${e.col}"></div>
-      <div class="donut-legend-name">${e.name}</div>
+      ${labelHtml}
       <div class="donut-legend-pct">${Math.round(e.val/totalVal*100)}%</div>
       <div class="donut-legend-amt">${fmtK(e.val)}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   el.innerHTML = `<div class="donut-wrap">
     <svg class="donut-svg" width="180" height="180" viewBox="0 0 180 180">
