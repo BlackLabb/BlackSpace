@@ -431,6 +431,33 @@ table{border-collapse:collapse;width:100%}
 .x-axis{display:grid;grid-template-columns:115px 1fr;margin-top:4px}
 .x-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--faint);padding-top:3px}
 
+/* ── MONTHLY UNIFIED CATEGORY ─────────────────────────────────────── */
+.monthly-cat-unified{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,1.05fr);gap:20px;align-items:start}
+.monthly-bva-compact{display:flex;flex-direction:column;gap:10px;min-width:0}
+.monthly-bva-row{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;
+  padding:12px 14px;border:1px solid var(--divider);border-radius:14px;background:var(--surfaceOff);
+}
+.monthly-bva-name{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.monthly-bva-meta{display:flex;flex-direction:column;gap:6px;min-width:0}
+.monthly-bva-sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.monthly-bva-spent{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;flex-shrink:0}
+.monthly-bva-badge{
+  font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;min-width:44px;text-align:center;flex-shrink:0;
+  background:rgba(84,224,143,.12);color:var(--success);
+}
+.monthly-bva-badge.over{background:rgba(208,107,107,.12);color:var(--error)}
+.monthly-bva-badge.muted{background:rgba(255,255,255,.04);color:var(--faint)}
+.monthly-cat-unified .donut-wrap{align-items:flex-start;gap:16px;min-width:0}
+.monthly-cat-unified .donut-svg{flex-shrink:0}
+.monthly-cat-unified .donut-legend{flex:1;min-width:0;width:100%}
+@media(max-width:860px){
+  .monthly-cat-unified{grid-template-columns:1fr;gap:16px}
+  .monthly-cat-unified .donut-wrap{flex-direction:column;align-items:stretch;width:100%}
+  .monthly-cat-unified .donut-svg{align-self:center}
+  .monthly-cat-unified .donut-legend{max-width:100%;width:100%}
+}
+
 /* ── BVA ─────────────────────────────────────────────────────────────────────── */
 .bva-list{display:flex;flex-direction:column;gap:12px}
 .bva-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
@@ -917,19 +944,27 @@ table{border-collapse:collapse;width:100%}
 /* ── DONUT CHART ─────────────────────────────────────────────────── */
 .donut-wrap{display:flex;align-items:center;gap:24px}
 .donut-svg{flex-shrink:0;overflow:visible}
-.donut-center-text{font-size:11px;fill:var(--muted);text-anchor:middle}
-.donut-center-val{font-size:18px;font-weight:700;fill:var(--text);text-anchor:middle;letter-spacing:-.03em}
+.donut-center-text{font-size:10px;fill:var(--muted);text-anchor:middle}
+.donut-center-val{font-size:17px;font-weight:700;fill:var(--text);text-anchor:middle;letter-spacing:-.03em}
 .donut-legend{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
 .donut-legend-row{
-  display:grid;grid-template-columns:8px 1fr auto auto;
+  display:grid;grid-template-columns:8px minmax(4.5em,1fr) auto auto;
   align-items:center;gap:8px;font-size:12px;cursor:pointer;
   border-radius:6px;padding:2px 4px;transition:background var(--trans);
 }
 .donut-legend-row:hover{background:var(--surfaceOff)}
 .donut-legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.donut-legend-name{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.donut-legend-pct{color:var(--muted);font-weight:600;font-size:11px;text-align:right}
-.donut-legend-amt{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums;font-size:11px;text-align:right}
+.donut-legend-name{color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.donut-legend-pct{color:var(--muted);font-weight:600;font-size:11px;text-align:right;white-space:nowrap}
+.donut-legend-amt{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums;font-size:11px;text-align:right;white-space:nowrap}
+@media(max-width:768px){
+  .donut-wrap{flex-direction:column;align-items:stretch;gap:14px;width:100%}
+  .donut-svg{align-self:center;flex-shrink:0}
+  .donut-legend{width:100%;flex:none;min-width:0}
+  .donut-legend-row{grid-template-columns:10px minmax(5em,1fr) auto auto;gap:10px;font-size:13px;padding:4px 2px}
+  .donut-legend-name{font-size:13px}
+  .donut-legend-pct,.donut-legend-amt{font-size:12px}
+}
 
 /* ── LINE CHART ──────────────────────────────────────────────────── */
 .line-chart-wrap{width:100%;overflow:hidden}
@@ -1082,7 +1117,7 @@ table{border-collapse:collapse;width:100%}
 [data-theme="light"] .ambient,[data-theme="light"] .grain,[data-theme="trader"] .ambient,[data-theme="trader"] .grain{display:none}
 #app-wrapper{position:relative;z-index:1}
 .privacy-on .masked,.privacy-on .kpi-val,.privacy-on .kpi-sub,.privacy-on .mini-value,.privacy-on .hero-value,.privacy-on .cat-budget,.privacy-on .amt,.privacy-on .tx-amt,.privacy-on .tx-merchant,.privacy-on .bva-amt,.privacy-on .bva-pct,.privacy-on .bar-amt,.privacy-on .donut-center-val,.privacy-on .donut-legend-pct,.privacy-on .donut-legend-amt{filter:blur(7px);user-select:none}
-.privacy-on .privacy-block .panel-body,.privacy-on .privacy-block .panel-head .card-date,.privacy-on .privacy-block .tx-table,.privacy-on .privacy-block .x-axis,.privacy-on .privacy-block .bva-list{filter:blur(7px);user-select:none;pointer-events:none}
+.privacy-on .privacy-block .panel-body,.privacy-on .privacy-block .panel-head .card-date,.privacy-on .privacy-block .tx-table,.privacy-on .privacy-block .x-axis,.privacy-on .privacy-block .bva-list,.privacy-on .privacy-block .monthly-bva-compact,.privacy-on .privacy-block #monthly-donut-wrap{filter:blur(7px);user-select:none;pointer-events:none}
 .brand{display:flex;align-items:center;gap:12px;padding:4px 8px 10px;flex-shrink:0}
 .brand-mark{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:linear-gradient(145deg,#1a1a1f,#09090b);display:grid;place-items:center;overflow:hidden;box-shadow:0 0 0 4px var(--primaryHL)}
 .brand-mark img{width:100%;height:100%;object-fit:cover}
@@ -1893,17 +1928,16 @@ table{border-collapse:collapse;width:100%}
         <div class="kpi-card kpi-tile"><div class="kpi-lbl" id="k-save-lbl">Net Savings</div><div class="kpi-val" id="k-save">—</div><div class="kpi-sub" id="k-rate">未設定收入</div></div>
         <div class="kpi-card kpi-tile"><div class="kpi-lbl" id="k-count-lbl" data-i18n="lbl-tx-count">Transactions</div><div class="kpi-val" id="k-count">0</div><div class="kpi-sub" id="k-avg">—</div></div>
       </div>
-      <div class="panel-grid dash-grid">
-        <div class="panel card privacy-block" id="monthly-spending-card">
-          <div class="panel-head card-hdr"><span class="card-title" id="card-spending-title" data-i18n="card-spending">Spending by Category</span><span class="card-date" id="chart-lbl">Apr 2026</span></div>
-          <div class="panel-body">
-            <div class="bar-chart chart-bars" id="bar-chart"></div>
-            <div class="x-axis"><div></div><div class="x-labels"><span>$0</span><span>$500</span><span>$1k</span><span>$2k</span><span>$3k</span></div></div>
-          </div>
+      <div class="panel card privacy-block" id="monthly-cat-card">
+        <div class="panel-head card-hdr">
+          <span class="card-title" id="card-spending-title" data-i18n="card-spending">Spending by Category</span>
+          <span class="card-date" id="chart-lbl">Apr 2026</span>
         </div>
-        <div class="panel card privacy-block" id="monthly-bva-card">
-          <div class="panel-head card-hdr"><span class="card-title" id="card-bva-title" data-i18n="card-bva">Budget vs Actual</span></div>
-          <div class="panel-body"><div class="bva-list" id="bva-list"></div></div>
+        <div class="panel-body">
+          <div class="monthly-cat-unified">
+            <div id="monthly-donut-wrap"></div>
+            <div class="monthly-bva-compact" id="monthly-bva-compact"></div>
+          </div>
         </div>
       </div>
       <div class="table-wrap tx-card privacy-block" id="monthly-tx-card">
@@ -2794,7 +2828,7 @@ function renderMonthly(){
   const savings = income - total;
   const rate = income>0 ? Math.round((savings/income)*100) : 0;
 
-  $('chart-lbl').textContent = monthYearLabel(m, y);
+  $('chart-lbl').textContent = monthYearLabel(m, y) + (total > 0 ? (' · ' + fmt(total)) : '');
   $('k-income').textContent = income>0 ? fmt(income) : '—';
   $('k-spent').textContent = fmt(total);
   $('k-save').textContent = income>0 ? (savings>=0?fmt(savings):'-'+fmt(-savings)) : '—';
@@ -2815,31 +2849,34 @@ function renderMonthly(){
   CATS.forEach(c=>{catMap[c.name]=0;});
   txs.forEach(t=>{ if(catMap[t.category]!==undefined) catMap[t.category]+=Math.abs(t.amount); });
 
-  $('bar-chart').innerHTML = CATS.map(c=>{
-    const v=catMap[c.name]||0;
-    const pct=Math.min((v/3000)*100,100);
-    return `<div class="bar-row">
-      <div class="bar-lbl">${c.name}</div>
-      <div class="bar-inner">
-        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${c.col}"></div></div>
-        <div class="bar-amt">${v>0?fmt(v):''}</div>
-      </div>
-    </div>`;
-  }).join('');
+  if(!total){
+    $('monthly-donut-wrap').innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:180px;color:var(--muted);font-size:12px">${curLang==='zh'?'本月未有支出':'No spending this month'}</div>`;
+    $('monthly-bva-compact').innerHTML = '';
+    renderTxRows(txs, 'm-tbody');
+    $('m-badge').textContent = txs.length;
+    return;
+  }
 
-  $('bva-list').innerHTML = CATS.slice(0,6).map(c=>{
-    const spent=catMap[c.name]||0;
+  renderDonut(catMap, 'monthly-donut-wrap', total);
+  $('monthly-bva-compact').innerHTML = CATS.map(c=>{
+    const spent = catMap[c.name] || 0;
     const hasBudget = c.budget > 0;
-    const pct = hasBudget ? Math.round((spent/c.budget)*100) : null;
+    const pct = hasBudget ? Math.round((spent / c.budget) * 100) : null;
     const over = pct != null && pct > 100;
-    const pctLabel = pct != null ? `<span class="bva-pct ${over?'over':'ok'}">${pct}%</span>` : '';
-    const fillW = pct != null ? Math.min(pct,100) : 0;
-    return `<div>
-      <div class="bva-top">
-        <div class="bva-name"><div class="bva-dot" style="background:${c.col}"></div>${c.name}</div>
-        <div class="bva-right"><span class="bva-amt">${fmt(spent)}</span>${pctLabel}</div>
+    const fillW = pct != null ? Math.min(pct, 100) : 0;
+    const badge = pct != null ? `${pct}%` : '—';
+    const badgeCls = pct != null ? ('monthly-bva-badge' + (over ? ' over' : '')) : 'monthly-bva-badge muted';
+    const budgetTxt = hasBudget
+      ? (curLang==='zh' ? `預算 ${fmt(c.budget)}` : `Budget ${fmt(c.budget)}`)
+      : (curLang==='zh' ? '未設預算' : 'No budget');
+    return `<div class="monthly-bva-row">
+      <div class="monthly-bva-name"><span class="bva-dot" style="background:${c.col}"></span>${c.name}</div>
+      <div class="monthly-bva-meta">
+        <div class="bva-track"><div class="bva-fill ${over?'over':'ok'}" style="width:${fillW}%"></div></div>
+        <div class="monthly-bva-sub">${budgetTxt}</div>
       </div>
-      <div class="bva-track"><div class="bva-fill ${over?'over':'ok'}" style="width:${fillW}%"></div></div>
+      <div class="monthly-bva-spent">${fmt(spent)}</div>
+      <div class="${badgeCls}">${badge}</div>
     </div>`;
   }).join('');
 
@@ -3795,7 +3832,6 @@ function applyLang(){
   setTxt('k-save-lbl',    'lbl-savings');
   setTxt('k-count-lbl',   'lbl-tx-count');
   setTxt('card-spending-title', 'card-spending');
-  setTxt('card-bva-title',      'card-bva');
 
   // Static labels in Investments HTML
   setTxt('inv-capital-lbl2',    'lbl-capital');
@@ -5549,8 +5585,10 @@ function renderDonut(catMap, containerId, total) {
       <defs><filter id="dShadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity=".15"/></filter></defs>
       ${slices.map((s,i) => `<path d="${s.d}" fill="${s.col}" style="cursor:pointer;transform-origin:${cx}px ${cy}px;transition:transform .2s" onmouseenter="this.setAttribute('transform','scale(1.04)')" onmouseleave="this.setAttribute('transform','')"><title>${s.name}: ${fmtK(s.val)} (${Math.round(s.val/totalVal*100)}%)</title></path>`).join('')}
       <circle cx="${cx}" cy="${cy}" r="${r-6}" fill="var(--surface)"/>
-      <text x="${cx}" y="${cy-9}" class="donut-center-val" dominant-baseline="middle">${fmtK(totalVal)}</text>
-      <text x="${cx}" y="${cy+11}" class="donut-center-text" dominant-baseline="middle">${curLang==='zh' ? '總支出' : 'Total Spent'}</text>
+      <text x="${cx}" y="${cy}" text-anchor="middle">
+        <tspan x="${cx}" dy="-14" class="donut-center-val">${fmtK(totalVal)}</tspan>
+        <tspan x="${cx}" dy="22" class="donut-center-text">${curLang==='zh' ? '總支出' : 'Total Spent'}</tspan>
+      </text>
     </svg>
     <div class="donut-legend">${legendRows}</div>
   </div>`;
