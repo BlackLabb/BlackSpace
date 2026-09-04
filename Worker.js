@@ -60,6 +60,10 @@ function openRouterHeaders(apiKey) {
   };
 }
 
+function getOpenRouterApiKey(env) {
+  return getOpenRouterApiKey(env) || env.GLM_API_KEY || env.DEEPSEEK_API_KEY || null;
+}
+
 function cors(origin) {
   const allowed = ALLOWED_ORIGINS.some(o => origin && origin.startsWith(o));
   const localFileOrigin = origin === 'null';
@@ -310,7 +314,7 @@ function fallbackPriceImpact(item) {
 }
 
 async function analyzeSentimentWithGlm(items, env) {
-  const apiKey = env.OPENROUTER_API_KEY;
+  const apiKey = getOpenRouterApiKey(env);
   if (!apiKey || !items.length) {
     return items.map(item => ({ ...item, sentiment: fallbackSentiment(item), priceImpact: fallbackPriceImpact(item), sentimentProvider: 'rules' }));
   }
@@ -379,7 +383,7 @@ function fallbackNewsDigest(items, tickers, lang = 'zh') {
 }
 
 async function analyzeNewsDigestWithGlm(items, env, tickers, lang = 'zh') {
-  const apiKey = env.OPENROUTER_API_KEY;
+  const apiKey = getOpenRouterApiKey(env);
   const topItems = items.slice(0, FULL_TEXT_MAX_ITEMS);
   if (!apiKey || !topItems.length) return fallbackNewsDigest(topItems, tickers, lang);
   const languageName = lang === 'en' ? 'English' : 'Traditional Chinese';
@@ -1263,7 +1267,7 @@ async function getSecFilingSections(symbol) {
 }
 
 async function analyzeSecSectionsWithGlm(sections, env, lang = 'zh') {
-  const apiKey = env.OPENROUTER_API_KEY;
+  const apiKey = getOpenRouterApiKey(env);
   const business = sections?.sections?.business || '';
   const riskFactors = sections?.sections?.riskFactors || '';
   if (!apiKey || (!business && !riskFactors)) {
@@ -1338,7 +1342,7 @@ async function handleSecFilingSections(url, env, corsHeaders) {
     const data = {
       ...sections,
       aiSummary,
-      openrouterConfigured: Boolean(env.OPENROUTER_API_KEY),
+      openrouterConfigured: Boolean(getOpenRouterApiKey(env)),
     };
     cache.set(cacheKey, { ts: Date.now(), data });
     return json(data, 200, corsHeaders, { 'X-Cache': 'MISS' });
@@ -1412,7 +1416,7 @@ async function handleNews(url, env, corsHeaders) {
       data.debug = {
         rawFeedCount: rawFeed.length,
         filteredFeedCount: feed.length,
-        openrouterConfigured: Boolean(env.OPENROUTER_API_KEY),
+        openrouterConfigured: Boolean(getOpenRouterApiKey(env)),
         sourceVersion: NEWS_SOURCE_VERSION,
         sources: ['Finnhub Company News'],
         fullTextEnabled: useFullText,
@@ -1487,7 +1491,7 @@ async function handleNewsAnalysis(url, env, corsHeaders) {
       data.debug = {
         rawFeedCount: rawFeed.length,
         filteredFeedCount: feed.length,
-        openrouterConfigured: Boolean(env.OPENROUTER_API_KEY),
+        openrouterConfigured: Boolean(getOpenRouterApiKey(env)),
         sourceVersion: NEWS_SOURCE_VERSION,
         fullTextMaxItems: FULL_TEXT_MAX_ITEMS,
         fullTextDebug: analysisFeed.stats,
@@ -1806,9 +1810,9 @@ function buildStockAnalysisFromParsed(parsed, input) {
 }
 
 async function analyzeStockWithGlm(input, env, lang = 'zh') {
-  const apiKey = env.OPENROUTER_API_KEY;
+  const apiKey = getOpenRouterApiKey(env);
   if (!apiKey) {
-    const error = new Error('OPENROUTER_API_KEY missing');
+    const error = new Error('OPENROUTER_API_KEY missing (set OPENROUTER_API_KEY, GLM_API_KEY, or DEEPSEEK_API_KEY in Worker secrets)');
     error.status = 503;
     throw error;
   }
@@ -1974,7 +1978,7 @@ async function handleStockAiAnalysis(url, env, corsHeaders) {
       analysis,
       technicalLevels,
       updatedAt: new Date().toISOString(),
-      openrouterConfigured: Boolean(env.OPENROUTER_API_KEY),
+      openrouterConfigured: Boolean(getOpenRouterApiKey(env)),
     };
     if (!isValidStockAnalysisPayload(data)) {
       const error = new Error('GLM stock analysis returned empty narrative content');
@@ -2167,8 +2171,8 @@ async function handleFundFlowAnalysis(request, env, corsHeaders) {
   const items = Array.isArray(body.items) ? body.items.slice(0, 13) : [];
   const locale = String(body.locale || body.lang || 'zh').toLowerCase();
   const lang = locale === 'en' || locale.startsWith('en-') ? 'en' : 'zh';
-  const apiKey = env.OPENROUTER_API_KEY;
-  if (!apiKey) return json({ error: 'OPENROUTER_API_KEY is not configured', model: GLM_MODEL }, 503, corsHeaders);
+  const apiKey = getOpenRouterApiKey(env);
+  if (!apiKey) return json({ error: 'OPENROUTER_API_KEY is not configured (set OPENROUTER_API_KEY in Worker secrets)', model: GLM_MODEL }, 503, corsHeaders);
   const language = lang === 'en'
     ? 'English only. Do not output Chinese sentences.'
     : 'Traditional Chinese only (繁體中文／正體中文). Do not output English sentences; keep only ticker symbols and unavoidable metric abbreviations in Latin characters.';
