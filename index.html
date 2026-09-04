@@ -1119,12 +1119,6 @@ table{border-collapse:collapse;width:100%}
 [data-theme="dark"] .card:not(.tx-card):not(.modal),.kpi-card{border:1px solid var(--divider);background:var(--surface);box-shadow:var(--shadow)}
 .chart-bars{display:grid;gap:12px}
 .toggle{display:flex;gap:14px}
-.chart-cycle-nav{display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
-.chart-cycle-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;border:1px solid var(--border);border-radius:999px;background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;transition:color var(--trans),border-color var(--trans),background var(--trans),transform .15s ease}
-.chart-cycle-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-.chart-cycle-btn.is-active{color:var(--text);border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.04)}
-.chart-cycle-btn:hover{color:var(--text)}
-.chart-cycle-btn:active{transform:scale(.96)}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--divider);background:rgba(255,255,255,.02);font-size:12px}
 .chip.positive{color:var(--success);border-color:rgba(84,224,143,.28);background:rgba(84,224,143,.1)}
 .chip.negative{color:var(--error);border-color:rgba(208,107,107,.24);background:rgba(208,107,107,.08)}
@@ -1964,18 +1958,9 @@ table{border-collapse:collapse;width:100%}
                 <button class="chart-range-btn active" data-range="annual" data-i18n="card-cat-annual">年度分類佔比</button>
                 <button class="chart-range-btn" data-range="monthly" data-i18n="card-cat-monthly">月度分類佔比</button>
               </div>
-              <div class="chart-cycle-nav" id="dash-chart-cycle" role="group" aria-label="Chart view">
-                <button type="button" class="chart-cycle-btn is-active" id="dash-chart-prev" onclick="dashSetChartMode('donut')" aria-label="Donut chart">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-                </button>
-                <button type="button" class="chart-cycle-btn" id="dash-chart-next" onclick="dashSetChartMode('bar')" aria-label="Bar chart">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-                </button>
-              </div>
             </div>
             <div class="panel-body">
               <div id="dash-donut-wrap"></div>
-              <div id="dash-bar-wrap" style="display:none"></div>
             </div>
           </div>
         </div>
@@ -5624,41 +5609,6 @@ function renderLineChart(containerId) {
   $('dash-trend-range').textContent = `${monthYearLabel(months[0].m, months[0].y)} – ${monthYearLabel(months[months.length-1].m, months[months.length-1].y)}`;
 }
 
-// ── DASHBOARD BAR (fallback) ─────────────────────────────────────
-function renderDashBar(catMap, containerId) {
-  const el = $(containerId);
-  if (!el) return;
-  const entries = Object.entries(catMap).filter(([,v])=>v>0).sort(([,a],[,b])=>b-a).slice(0,8);
-  const maxV = Math.max(...entries.map(([,v])=>v), 1);
-  el.innerHTML = `<div class="bar-chart" style="margin-top:4px">` + entries.map(([name, val]) => {
-    const cat = CATS.find(c=>c.name===name)||{col:'#888'};
-    const pct = (val/maxV)*100;
-    return `<div class="bar-row">
-      <div class="bar-lbl">${name}</div>
-      <div class="bar-inner">
-        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${cat.col}"></div></div>
-        <div class="bar-amt">${val>=1000?'$'+(val/1000).toFixed(1)+'k':('$'+val.toLocaleString())}</div>
-      </div>
-    </div>`;
-  }).join('') + '</div>';
-}
-
-// ── DONUT CHART TOGGLE ───────────────────────────────────────────
-let _dashChartMode = 'donut'; // 'donut' | 'bar'
-function dashSetChartMode(mode){
-  _dashChartMode = mode === 'bar' ? 'bar' : 'donut';
-  const isDonut = _dashChartMode === 'donut';
-  $('dash-donut-wrap').style.display = isDonut ? '' : 'none';
-  $('dash-bar-wrap').style.display   = isDonut ? 'none' : '';
-  const prev = $('dash-chart-prev');
-  const next = $('dash-chart-next');
-  if(prev) prev.classList.toggle('is-active', isDonut);
-  if(next) next.classList.toggle('is-active', !isDonut);
-}
-function dashCycleChart(){
-  dashSetChartMode(_dashChartMode === 'donut' ? 'bar' : 'donut');
-}
-
 // ── CATEGORY RANGE TOGGLE (annual / monthly) ─────────────────────
 window._dashCatRange = 'annual';  // 'annual' | 'monthly'
 
@@ -5686,11 +5636,9 @@ function redrawDashCategoryChart() {
       ? '本月未有交易紀錄'
       : '所選範圍未有交易紀錄';
     $('dash-donut-wrap').innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--muted);font-size:12px">${emptyMsg}</div>`;
-    $('dash-bar-wrap').innerHTML = '';
     return;
   }
   renderDonut(catMap, 'dash-donut-wrap', total);
-  renderDashBar(catMap, 'dash-bar-wrap');
 }
 
 document.addEventListener('click', e => {
