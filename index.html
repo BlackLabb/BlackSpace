@@ -432,31 +432,10 @@ table{border-collapse:collapse;width:100%}
 .x-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--faint);padding-top:3px}
 
 /* ── MONTHLY UNIFIED CATEGORY ─────────────────────────────────────── */
-.monthly-cat-unified{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,1.05fr);gap:20px;align-items:start}
-.monthly-bva-compact{display:flex;flex-direction:column;gap:10px;min-width:0}
-.monthly-bva-row{
-  display:grid;grid-template-columns:minmax(0,1fr) auto auto;
-  grid-template-areas:"head spent badge" "bar bar bar";
-  gap:8px 10px;align-items:center;
-  padding:12px 14px;border:1px solid var(--divider);border-radius:14px;background:var(--surfaceOff);
-}
-.monthly-bva-head{grid-area:head;display:flex;align-items:baseline;gap:8px;min-width:0;flex-wrap:nowrap;overflow:hidden}
-.monthly-bva-name{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;white-space:nowrap;flex-shrink:0}
-.monthly-bva-meta{grid-area:bar;display:flex;align-items:center;min-width:0}
-.monthly-bva-sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;min-width:0}
-.monthly-bva-spent{grid-area:spent;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;flex-shrink:0}
-.monthly-bva-row>.monthly-bva-badge{grid-area:badge}
-.monthly-bva-badge{
-  font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;min-width:44px;text-align:center;flex-shrink:0;
-  background:rgba(84,224,143,.12);color:var(--success);
-}
-.monthly-bva-badge.over{background:rgba(208,107,107,.12);color:var(--error)}
-.monthly-bva-badge.muted{background:rgba(255,255,255,.04);color:var(--faint)}
 .monthly-cat-unified .donut-wrap{align-items:flex-start;gap:16px;min-width:0}
 .monthly-cat-unified .donut-svg{flex-shrink:0}
 .monthly-cat-unified .donut-legend{flex:1;min-width:0;width:100%}
 @media(max-width:860px){
-  .monthly-cat-unified{grid-template-columns:1fr;gap:16px}
   .monthly-cat-unified .donut-wrap{flex-direction:column;align-items:stretch;width:100%}
   .monthly-cat-unified .donut-svg{align-self:center}
   .monthly-cat-unified .donut-legend{max-width:100%;width:100%}
@@ -948,8 +927,8 @@ table{border-collapse:collapse;width:100%}
 /* ── DONUT CHART ─────────────────────────────────────────────────── */
 .donut-wrap{display:flex;align-items:center;gap:24px}
 .donut-svg{flex-shrink:0;overflow:visible}
-.donut-center-text{font-size:10px;fill:var(--muted);text-anchor:middle}
-.donut-center-val{font-size:17px;font-weight:700;fill:var(--text);text-anchor:middle;letter-spacing:-.03em}
+.donut-center-text{font-size:10px;fill:var(--muted);text-anchor:middle;dominant-baseline:central}
+.donut-center-val{font-size:17px;font-weight:700;fill:var(--text);text-anchor:middle;letter-spacing:-.03em;dominant-baseline:central}
 .donut-legend{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
 .donut-legend-row{
   display:grid;grid-template-columns:8px minmax(4.5em,1fr) auto auto;
@@ -1124,7 +1103,7 @@ table{border-collapse:collapse;width:100%}
 [data-theme="light"] .ambient,[data-theme="light"] .grain,[data-theme="trader"] .ambient,[data-theme="trader"] .grain{display:none}
 #app-wrapper{position:relative;z-index:1}
 .privacy-on .masked,.privacy-on .kpi-val,.privacy-on .kpi-sub,.privacy-on .mini-value,.privacy-on .hero-value,.privacy-on .cat-budget,.privacy-on .amt,.privacy-on .tx-amt,.privacy-on .tx-merchant,.privacy-on .bva-amt,.privacy-on .bva-pct,.privacy-on .bar-amt,.privacy-on .donut-center-val,.privacy-on .donut-legend-pct,.privacy-on .donut-legend-amt{filter:blur(7px);user-select:none}
-.privacy-on .privacy-block .panel-body,.privacy-on .privacy-block .panel-head .card-date,.privacy-on .privacy-block .tx-table,.privacy-on .privacy-block .x-axis,.privacy-on .privacy-block .bva-list,.privacy-on .privacy-block .monthly-bva-compact,.privacy-on .privacy-block #monthly-donut-wrap{filter:blur(7px);user-select:none;pointer-events:none}
+.privacy-on .privacy-block .panel-body,.privacy-on .privacy-block .panel-head .card-date,.privacy-on .privacy-block .tx-table,.privacy-on .privacy-block .x-axis,.privacy-on .privacy-block .bva-list,.privacy-on .privacy-block #monthly-donut-wrap{filter:blur(7px);user-select:none;pointer-events:none}
 .brand{display:flex;align-items:center;gap:12px;padding:4px 8px 10px;flex-shrink:0}
 .brand-mark{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:linear-gradient(145deg,#1a1a1f,#09090b);display:grid;place-items:center;overflow:hidden;box-shadow:0 0 0 4px var(--primaryHL)}
 .brand-mark img{width:100%;height:100%;object-fit:cover}
@@ -1943,7 +1922,6 @@ table{border-collapse:collapse;width:100%}
         <div class="panel-body">
           <div class="monthly-cat-unified">
             <div id="monthly-donut-wrap"></div>
-            <div class="monthly-bva-compact" id="monthly-bva-compact"></div>
           </div>
         </div>
       </div>
@@ -2858,37 +2836,12 @@ function renderMonthly(){
 
   if(!total){
     $('monthly-donut-wrap').innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:180px;color:var(--muted);font-size:12px">${curLang==='zh'?'本月未有支出':'No spending this month'}</div>`;
-    $('monthly-bva-compact').innerHTML = '';
     renderTxRows(txs, 'm-tbody');
     $('m-badge').textContent = txs.length;
     return;
   }
 
   renderDonut(catMap, 'monthly-donut-wrap', total);
-  $('monthly-bva-compact').innerHTML = CATS.map(c=>{
-    const spent = catMap[c.name] || 0;
-    const hasBudget = c.budget > 0;
-    const pct = hasBudget ? Math.round((spent / c.budget) * 100) : null;
-    const over = pct != null && pct > 100;
-    const fillW = pct != null ? Math.min(pct, 100) : 0;
-    const badge = pct != null ? `${pct}%` : '—';
-    const badgeCls = pct != null ? ('monthly-bva-badge' + (over ? ' over' : '')) : 'monthly-bva-badge muted';
-    const budgetTxt = hasBudget
-      ? (curLang==='zh' ? `預算 ${fmt(c.budget)}` : `Budget ${fmt(c.budget)}`)
-      : (curLang==='zh' ? '未設預算' : 'No budget');
-    const budgetInline = spent === 0 ? `<span class="monthly-bva-sub">${budgetTxt}</span>` : '';
-    return `<div class="monthly-bva-row">
-      <div class="monthly-bva-head">
-        <div class="monthly-bva-name"><span class="bva-dot" style="background:${c.col}"></span>${c.name}</div>
-        ${budgetInline}
-      </div>
-      <div class="monthly-bva-meta">
-        <div class="bva-track"><div class="bva-fill ${over?'over':'ok'}" style="width:${fillW}%"></div></div>
-      </div>
-      <div class="monthly-bva-spent">${fmt(spent)}</div>
-      <div class="${badgeCls}">${badge}</div>
-    </div>`;
-  }).join('');
 
   renderTxRows(txs, 'm-tbody');
   $('m-badge').textContent = txs.length;
@@ -5589,6 +5542,11 @@ function renderDonut(catMap, containerId, total, opts = {}) {
   });
 
   const fmtK = n => n >= 1000 ? '$'+(n/1000).toFixed(1)+'k' : '$'+n.toLocaleString();
+  const valSize = 17, lblSize = 10, lineGap = 5;
+  const blockH = valSize + lineGap + lblSize;
+  const valY = cy - blockH / 2 + valSize / 2;
+  const lblY = cy + blockH / 2 - lblSize / 2;
+  const centerLabel = curLang==='zh' ? '總支出' : 'Total Spent';
   const legendRows = entries.map(e => {
     const cat = CATS.find(c => c.name === e.name);
     const labelHtml = showBudget
@@ -5608,10 +5566,8 @@ function renderDonut(catMap, containerId, total, opts = {}) {
       <defs><filter id="dShadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity=".15"/></filter></defs>
       ${slices.map((s,i) => `<path d="${s.d}" fill="${s.col}" style="cursor:pointer;transform-origin:${cx}px ${cy}px;transition:transform .2s" onmouseenter="this.setAttribute('transform','scale(1.04)')" onmouseleave="this.setAttribute('transform','')"><title>${s.name}: ${fmtK(s.val)} (${Math.round(s.val/totalVal*100)}%)</title></path>`).join('')}
       <circle cx="${cx}" cy="${cy}" r="${r-6}" fill="var(--surface)"/>
-      <text x="${cx}" y="${cy}" text-anchor="middle">
-        <tspan x="${cx}" dy="-14" class="donut-center-val">${fmtK(totalVal)}</tspan>
-        <tspan x="${cx}" dy="22" class="donut-center-text">${curLang==='zh' ? '總支出' : 'Total Spent'}</tspan>
-      </text>
+      <text x="${cx}" y="${valY}" class="donut-center-val">${fmtK(totalVal)}</text>
+      <text x="${cx}" y="${lblY}" class="donut-center-text">${centerLabel}</text>
     </svg>
     <div class="donut-legend">${legendRows}</div>
   </div>`;
