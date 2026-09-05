@@ -3441,9 +3441,18 @@ function calDisplayVal(val){
   const s = String(val);
   if(curLang !== 'zh') return s;
   if(s.endsWith('%')) return s;
-  if(/K$/i.test(s)) return `${parseFloat(s) / 10}萬`;
-  if(/M$/i.test(s)) return `${parseFloat(s) * 100}萬`;
-  if(/B$/i.test(s)) return `${parseFloat(s) * 100000}萬`;
+  if(/K$/i.test(s)){
+    const n = parseFloat(s) / 10;
+    return `${Number.isFinite(n) ? parseFloat(n.toFixed(4)) : s}萬`;
+  }
+  if(/M$/i.test(s)){
+    const n = parseFloat(s) * 100;
+    return `${Number.isFinite(n) ? parseFloat(n.toFixed(4)) : s}萬`;
+  }
+  if(/B$/i.test(s)){
+    const n = parseFloat(s) * 100000;
+    return `${Number.isFinite(n) ? parseFloat(n.toFixed(4)) : s}萬`;
+  }
   return s;
 }
 function calActualTone(ev){
@@ -3478,7 +3487,7 @@ function calRenderDataRow(ev, flash){
   const fcLbl = d.earnings ? t('cal-earn-fc') : t('cal-forecast');
   const actLbl = d.earnings ? t('cal-earn-act') : t('cal-actual');
   const actualHtml = d.actual != null
-    ? `<span class="cal-data-val ${tone === 'pending' ? '' : tone}">${fundFlowEsc(d.actual)}</span>`
+    ? `<span class="cal-data-val ${tone === 'pending' ? '' : tone}">${fundFlowEsc(calDisplayVal(d.actual))}</span>`
     : `<span class="cal-data-val pending">${fundFlowEsc(t('cal-pending'))}</span>`;
   return `<div class="cal-data-row" data-data-for="${fundFlowEsc(ev.id)}">
     <div class="cal-data-cell"><span class="cal-data-lbl">${prevLbl}</span><span class="cal-data-val">${fundFlowEsc(calDisplayVal(d.previous ?? '—'))}</span></div>
