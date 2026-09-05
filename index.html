@@ -3448,8 +3448,17 @@ function calPassesImportanceFilter(ev){
   if(ev.type === 'earnings') return true;
   return ev.importance === calActiveImportance;
 }
+function calEarningsHasData(d){
+  const has = v => v != null && v !== '' && v !== '—';
+  return has(d?.forecast) || has(d?.actual);
+}
+function calIsDisplayableEvent(ev){
+  if(ev.type === 'earnings' || ev.data?.earnings) return calEarningsHasData(ev.data);
+  return true;
+}
 function calMatchFilter(ev){
   if(ev.region !== 'US') return false;
+  if(!calIsDisplayableEvent(ev)) return false;
   if(!calPassesImportanceFilter(ev)) return false;
   return calPassesTypeFilter(ev);
 }
@@ -3459,6 +3468,7 @@ function calEventsInScope(opts = {}){
   const date = opts.date !== false;
   return calEvents.filter(ev => {
     if(ev.region !== 'US') return false;
+    if(!calIsDisplayableEvent(ev)) return false;
     if(importance && !calPassesImportanceFilter(ev)) return false;
     if(type && !calPassesTypeFilter(ev)) return false;
     if(date && !calPassesDateFilter(ev)) return false;
@@ -3530,15 +3540,10 @@ function calImpLabel(imp){
 function calWeekDayLabels(){
   return curLang === 'zh' ? CAL_WEEK_DAYS_ZH : CAL_WEEK_DAYS_EN;
 }
-function calEarningsHasData(d){
-  const has = v => v != null && v !== '' && v !== '—';
-  return has(d?.forecast) || has(d?.actual);
-}
 function calRenderDataRow(ev, flash){
   const d = ev.data;
   if(!d) return '';
   const isEarn = d.earnings || ev.type === 'earnings';
-  if(isEarn && !calEarningsHasData(d)) return '';
   const tone = calActualTone(ev);
   const prevLbl = isEarn ? t('cal-earn-prev') : t('cal-prev');
   const fcLbl = isEarn ? t('cal-earn-fc') : t('cal-forecast');
