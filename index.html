@@ -3530,11 +3530,16 @@ function calImpLabel(imp){
 function calWeekDayLabels(){
   return curLang === 'zh' ? CAL_WEEK_DAYS_ZH : CAL_WEEK_DAYS_EN;
 }
+function calEarningsHasData(d){
+  const has = v => v != null && v !== '' && v !== '—';
+  return has(d?.forecast) || has(d?.actual);
+}
 function calRenderDataRow(ev, flash){
   const d = ev.data;
   if(!d) return '';
-  const tone = calActualTone(ev);
   const isEarn = d.earnings || ev.type === 'earnings';
+  if(isEarn && !calEarningsHasData(d)) return '';
+  const tone = calActualTone(ev);
   const prevLbl = isEarn ? t('cal-earn-prev') : t('cal-prev');
   const fcLbl = isEarn ? t('cal-earn-fc') : t('cal-forecast');
   const actLbl = isEarn ? t('cal-earn-act') : t('cal-actual');
