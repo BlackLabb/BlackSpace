@@ -1277,7 +1277,6 @@ table{border-collapse:collapse;width:100%}
 @keyframes calDataFlash{0%{background:var(--primaryHL)}100%{background:var(--surfaceOff)}}
 .cal-empty,.cal-loading{padding:32px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6;border:1px dashed var(--border);border-radius:14px;margin:12px 16px}
 .cal-empty.err{color:var(--error);border-color:rgba(255,59,48,.28)}
-.cal-foot{padding:10px 16px 14px;font-size:10px;color:var(--faint);text-align:center;line-height:1.5;border-top:1px solid var(--border)}
 [data-theme="dark"] .cal-event,[data-theme="trader"] .cal-event{background:rgba(255,255,255,.02)}
 [data-theme="dark"] .cal-day-btn.active,[data-theme="trader"] .cal-day-btn.active{box-shadow:0 0 0 1px var(--border)}
 [data-theme="dark"] .cal-pill-type,[data-theme="trader"] .cal-pill-type{background:rgba(99,102,241,.14);color:#c7d2fe;border-color:rgba(129,140,248,.24)}
@@ -2137,7 +2136,7 @@ table{border-collapse:collapse;width:100%}
           <div class="cal-hdr">
             <div class="cal-top">
               <div>
-                <p id="cal-sourceLine">TradingView · HKT</p>
+                <p id="cal-sourceLine">美國 · HKT</p>
               </div>
               <div class="cal-stats">
                 <span class="cal-stat-pill"><strong id="cal-stat-total">0</strong> <span data-i18n="cal-stat-items">項</span></span>
@@ -2149,6 +2148,7 @@ table{border-collapse:collapse;width:100%}
           <div class="cal-week-wrap"><div class="cal-week-strip" id="cal-weekStrip"></div></div>
           <div class="cal-filters" id="cal-filters">
             <button class="cal-chip active" type="button" data-filter="all" data-i18n="cal-filter-all">全部</button>
+            <button class="cal-chip" type="button" data-filter="macro" data-i18n="cal-filter-macro">宏觀</button>
             <button class="cal-chip" type="button" data-filter="earnings" data-i18n="cal-filter-earnings">財報</button>
           </div>
           <div class="cal-list-hdr">
@@ -2160,7 +2160,6 @@ table{border-collapse:collapse;width:100%}
             </div>
           </div>
           <div class="cal-events" id="cal-eventList"><div class="cal-loading" data-i18n="cal-loading">正在載入財經日曆…</div></div>
-          <p class="cal-foot" data-i18n="cal-footnote">僅供參考，不構成投資建議</p>
         </section>
       </div>
 
@@ -3412,6 +3411,7 @@ function calWeekRange(){
 function calMatchFilter(ev){
   if(ev.region !== 'US') return false;
   if(calActiveFilter === 'all') return true;
+  if(calActiveFilter === 'macro') return ev.type === 'macro';
   if(calActiveFilter === 'earnings') return ev.type === 'earnings';
   return true;
 }
@@ -4075,7 +4075,7 @@ Object.assign(I18N.en, {
 Object.assign(I18N.zh, {
   'title-fundflow':'資金流向','sub-fundflow':'ETF 歷史價格趨勢','app-sub-fundflow':'價格變動',
   'title-calendar':'財經日曆','sub-calendar':'美國宏觀數據與財報日程',
-  'cal-filter-all':'全部','cal-filter-earnings':'財報',
+  'cal-filter-all':'全部','cal-filter-macro':'宏觀','cal-filter-earnings':'財報',
   'cal-stat-items':'項','cal-stat-high':'高','cal-stat-earnings':'財報',
   'cal-loading':'正在載入財經日曆…','cal-empty':'此日沒有符合篩選的事件','cal-error':'無法連接財經日曆',
   'cal-load-failed':'載入失敗','cal-live':'即時','cal-pending':'待公佈','cal-pending-update':'待更新',
@@ -4083,15 +4083,14 @@ Object.assign(I18N.zh, {
   'cal-earn-prev':'上季','cal-earn-fc':'預期 EPS','cal-earn-act':'實際 EPS',
   'cal-type-macro':'宏觀','cal-type-earnings':'財報','cal-type-market':'市場',
   'cal-imp-high':'高','cal-imp-med':'中','cal-imp-low':'低',
-  'cal-today':'今','cal-count-suffix':'項','cal-source':'TradingView · 美國 · HKT',
-  'cal-footnote':'僅供參考，不構成投資建議',
+  'cal-today':'今','cal-count-suffix':'項','cal-source':'美國 · HKT',
   'fund-flow-price-note':'以歷史收市價計算','fund-flow-title':'主題 ETF 價格趨勢',
   'fund-flow-etf':'ETF / 主題','fund-flow-one-day':'1日變動 (%)','fund-flow-five-day':'5日變動 (%)','fund-flow-streak':'連續走勢','fund-flow-loading':'正在載入價格資料…','fund-flow-scroll-left':'向左滑動','fund-flow-scroll-right':'向右滑動','fund-flow-ai-title':'AI 分析','fund-flow-ai-loading':'資料載入後，將由伺服器端 AI 分析價格趨勢.'
 });
 Object.assign(I18N.en, {
   'title-fundflow':'Fund Flow','sub-fundflow':'ETF historical price trend','app-sub-fundflow':'Price changes',
   'title-calendar':'Economic Calendar','sub-calendar':'US macro events and earnings',
-  'cal-filter-all':'All','cal-filter-earnings':'Earnings',
+  'cal-filter-all':'All','cal-filter-macro':'Macro','cal-filter-earnings':'Earnings',
   'cal-stat-items':'items','cal-stat-high':'high','cal-stat-earnings':'earn',
   'cal-loading':'Loading economic calendar…','cal-empty':'No events match this filter today','cal-error':'Unable to load economic calendar',
   'cal-load-failed':'Load failed','cal-live':'Live','cal-pending':'Pending','cal-pending-update':'Awaiting',
@@ -4099,8 +4098,7 @@ Object.assign(I18N.en, {
   'cal-earn-prev':'Prior EPS','cal-earn-fc':'Est. EPS','cal-earn-act':'Act. EPS',
   'cal-type-macro':'Macro','cal-type-earnings':'Earnings','cal-type-market':'Market',
   'cal-imp-high':'High','cal-imp-med':'Med','cal-imp-low':'Low',
-  'cal-today':'Today','cal-count-suffix':'items','cal-source':'TradingView · US · HKT',
-  'cal-footnote':'For reference only; not investment advice',
+  'cal-today':'Today','cal-count-suffix':'items','cal-source':'US · HKT',
   'fund-flow-price-note':'BASED ON HISTORICAL CLOSES','fund-flow-title':'ETF Theme Price Trend',
   'fund-flow-etf':'ETF / Theme','fund-flow-one-day':'1-day change (%)','fund-flow-five-day':'5-day change (%)','fund-flow-streak':'Price streak','fund-flow-loading':'Loading price data…','fund-flow-scroll-left':'Scroll left','fund-flow-scroll-right':'Scroll right','fund-flow-ai-title':'AI Analysis','fund-flow-ai-loading':'The server-side AI will analyze price trends after data loads.'
 });
