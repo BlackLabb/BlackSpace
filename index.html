@@ -1220,6 +1220,13 @@ table{border-collapse:collapse;width:100%}
 .cal-stats{display:flex;gap:8px;flex-shrink:0}
 .cal-stat-pill{font-size:12px;font-weight:500;color:var(--muted);background:var(--surfaceOff);padding:7px 12px;border-radius:999px;white-space:nowrap;border:1px solid var(--border)}
 .cal-stat-pill strong{color:var(--text);font-weight:700;font-size:13px;font-family:var(--num-font);font-variant-numeric:tabular-nums}
+.cal-imp-wrap{padding:0 16px 12px;border-bottom:1px solid var(--border)}
+.cal-imp-filters{display:flex;gap:8px}
+.cal-imp-chip{flex:1;border:1px solid var(--border);background:var(--surfaceOff);border-radius:999px;padding:8px 4px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;transition:color var(--trans),background var(--trans),border-color var(--trans);font:inherit}
+.cal-imp-chip.active{color:var(--text);background:var(--surface);border-color:var(--primary)}
+.cal-imp-chip[data-imp="high"].active{color:var(--error);border-color:rgba(255,59,48,.35);background:rgba(255,59,48,.08)}
+.cal-imp-chip[data-imp="med"].active{color:var(--warn);border-color:rgba(255,149,0,.35);background:rgba(255,149,0,.08)}
+.cal-imp-chip[data-imp="low"].active{color:var(--faint);border-color:var(--border);background:var(--surfaceOff)}
 .cal-week-wrap{padding:14px 16px}
 .cal-week-strip{display:flex;gap:0;background:var(--surfaceOff);border-radius:12px;padding:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;border:1px solid var(--border)}
 .cal-week-strip::-webkit-scrollbar{display:none}
@@ -2143,6 +2150,14 @@ table{border-collapse:collapse;width:100%}
                 <span class="cal-stat-pill"><strong id="cal-stat-high">0</strong> <span data-i18n="cal-stat-high">高</span></span>
                 <span class="cal-stat-pill"><strong id="cal-stat-earn">0</strong> <span data-i18n="cal-stat-earnings">財報</span></span>
               </div>
+            </div>
+          </div>
+          <div class="cal-imp-wrap">
+            <div class="cal-imp-filters" id="cal-imp-filters">
+              <button class="cal-imp-chip active" type="button" data-imp="all" data-i18n="cal-imp-filter-all">全部</button>
+              <button class="cal-imp-chip" type="button" data-imp="high" data-i18n="cal-imp-high">高</button>
+              <button class="cal-imp-chip" type="button" data-imp="med" data-i18n="cal-imp-med">中</button>
+              <button class="cal-imp-chip" type="button" data-imp="low" data-i18n="cal-imp-low">低</button>
             </div>
           </div>
           <div class="cal-week-wrap"><div class="cal-week-strip" id="cal-weekStrip"></div></div>
@@ -3378,6 +3393,7 @@ let calEvents = [];
 let calWeekStart = null;
 let calSelectedDate = null;
 let calActiveFilter = 'all';
+let calActiveImportance = 'all';
 let calPollTimer = null;
 let calFetchToken = 0;
 let calPrevActualMap = new Map();
@@ -3410,6 +3426,7 @@ function calWeekRange(){
 }
 function calMatchFilter(ev){
   if(ev.region !== 'US') return false;
+  if(calActiveImportance !== 'all' && ev.importance !== calActiveImportance) return false;
   if(calActiveFilter === 'all') return true;
   if(calActiveFilter === 'macro') return ev.type === 'macro';
   if(calActiveFilter === 'earnings') return ev.type === 'earnings';
@@ -3542,20 +3559,11 @@ function calRenderEvents(flashIds){
   const listEl = $('cal-eventList');
   if(!listEl) return;
   const flashSet = new Set(flashIds || []);
-  const list = calEvents
-    .filter(e => e.date === calSelectedDate && calMatchFilter(e))
-    .sort((a, b) => (a.time > b.time ? 1 : -1));
-  const d = new Date(`${calSelectedDate}T12:00:00`);
-  const labels = calWeekDayLabels();
-  const wd = labels[d.getDay() === 0 ? 6 : d.getDay() - 1];
+  const list = calVisibleEvents();
   const dayLabel = $('cal-dayLabel');
   const dayCount = $('cal-dayCount');
   const liveBadge = $('cal-liveBadge');
-  if(dayLabel){
-    dayLabel.textContent = curLang === 'zh'
-      ? `${d.getMonth()+1}月${d.getDate()}日 · 週${wd}`
-      : `${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${wd}`;
-  }
+  if(dayLabel) dayLabel.textContent = calListLabel();
   if(dayCount) dayCount.textContent = `${list.length} ${t('cal-count-suffix')}`;
   if(liveBadge) liveBadge.hidden = !calHasPendingSelected();
   if(!list.length){
