@@ -1278,6 +1278,7 @@ table{border-collapse:collapse;width:100%}
 .cal-pill-imp.low{background:rgba(120,120,128,.10);color:var(--faint)}
 .cal-pill-live{background:rgba(52,199,89,.12);color:#1b8a3e}
 .cal-data-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:transparent;border:none;border-radius:0;overflow:visible}
+.cal-data-row.earnings{grid-template-columns:repeat(2,1fr)}
 .cal-data-cell{padding:8px 6px;text-align:center;border:none;border-radius:8px;background:var(--surfaceOff)}
 .cal-data-cell.is-actual{background:var(--surfaceDyn)}
 .cal-data-lbl{display:block;font-size:10px;font-weight:700;color:var(--faint);margin-bottom:3px}
@@ -3517,14 +3518,16 @@ function calRenderDataRow(ev, flash){
   const d = ev.data;
   if(!d) return '';
   const tone = calActualTone(ev);
-  const prevLbl = d.earnings ? t('cal-earn-prev') : t('cal-prev');
-  const fcLbl = d.earnings ? t('cal-earn-fc') : t('cal-forecast');
-  const actLbl = d.earnings ? t('cal-earn-act') : t('cal-actual');
+  const isEarn = d.earnings || ev.type === 'earnings';
+  const prevLbl = isEarn ? t('cal-earn-prev') : t('cal-prev');
+  const fcLbl = isEarn ? t('cal-earn-fc') : t('cal-forecast');
+  const actLbl = isEarn ? t('cal-earn-act') : t('cal-actual');
   const actualHtml = d.actual != null
     ? `<span class="cal-data-val ${tone === 'pending' ? '' : tone}">${fundFlowEsc(calDisplayVal(d.actual))}</span>`
     : `<span class="cal-data-val pending">${fundFlowEsc(t('cal-pending'))}</span>`;
-  return `<div class="cal-data-row" data-data-for="${fundFlowEsc(ev.id)}">
-    <div class="cal-data-cell"><span class="cal-data-lbl">${prevLbl}</span><span class="cal-data-val">${fundFlowEsc(calDisplayVal(d.previous ?? '—'))}</span></div>
+  const prevCell = isEarn ? '' : `<div class="cal-data-cell"><span class="cal-data-lbl">${prevLbl}</span><span class="cal-data-val">${fundFlowEsc(calDisplayVal(d.previous ?? '—'))}</span></div>`;
+  return `<div class="cal-data-row${isEarn ? ' earnings' : ''}" data-data-for="${fundFlowEsc(ev.id)}">
+    ${prevCell}
     <div class="cal-data-cell"><span class="cal-data-lbl">${fcLbl}</span><span class="cal-data-val">${fundFlowEsc(calDisplayVal(d.forecast ?? '—'))}</span></div>
     <div class="cal-data-cell is-actual${flash ? ' flash' : ''}"><span class="cal-data-lbl">${actLbl}</span>${actualHtml}</div>
   </div>`;
