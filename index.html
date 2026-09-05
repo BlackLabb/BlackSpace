@@ -3436,6 +3436,16 @@ function calParseNum(s){
   if(s == null) return NaN;
   return parseFloat(String(s).replace(/[^0-9.\-+]/g, ''));
 }
+function calDisplayVal(val){
+  if(val == null || val === '—') return '—';
+  const s = String(val);
+  if(curLang !== 'zh') return s;
+  if(s.endsWith('%')) return s;
+  if(/K$/i.test(s)) return `${parseFloat(s) / 10}萬`;
+  if(/M$/i.test(s)) return `${parseFloat(s) * 100}萬`;
+  if(/B$/i.test(s)) return `${parseFloat(s) * 100000}萬`;
+  return s;
+}
 function calActualTone(ev){
   const d = ev.data;
   if(!d || d.actual == null || d.forecast == null) return 'pending';
@@ -3471,8 +3481,8 @@ function calRenderDataRow(ev, flash){
     ? `<span class="cal-data-val ${tone === 'pending' ? '' : tone}">${fundFlowEsc(d.actual)}</span>`
     : `<span class="cal-data-val pending">${fundFlowEsc(t('cal-pending'))}</span>`;
   return `<div class="cal-data-row" data-data-for="${fundFlowEsc(ev.id)}">
-    <div class="cal-data-cell"><span class="cal-data-lbl">${prevLbl}</span><span class="cal-data-val">${fundFlowEsc(d.previous ?? '—')}</span></div>
-    <div class="cal-data-cell"><span class="cal-data-lbl">${fcLbl}</span><span class="cal-data-val">${fundFlowEsc(d.forecast ?? '—')}</span></div>
+    <div class="cal-data-cell"><span class="cal-data-lbl">${prevLbl}</span><span class="cal-data-val">${fundFlowEsc(calDisplayVal(d.previous ?? '—'))}</span></div>
+    <div class="cal-data-cell"><span class="cal-data-lbl">${fcLbl}</span><span class="cal-data-val">${fundFlowEsc(calDisplayVal(d.forecast ?? '—'))}</span></div>
     <div class="cal-data-cell is-actual${flash ? ' flash' : ''}"><span class="cal-data-lbl">${actLbl}</span>${actualHtml}</div>
   </div>`;
 }
@@ -3646,6 +3656,13 @@ function initCalendarBindings(){
     if(!chip) return;
     calActiveFilter = chip.dataset.filter;
     document.querySelectorAll('.cal-chip').forEach(c => c.classList.toggle('active', c === chip));
+    calRender();
+  });
+  $('cal-imp-filters')?.addEventListener('click', e => {
+    const chip = e.target.closest('[data-imp]');
+    if(!chip) return;
+    calActiveImportance = chip.dataset.imp;
+    document.querySelectorAll('.cal-imp-chip').forEach(c => c.classList.toggle('active', c === chip));
     calRender();
   });
 }
@@ -4114,6 +4131,7 @@ Object.assign(I18N.zh, {
   'title-calendar':'財經日曆','sub-calendar':'美國宏觀數據與財報日程',
   'cal-filter-all':'全部','cal-filter-macro':'宏觀','cal-filter-earnings':'財報',
   'cal-stat-items':'項','cal-stat-high':'高','cal-stat-earnings':'財報',
+  'cal-imp-filter-all':'全部',
   'cal-loading':'正在載入財經日曆…','cal-empty':'此日沒有符合篩選的事件','cal-error':'無法連接財經日曆',
   'cal-load-failed':'載入失敗','cal-live':'即時','cal-pending':'待公佈','cal-pending-update':'待更新',
   'cal-prev':'前值','cal-forecast':'預期','cal-actual':'實際',
@@ -4129,6 +4147,7 @@ Object.assign(I18N.en, {
   'title-calendar':'Economic Calendar','sub-calendar':'US macro events and earnings',
   'cal-filter-all':'All','cal-filter-macro':'Macro','cal-filter-earnings':'Earnings',
   'cal-stat-items':'items','cal-stat-high':'high','cal-stat-earnings':'earn',
+  'cal-imp-filter-all':'All',
   'cal-loading':'Loading economic calendar…','cal-empty':'No events match this filter today','cal-error':'Unable to load economic calendar',
   'cal-load-failed':'Load failed','cal-live':'Live','cal-pending':'Pending','cal-pending-update':'Awaiting',
   'cal-prev':'Previous','cal-forecast':'Forecast','cal-actual':'Actual',
