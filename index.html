@@ -3442,9 +3442,14 @@ function calPassesDateFilter(ev){
   if(calActiveFilter === 'all' && calAllWeekView) return week.includes(ev.date);
   return ev.date === calSelectedDate;
 }
+function calPassesImportanceFilter(ev){
+  if(calActiveImportance === 'all') return true;
+  if(ev.type === 'earnings') return true;
+  return ev.importance === calActiveImportance;
+}
 function calMatchFilter(ev){
   if(ev.region !== 'US') return false;
-  if(calActiveImportance !== 'all' && ev.type !== 'earnings' && ev.importance !== calActiveImportance) return false;
+  if(!calPassesImportanceFilter(ev)) return false;
   return calPassesTypeFilter(ev);
 }
 function calEventsInScope(opts = {}){
@@ -3453,7 +3458,7 @@ function calEventsInScope(opts = {}){
   const date = opts.date !== false;
   return calEvents.filter(ev => {
     if(ev.region !== 'US') return false;
-    if(importance && calActiveImportance !== 'all' && ev.type !== 'earnings' && ev.importance !== calActiveImportance) return false;
+    if(importance && !calPassesImportanceFilter(ev)) return false;
     if(type && !calPassesTypeFilter(ev)) return false;
     if(date && !calPassesDateFilter(ev)) return false;
     return true;
@@ -3607,7 +3612,7 @@ function calRenderSummary(){
   const high = $('cal-stat-high');
   const earn = $('cal-stat-earn');
   if(total) total.textContent = visible.length;
-  if(high) high.textContent = scoped.filter(e => e.importance === 'high').length;
+  if(high) high.textContent = scoped.filter(e => e.type !== 'earnings' && e.importance === 'high').length;
   if(earn) earn.textContent = scoped.filter(e => e.type === 'earnings').length;
 }
 function calRenderEvents(flashIds){
@@ -3702,6 +3707,7 @@ function initCalendarBindings(){
     calActiveFilter = chip.dataset.filter;
     if(calActiveFilter === 'all') calAllWeekView = true;
     else calAllWeekView = false;
+    if(calActiveFilter === 'earnings') calActiveImportance = 'all';
     document.querySelectorAll('.cal-chip').forEach(c => c.classList.toggle('active', c === chip));
     calRender();
   });
