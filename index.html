@@ -1232,10 +1232,11 @@ table{border-collapse:collapse;width:100%}
 .cal-imp-chip[data-imp="high"].active{color:var(--error);box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(255,59,48,.28);background:rgba(255,59,48,.08)}
 .cal-imp-chip[data-imp="med"].active{color:var(--warn);box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(255,149,0,.28);background:rgba(255,149,0,.08)}
 .cal-imp-chip[data-imp="low"].active{color:var(--faint);box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 1px var(--divider);background:var(--surface)}
-.cal-week-wrap{padding:12px 16px 0;display:flex;justify-content:center}
+.cal-week-wrap{padding:8px 16px 0;display:flex;justify-content:center;position:relative;z-index:1}
 .cal-week-strip{display:flex;gap:0;width:100%;justify-content:center;background:var(--surfaceOff);border-radius:12px;padding:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;border:none}
 .cal-week-strip::-webkit-scrollbar{display:none}
-.cal-day-btn{flex:1 1 0;min-width:0;max-width:52px;border:none;background:transparent;border-radius:9px;padding:10px 2px 9px;text-align:center;cursor:pointer;transition:background var(--trans),box-shadow var(--trans);font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center}
+.cal-day-btn{flex:1 1 0;min-width:0;max-width:52px;border:none;background:transparent;border-radius:9px;padding:10px 2px 9px;text-align:center;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background var(--trans),box-shadow var(--trans),transform .12s ease;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center}
+.cal-day-btn:active{transform:scale(.96)}
 .cal-day-btn.active{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 1px var(--divider);border:none}
 .cal-day-wd{font-size:11px;color:var(--muted);font-weight:700;line-height:1.2}
 .cal-day-num{font-size:17px;font-weight:700;font-family:var(--num-font);font-variant-numeric:tabular-nums;line-height:1.2;margin-top:4px;color:var(--text)}
@@ -1244,7 +1245,7 @@ table{border-collapse:collapse;width:100%}
 .cal-day-btn.has-events .cal-day-dot{opacity:.4}
 .cal-day-btn.active.has-events .cal-day-dot{opacity:1}
 .cal-day-today{font-size:10px;color:var(--primary);font-weight:700;margin-top:2px;line-height:1;min-height:10px}
-.cal-filters{display:flex;gap:6px;padding:12px 16px;border:none;background:transparent}
+.cal-filters{display:flex;gap:6px;padding:12px 16px 4px;border:none;background:transparent}
 .cal-chip{flex:1;border:none;background:var(--surfaceOff);border-radius:999px;padding:10px 4px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:color var(--trans),background var(--trans),box-shadow var(--trans);position:relative;font:inherit}
 .cal-chip+.cal-chip{border-left:none}
 .cal-chip.active{color:var(--primary);background:var(--surface);box-shadow:0 0 0 1.5px var(--primary)}
@@ -2165,12 +2166,12 @@ table{border-collapse:collapse;width:100%}
               <button class="cal-imp-chip" type="button" data-imp="low" data-i18n="cal-imp-low">低</button>
             </div>
           </div>
-          <div class="cal-week-wrap"><div class="cal-week-strip" id="cal-weekStrip"></div></div>
           <div class="cal-filters" id="cal-filters">
             <button class="cal-chip active" type="button" data-filter="all" data-i18n="cal-filter-all">全部</button>
             <button class="cal-chip" type="button" data-filter="macro" data-i18n="cal-filter-macro">宏觀</button>
             <button class="cal-chip" type="button" data-filter="earnings" data-i18n="cal-filter-earnings">財報</button>
           </div>
+          <div class="cal-week-wrap"><div class="cal-week-strip" id="cal-weekStrip"></div></div>
           <div class="cal-list-hdr">
             <span id="cal-dayLabel">—</span>
             <div style="display:flex;align-items:center;gap:10px">
@@ -3430,13 +3431,33 @@ function calWeekRange(){
   end.setDate(end.getDate() + 6);
   return { from, to: calIso(end) };
 }
-function calMatchFilter(ev){
-  if(ev.region !== 'US') return false;
-  if(calActiveImportance !== 'all' && ev.importance !== calActiveImportance) return false;
+function calPassesTypeFilter(ev){
   if(calActiveFilter === 'all') return true;
   if(calActiveFilter === 'macro') return ev.type === 'macro';
   if(calActiveFilter === 'earnings') return ev.type === 'earnings';
   return true;
+}
+function calPassesDateFilter(ev){
+  const week = calWeekDates(calWeekStart).map(calIso);
+  if(calActiveFilter === 'all' && calAllWeekView) return week.includes(ev.date);
+  return ev.date === calSelectedDate;
+}
+function calMatchFilter(ev){
+  if(ev.region !== 'US') return false;
+  if(calActiveImportance !== 'all' && ev.importance !== calActiveImportance) return false;
+  return calPassesTypeFilter(ev);
+}
+function calEventsInScope(opts = {}){
+  const importance = opts.importance !== false;
+  const type = opts.type !== false;
+  const date = opts.date !== false;
+  return calEvents.filter(ev => {
+    if(ev.region !== 'US') return false;
+    if(importance && calActiveImportance !== 'all' && ev.importance !== calActiveImportance) return false;
+    if(type && !calPassesTypeFilter(ev)) return false;
+    if(date && !calPassesDateFilter(ev)) return false;
+    return true;
+  });
 }
 function calParseNum(s){
   if(s == null) return NaN;
@@ -3523,17 +3544,22 @@ function calHasPendingSelected(){
   return calVisibleEvents().some(e => e.data && e.data.actual == null && e.data.forecast != null);
 }
 function calVisibleEvents(){
-  const week = calWeekDates(calWeekStart).map(calIso);
-  return calEvents
-    .filter(e => calMatchFilter(e))
-    .filter(e => calActiveFilter === 'all' ? week.includes(e.date) : e.date === calSelectedDate)
+  return calEventsInScope()
     .sort((a, b) => {
       if(a.date !== b.date) return a.date > b.date ? 1 : -1;
       return a.time > b.time ? 1 : -1;
     });
 }
+function calPickDate(dateKey){
+  if(calActiveFilter === 'all' && !calAllWeekView && dateKey === calSelectedDate){
+    calAllWeekView = true;
+    return;
+  }
+  calSelectedDate = dateKey;
+  if(calActiveFilter === 'all') calAllWeekView = false;
+}
 function calListLabel(){
-  if(calActiveFilter === 'all'){
+  if(calActiveFilter === 'all' && calAllWeekView){
     const days = calWeekDates(calWeekStart);
     const start = days[0];
     const end = days[6];
@@ -3559,7 +3585,7 @@ function calRenderWeekStrip(){
   strip.innerHTML = calWeekDates(calWeekStart).map(d => {
     const key = calIso(d);
     const count = calEvents.filter(e => e.date === key && calMatchFilter(e)).length;
-    const active = calActiveFilter !== 'all' && key === calSelectedDate ? ' active' : '';
+    const active = ((calActiveFilter !== 'all' || !calAllWeekView) && key === calSelectedDate) ? ' active' : '';
     const has = count > 0 ? ' has-events' : '';
     const wdIdx = d.getDay() === 0 ? 6 : d.getDay() - 1;
     const todayMark = key === today ? `<div class="cal-day-today">${fundFlowEsc(t('cal-today'))}</div>` : '<div class="cal-day-today"></div>';
@@ -3571,14 +3597,14 @@ function calRenderWeekStrip(){
   }).join('');
 }
 function calRenderSummary(){
-  const week = calWeekDates(calWeekStart).map(calIso);
-  const weekEvents = calEvents.filter(e => week.includes(e.date));
+  const visible = calEventsInScope();
+  const scoped = calEventsInScope({ importance: false });
   const total = $('cal-stat-total');
   const high = $('cal-stat-high');
   const earn = $('cal-stat-earn');
-  if(total) total.textContent = weekEvents.length;
-  if(high) high.textContent = weekEvents.filter(e => e.importance === 'high').length;
-  if(earn) earn.textContent = weekEvents.filter(e => e.type === 'earnings').length;
+  if(total) total.textContent = visible.length;
+  if(high) high.textContent = scoped.filter(e => e.importance === 'high').length;
+  if(earn) earn.textContent = scoped.filter(e => e.type === 'earnings').length;
 }
 function calRenderEvents(flashIds){
   const listEl = $('cal-eventList');
@@ -3661,15 +3687,17 @@ function initCalendarBindings(){
   calWeekStart = calMondayOf(new Date());
   calSelectedDate = calTodayIso();
   $('cal-weekStrip')?.addEventListener('click', e => {
-    const btn = e.target.closest('[data-date]');
-    if(!btn) return;
-    calSelectedDate = btn.dataset.date;
+    const btn = e.target.closest('.cal-day-btn');
+    if(!btn?.dataset.date) return;
+    calPickDate(btn.dataset.date);
     calRender();
   });
   $('cal-filters')?.addEventListener('click', e => {
     const chip = e.target.closest('[data-filter]');
     if(!chip) return;
     calActiveFilter = chip.dataset.filter;
+    if(calActiveFilter === 'all') calAllWeekView = true;
+    else calAllWeekView = false;
     document.querySelectorAll('.cal-chip').forEach(c => c.classList.toggle('active', c === chip));
     calRender();
   });
