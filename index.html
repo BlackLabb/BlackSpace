@@ -3478,7 +3478,36 @@ function calRenderEvent(ev, flash){
   </article>`;
 }
 function calHasPendingSelected(){
-  return calEvents.some(e => e.date === calSelectedDate && e.data && e.data.actual == null && e.data.forecast != null);
+  return calVisibleEvents().some(e => e.data && e.data.actual == null && e.data.forecast != null);
+}
+function calVisibleEvents(){
+  const week = calWeekDates(calWeekStart).map(calIso);
+  return calEvents
+    .filter(e => calMatchFilter(e))
+    .filter(e => calActiveFilter === 'all' ? week.includes(e.date) : e.date === calSelectedDate)
+    .sort((a, b) => {
+      if(a.date !== b.date) return a.date > b.date ? 1 : -1;
+      return a.time > b.time ? 1 : -1;
+    });
+}
+function calListLabel(){
+  if(calActiveFilter === 'all'){
+    const days = calWeekDates(calWeekStart);
+    const start = days[0];
+    const end = days[6];
+    if(curLang === 'zh'){
+      if(start.getMonth() === end.getMonth()) return `${start.getMonth()+1}月${start.getDate()}–${end.getDate()}日 · 本週`;
+      return `${start.getMonth()+1}月${start.getDate()}日 – ${end.getMonth()+1}月${end.getDate()}日`;
+    }
+    const fmt = d => d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    return `${fmt(start)} – ${fmt(end)}`;
+  }
+  const d = new Date(`${calSelectedDate}T12:00:00`);
+  const labels = calWeekDayLabels();
+  const wd = labels[d.getDay() === 0 ? 6 : d.getDay() - 1];
+  return curLang === 'zh'
+    ? `${d.getMonth()+1}月${d.getDate()}日 · 週${wd}`
+    : `${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${wd}`;
 }
 function calRenderWeekStrip(){
   const strip = $('cal-weekStrip');
@@ -3488,7 +3517,7 @@ function calRenderWeekStrip(){
   strip.innerHTML = calWeekDates(calWeekStart).map(d => {
     const key = calIso(d);
     const count = calEvents.filter(e => e.date === key && calMatchFilter(e)).length;
-    const active = key === calSelectedDate ? ' active' : '';
+    const active = calActiveFilter !== 'all' && key === calSelectedDate ? ' active' : '';
     const has = count > 0 ? ' has-events' : '';
     const wdIdx = d.getDay() === 0 ? 6 : d.getDay() - 1;
     const todayMark = key === today ? `<div class="cal-day-today">${fundFlowEsc(t('cal-today'))}</div>` : '<div class="cal-day-today"></div>';
