@@ -3463,24 +3463,26 @@ function calParseNum(s){
   if(s == null) return NaN;
   return parseFloat(String(s).replace(/[^0-9.\-+]/g, ''));
 }
+function calFormatNum2(n){
+  if(!Number.isFinite(n)) return null;
+  return n.toFixed(2);
+}
 function calDisplayVal(val){
   if(val == null || val === '—') return '—';
   const s = String(val);
-  if(curLang !== 'zh') return s;
-  if(s.endsWith('%')) return s;
-  if(/K$/i.test(s)){
-    const n = parseFloat(s) / 10;
-    return `${Number.isFinite(n) ? parseFloat(n.toFixed(4)) : s}萬`;
+  const pct = s.endsWith('%');
+  const scale = s.match(/[KMB]$/i)?.[0]?.toUpperCase() || '';
+  const n = calParseNum(s);
+  if(!Number.isFinite(n)) return s;
+  if(pct) return `${calFormatNum2(n)}%`;
+  if(scale){
+    if(curLang === 'zh'){
+      const wan = scale === 'K' ? n / 10 : scale === 'M' ? n * 100 : n * 100000;
+      return `${calFormatNum2(wan)}萬`;
+    }
+    return `${calFormatNum2(n)}${scale}`;
   }
-  if(/M$/i.test(s)){
-    const n = parseFloat(s) * 100;
-    return `${Number.isFinite(n) ? parseFloat(n.toFixed(4)) : s}萬`;
-  }
-  if(/B$/i.test(s)){
-    const n = parseFloat(s) * 100000;
-    return `${Number.isFinite(n) ? parseFloat(n.toFixed(4)) : s}萬`;
-  }
-  return s;
+  return calFormatNum2(n);
 }
 function calActualTone(ev){
   const d = ev.data;
