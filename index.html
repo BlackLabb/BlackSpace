@@ -1277,9 +1277,9 @@ table{border-collapse:collapse;width:100%}
 .cal-pill-imp.med{background:rgba(255,149,0,.12);color:var(--warn)}
 .cal-pill-imp.low{background:rgba(120,120,128,.10);color:var(--faint)}
 .cal-pill-live{background:rgba(52,199,89,.12);color:#1b8a3e}
-.cal-data-row{display:grid;grid-template-columns:repeat(3,minmax(76px,1fr));gap:6px;width:fit-content;max-width:100%;margin:0 auto;background:transparent;border:none;border-radius:0;overflow:visible}
-.cal-data-row.earnings{grid-template-columns:repeat(2,minmax(88px,1fr))}
-.cal-data-cell{padding:8px 6px;text-align:center;border:none;border-radius:8px;background:var(--surfaceOff)}
+.cal-data-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;background:transparent;border:none;border-radius:0;overflow:visible}
+.cal-data-row.earnings{grid-template-columns:repeat(2,1fr)}
+.cal-data-cell{padding:8px 6px;text-align:center;border:none;border-radius:8px;background:var(--surfaceOff);min-width:0}
 .cal-data-cell.is-actual{background:var(--surfaceDyn)}
 .cal-data-lbl{display:block;font-size:10px;font-weight:700;color:var(--faint);margin-bottom:3px}
 .cal-data-val{display:block;font-size:13px;font-weight:700;font-family:var(--num-font);font-variant-numeric:tabular-nums;color:var(--text);line-height:1.2}
