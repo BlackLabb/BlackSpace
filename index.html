@@ -1212,6 +1212,72 @@ table{border-collapse:collapse;width:100%}
 [data-theme="dark"] .nav-btn.active::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:18px;border-radius:0 2px 2px 0;background:var(--primary);box-shadow:0 0 12px rgba(212,181,106,.28)}
 [data-theme="dark"] .nav-btn{position:relative}
 .mini-apps-wrap.fallback-only{display:none!important}
+#view-calendar{padding:0}
+.cal-panel{overflow:hidden;margin-bottom:12px}
+.cal-hdr{padding:16px 16px 0}
+.cal-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.cal-top p{margin-top:4px;font-size:12px;font-weight:500;color:var(--muted)}
+.cal-stats{display:flex;gap:8px;flex-shrink:0}
+.cal-stat-pill{font-size:12px;font-weight:500;color:var(--muted);background:var(--surfaceOff);padding:7px 12px;border-radius:999px;white-space:nowrap}
+.cal-stat-pill strong{color:var(--text);font-weight:700;font-size:13px;font-family:var(--num-font);font-variant-numeric:tabular-nums}
+.cal-week-wrap{padding:0 16px 14px}
+.cal-week-strip{display:flex;gap:0;background:var(--surfaceOff);border-radius:12px;padding:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.cal-week-strip::-webkit-scrollbar{display:none}
+.cal-day-btn{flex:1 0 0;min-width:48px;border:none;background:transparent;border-radius:10px;padding:10px 4px 9px;text-align:center;cursor:pointer;transition:background var(--trans),box-shadow var(--trans);font:inherit;color:inherit}
+.cal-day-btn.active{background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.08),0 0 0 .5px rgba(0,0,0,.04)}
+.cal-day-wd{font-size:11px;color:var(--muted);font-weight:700;line-height:1.2}
+.cal-day-num{font-size:17px;font-weight:700;font-family:var(--num-font);font-variant-numeric:tabular-nums;line-height:1.2;margin-top:4px;color:var(--text)}
+.cal-day-btn.active .cal-day-num{color:var(--primary)}
+.cal-day-dot{width:5px;height:5px;border-radius:50%;background:var(--primary);margin:4px auto 0;opacity:0}
+.cal-day-btn.has-events .cal-day-dot{opacity:.4}
+.cal-day-btn.active.has-events .cal-day-dot{opacity:1}
+.cal-day-today{font-size:10px;color:var(--primary);font-weight:700;margin-top:2px;line-height:1;min-height:10px}
+.cal-filters{display:flex;gap:0;border-top:1px solid var(--divider);background:var(--surfaceOff)}
+.cal-chip{flex:1;border:none;background:transparent;padding:12px 4px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:color var(--trans),background var(--trans);position:relative;font:inherit}
+.cal-chip+.cal-chip{border-left:1px solid var(--divider)}
+.cal-chip.active{color:var(--primary);background:var(--surface)}
+.cal-chip.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:var(--primary);border-radius:2px 2px 0 0}
+.cal-list-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-top:1px solid var(--divider);background:var(--surfaceOff)}
+.cal-list-hdr span{font-size:13px;font-weight:600;color:var(--muted)}
+.cal-list-hdr strong{font-size:13px;font-weight:700;color:var(--text);font-family:var(--num-font);font-variant-numeric:tabular-nums}
+.cal-live-dot{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--success)}
+.cal-live-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--success);animation:calLivePulse 1.4s ease infinite}
+.cal-status-err{color:var(--error);font-size:11px;font-weight:600}
+@keyframes calLivePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.85)}}
+.cal-event{display:flex;gap:12px;padding:13px 16px;border-top:1px solid var(--divider);align-items:flex-start}
+.cal-event:first-child{border-top:none}
+.cal-event-bar{width:3px;border-radius:99px;flex-shrink:0;align-self:stretch;min-height:38px;margin-top:1px}
+.cal-event-bar.high{background:var(--error)}
+.cal-event-bar.med{background:var(--warn)}
+.cal-event-bar.low{background:var(--faint)}
+.cal-event-time{width:44px;flex-shrink:0;font-size:12px;font-weight:600;font-family:var(--num-font);font-variant-numeric:tabular-nums;color:var(--text);padding-top:2px;line-height:1.3}
+.cal-event-body{flex:1;min-width:0}
+.cal-event-title{font-size:14px;font-weight:700;line-height:1.35;letter-spacing:-.01em;margin-bottom:6px}
+.cal-event-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.cal-pill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;line-height:1.4}
+.cal-pill-type{background:#eef2ff;color:#4338ca}
+.cal-pill-type.earnings{background:#ecfdf5;color:#047857}
+.cal-pill-type.market{background:#fff7ed;color:#c2410c}
+.cal-pill-region{background:var(--surfaceOff);color:var(--text);font-weight:600}
+.cal-pill-imp.high{background:rgba(255,59,48,.10);color:var(--error)}
+.cal-pill-imp.med{background:rgba(255,149,0,.10);color:var(--warn)}
+.cal-pill-imp.low{background:rgba(120,120,128,.08);color:var(--faint)}
+.cal-pill-live{background:rgba(52,199,89,.12);color:#1b8a3e}
+.cal-data-row{display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:var(--surfaceOff);border-radius:10px;overflow:hidden;border:1px solid var(--divider)}
+.cal-data-cell{padding:8px 10px;text-align:center;border-right:1px solid var(--divider)}
+.cal-data-cell:last-child{border-right:none}
+.cal-data-cell.is-actual{background:var(--surface)}
+.cal-data-lbl{display:block;font-size:10px;font-weight:700;color:var(--faint);margin-bottom:3px}
+.cal-data-val{display:block;font-size:13px;font-weight:700;font-family:var(--num-font);font-variant-numeric:tabular-nums;color:var(--text);line-height:1.2}
+.cal-data-val.pending{color:var(--faint);font-size:11px;font-weight:600;font-family:inherit}
+.cal-data-val.beat{color:var(--success)}
+.cal-data-val.miss{color:var(--error)}
+.cal-data-cell.is-actual.flash{animation:calDataFlash .9s ease}
+@keyframes calDataFlash{0%{background:var(--primaryHL)}100%{background:var(--surface)}}
+.cal-empty,.cal-loading{padding:32px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
+.cal-empty.err{color:var(--error)}
+.cal-foot{padding:10px 16px 14px;font-size:10px;color:var(--faint);text-align:center;line-height:1.5;border-top:1px solid var(--divider)}
+@media(max-width:560px){.cal-top{flex-direction:column;gap:8px}.cal-stats{width:100%}.cal-stat-pill{flex:1;text-align:center}.cal-day-btn{min-width:44px}}
 @media(max-width:1080px){.panel-grid,.news-grid,.news-layout.news-grid{grid-template-columns:1fr}.cat-grid,.cats-grid.cat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:820px){
   .sidebar{position:fixed;inset:0 auto 0 0;width:min(86vw,320px);transform:translateX(-105%);transition:transform .32s var(--ease,cubic-bezier(.22,1,.36,1));z-index:46;box-shadow:var(--shadowLg);display:flex!important}
@@ -1812,6 +1878,10 @@ table{border-collapse:collapse;width:100%}
       <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="m7 15 4-4 3 3 5-7"></path><circle cx="11" cy="11" r="1"></circle></svg>
       <span class="nav-btn-label" data-i18n="title-stockresearch">Stock Research</span>
     </button>
+    <button class="nav-btn" data-view="calendar" data-tip="Economic Calendar">
+      <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      <span class="nav-btn-label" data-i18n="title-calendar">財經日曆</span>
+    </button>
     <div class="mini-apps-wrap fallback-only">
       <button class="nav-btn mini-apps-trigger" id="mini-apps-btn" type="button" data-tip="Apps" aria-haspopup="menu" aria-expanded="false">
         <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
@@ -1821,6 +1891,7 @@ table{border-collapse:collapse;width:100%}
         <button class="mini-app-item" type="button" data-mini-view="news" role="menuitem"><span data-i18n="title-news">News</span></button>
         <button class="mini-app-item" type="button" data-mini-view="fundflow" role="menuitem"><span data-i18n="title-fundflow">Fund Flow</span></button>
         <button class="mini-app-item" type="button" data-mini-view="stockresearch" role="menuitem"><span data-i18n="title-stockresearch">Stock Research</span></button>
+        <button class="mini-app-item" type="button" data-mini-view="calendar" role="menuitem"><span data-i18n="title-calendar">財經日曆</span></button>
       </div>
     </div>
   </nav>
@@ -2052,6 +2123,41 @@ table{border-collapse:collapse;width:100%}
 <!-- STOCK RESEARCH -->
       <div class="view" id="view-stockresearch">
         <div class="stockresearch-host" id="stockresearch-root"></div>
+      </div>
+
+<!-- ECONOMIC CALENDAR -->
+      <div class="view" id="view-calendar">
+        <section class="panel card cal-panel">
+          <div class="cal-hdr">
+            <div class="cal-top">
+              <div>
+                <p id="cal-sourceLine">TradingView · HKT</p>
+              </div>
+              <div class="cal-stats">
+                <span class="cal-stat-pill"><strong id="cal-stat-total">0</strong> <span data-i18n="cal-stat-items">項</span></span>
+                <span class="cal-stat-pill"><strong id="cal-stat-high">0</strong> <span data-i18n="cal-stat-high">高</span></span>
+                <span class="cal-stat-pill"><strong id="cal-stat-earn">0</strong> <span data-i18n="cal-stat-earnings">財報</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="cal-week-wrap"><div class="cal-week-strip" id="cal-weekStrip"></div></div>
+          <div class="cal-filters" id="cal-filters">
+            <button class="cal-chip active" type="button" data-filter="all" data-i18n="cal-filter-all">全部</button>
+            <button class="cal-chip" type="button" data-filter="earnings" data-i18n="cal-filter-earnings">財報</button>
+            <button class="cal-chip" type="button" data-filter="asia" data-i18n="cal-filter-asia">亞洲</button>
+            <button class="cal-chip" type="button" data-filter="west" data-i18n="cal-filter-west">美歐</button>
+          </div>
+          <div class="cal-list-hdr">
+            <span id="cal-dayLabel">—</span>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="cal-live-dot" id="cal-liveBadge" hidden data-i18n="cal-live">即時</span>
+              <span class="cal-status-err" id="cal-statusErr" hidden></span>
+              <strong id="cal-dayCount">0</strong>
+            </div>
+          </div>
+          <div class="cal-events" id="cal-eventList"><div class="cal-loading" data-i18n="cal-loading">正在載入財經日曆…</div></div>
+          <p class="cal-foot" data-i18n="cal-footnote">僅供參考，不構成投資建議</p>
+        </section>
       </div>
 
       <!-- INVESTMENT NEWS -->
@@ -3260,6 +3366,258 @@ async function renderFundFlow(){
   }
 }
 
+const CAL_POLL_MS = 30000;
+const CAL_WEEK_DAYS_ZH = ['一','二','三','四','五','六','日'];
+const CAL_WEEK_DAYS_EN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const CAL_ASIA_REGIONS = new Set(['HK','CN','JP','KR','TW','SG','IN','AU']);
+const CAL_WEST_REGIONS = new Set(['US','EU','GB','DE','FR','IT','ES','CA']);
+const CAL_REGION_ZH = { US:'美國', EU:'歐元區', HK:'香港', CN:'中國', GB:'英國', JP:'日本', KR:'韓國', SG:'新加坡', AU:'澳洲', CA:'加拿大', DE:'德國', FR:'法國' };
+const CAL_REGION_EN = { US:'United States', EU:'Eurozone', HK:'Hong Kong', CN:'China', GB:'United Kingdom', JP:'Japan', KR:'South Korea', SG:'Singapore', AU:'Australia', CA:'Canada', DE:'Germany', FR:'France' };
+let calEvents = [];
+let calWeekStart = null;
+let calSelectedDate = null;
+let calActiveFilter = 'all';
+let calPollTimer = null;
+let calFetchToken = 0;
+let calPrevActualMap = new Map();
+let calReady = false;
+
+function calIso(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function calTodayIso(){ return calIso(new Date()); }
+function calWeekDates(start){
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    return d;
+  });
+}
+function calMondayOf(date){
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+function calWeekRange(){
+  const from = calIso(calWeekStart);
+  const end = new Date(calWeekStart);
+  end.setDate(end.getDate() + 6);
+  return { from, to: calIso(end) };
+}
+function calMatchFilter(ev){
+  if(calActiveFilter === 'all') return true;
+  if(calActiveFilter === 'earnings') return ev.type === 'earnings';
+  if(calActiveFilter === 'asia') return CAL_ASIA_REGIONS.has(ev.region);
+  if(calActiveFilter === 'west') return CAL_WEST_REGIONS.has(ev.region);
+  return true;
+}
+function calParseNum(s){
+  if(s == null) return NaN;
+  return parseFloat(String(s).replace(/[^0-9.\-+]/g, ''));
+}
+function calActualTone(ev){
+  const d = ev.data;
+  if(!d || d.actual == null || d.forecast == null) return 'pending';
+  const a = calParseNum(d.actual), f = calParseNum(d.forecast);
+  if(!Number.isFinite(a) || !Number.isFinite(f)) return 'inline';
+  if(Math.abs(a - f) < 0.001) return 'inline';
+  const higher = d.higherIsBetter !== false;
+  return (higher ? a > f : a < f) ? 'beat' : 'miss';
+}
+function calTypeLabel(type){
+  const map = { macro: t('cal-type-macro'), earnings: t('cal-type-earnings'), market: t('cal-type-market') };
+  return map[type] || type;
+}
+function calRegionLabel(region){
+  const map = curLang === 'zh' ? CAL_REGION_ZH : CAL_REGION_EN;
+  return map[region] || region;
+}
+function calImpLabel(imp){
+  const map = { high: t('cal-imp-high'), med: t('cal-imp-med'), low: t('cal-imp-low') };
+  return map[imp] || imp;
+}
+function calWeekDayLabels(){
+  return curLang === 'zh' ? CAL_WEEK_DAYS_ZH : CAL_WEEK_DAYS_EN;
+}
+function calRenderDataRow(ev, flash){
+  const d = ev.data;
+  if(!d) return '';
+  const tone = calActualTone(ev);
+  const prevLbl = d.earnings ? t('cal-earn-prev') : t('cal-prev');
+  const fcLbl = d.earnings ? t('cal-earn-fc') : t('cal-forecast');
+  const actLbl = d.earnings ? t('cal-earn-act') : t('cal-actual');
+  const actualHtml = d.actual != null
+    ? `<span class="cal-data-val ${tone === 'pending' ? '' : tone}">${fundFlowEsc(d.actual)}</span>`
+    : `<span class="cal-data-val pending">${fundFlowEsc(t('cal-pending'))}</span>`;
+  return `<div class="cal-data-row" data-data-for="${fundFlowEsc(ev.id)}">
+    <div class="cal-data-cell"><span class="cal-data-lbl">${prevLbl}</span><span class="cal-data-val">${fundFlowEsc(d.previous ?? '—')}</span></div>
+    <div class="cal-data-cell"><span class="cal-data-lbl">${fcLbl}</span><span class="cal-data-val">${fundFlowEsc(d.forecast ?? '—')}</span></div>
+    <div class="cal-data-cell is-actual${flash ? ' flash' : ''}"><span class="cal-data-lbl">${actLbl}</span>${actualHtml}</div>
+  </div>`;
+}
+function calRenderEvent(ev, flash){
+  const typeCls = ev.type === 'earnings' ? 'earnings' : ev.type === 'market' ? 'market' : '';
+  const isPending = ev.data && ev.data.actual == null && ev.data.forecast != null;
+  const livePill = isPending ? `<span class="cal-pill cal-pill-live">${fundFlowEsc(t('cal-pending-update'))}</span>` : '';
+  return `<article class="cal-event" data-event-id="${fundFlowEsc(ev.id)}">
+    <div class="cal-event-bar ${fundFlowEsc(ev.importance)}"></div>
+    <div class="cal-event-time">${fundFlowEsc(ev.time)}</div>
+    <div class="cal-event-body">
+      <div class="cal-event-title">${fundFlowEsc(ev.title)}</div>
+      <div class="cal-event-meta">
+        <span class="cal-pill cal-pill-type ${typeCls}">${fundFlowEsc(calTypeLabel(ev.type))}</span>
+        <span class="cal-pill cal-pill-region">${fundFlowEsc(calRegionLabel(ev.region))}</span>
+        <span class="cal-pill cal-pill-imp ${fundFlowEsc(ev.importance)}">${fundFlowEsc(calImpLabel(ev.importance))}</span>
+        ${livePill}
+      </div>
+      ${calRenderDataRow(ev, flash)}
+    </div>
+  </article>`;
+}
+function calHasPendingSelected(){
+  return calEvents.some(e => e.date === calSelectedDate && e.data && e.data.actual == null && e.data.forecast != null);
+}
+function calRenderWeekStrip(){
+  const strip = $('cal-weekStrip');
+  if(!strip) return;
+  const today = calTodayIso();
+  const labels = calWeekDayLabels();
+  strip.innerHTML = calWeekDates(calWeekStart).map(d => {
+    const key = calIso(d);
+    const count = calEvents.filter(e => e.date === key && calMatchFilter(e)).length;
+    const active = key === calSelectedDate ? ' active' : '';
+    const has = count > 0 ? ' has-events' : '';
+    const wdIdx = d.getDay() === 0 ? 6 : d.getDay() - 1;
+    const todayMark = key === today ? `<div class="cal-day-today">${fundFlowEsc(t('cal-today'))}</div>` : '<div class="cal-day-today"></div>';
+    return `<button type="button" class="cal-day-btn${active}${has}" data-date="${key}">
+      <div class="cal-day-wd">${labels[wdIdx]}</div>
+      <div class="cal-day-num">${d.getDate()}</div>
+      <div class="cal-day-dot"></div>${todayMark}
+    </button>`;
+  }).join('');
+}
+function calRenderSummary(){
+  const week = calWeekDates(calWeekStart).map(calIso);
+  const weekEvents = calEvents.filter(e => week.includes(e.date));
+  const total = $('cal-stat-total');
+  const high = $('cal-stat-high');
+  const earn = $('cal-stat-earn');
+  if(total) total.textContent = weekEvents.length;
+  if(high) high.textContent = weekEvents.filter(e => e.importance === 'high').length;
+  if(earn) earn.textContent = weekEvents.filter(e => e.type === 'earnings').length;
+}
+function calRenderEvents(flashIds){
+  const listEl = $('cal-eventList');
+  if(!listEl) return;
+  const flashSet = new Set(flashIds || []);
+  const list = calEvents
+    .filter(e => e.date === calSelectedDate && calMatchFilter(e))
+    .sort((a, b) => (a.time > b.time ? 1 : -1));
+  const d = new Date(`${calSelectedDate}T12:00:00`);
+  const labels = calWeekDayLabels();
+  const wd = labels[d.getDay() === 0 ? 6 : d.getDay() - 1];
+  const dayLabel = $('cal-dayLabel');
+  const dayCount = $('cal-dayCount');
+  const liveBadge = $('cal-liveBadge');
+  if(dayLabel){
+    dayLabel.textContent = curLang === 'zh'
+      ? `${d.getMonth()+1}月${d.getDate()}日 · 週${wd}`
+      : `${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${wd}`;
+  }
+  if(dayCount) dayCount.textContent = `${list.length} ${t('cal-count-suffix')}`;
+  if(liveBadge) liveBadge.hidden = !calHasPendingSelected();
+  if(!list.length){
+    listEl.innerHTML = `<div class="cal-empty">${fundFlowEsc(t('cal-empty'))}</div>`;
+    return;
+  }
+  listEl.innerHTML = list.map(ev => calRenderEvent(ev, flashSet.has(ev.id))).join('');
+}
+function calRender(flashIds){
+  calRenderWeekStrip();
+  calRenderSummary();
+  calRenderEvents(flashIds);
+}
+function calDetectActualUpdates(items){
+  const flashes = [];
+  items.forEach(ev => {
+    const key = ev.id;
+    const next = ev.data?.actual ?? null;
+    const prev = calPrevActualMap.get(key);
+    if(prev == null && next != null) flashes.push(key);
+    if(prev != null && next != null && prev !== next) flashes.push(key);
+    calPrevActualMap.set(key, next);
+  });
+  return flashes;
+}
+function calStopPolling(){
+  if(calPollTimer){ clearInterval(calPollTimer); calPollTimer = null; }
+}
+function calStartPolling(){
+  calStopPolling();
+  calPollTimer = setInterval(() => { if(curView === 'calendar') fetchCalendar(true); }, CAL_POLL_MS);
+}
+async function fetchCalendar(isPoll){
+  const token = ++calFetchToken;
+  const { from, to } = calWeekRange();
+  const url = `${FUND_FLOW_API}/calendar?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+  const listEl = $('cal-eventList');
+  if(!isPoll && listEl) listEl.innerHTML = `<div class="cal-loading">${fundFlowEsc(t('cal-loading'))}</div>`;
+  try{
+    const res = await fetch(url, { signal: AbortSignal.timeout(45000) });
+    const data = await res.json();
+    if(token !== calFetchToken) return;
+    if(!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const items = Array.isArray(data.items) ? data.items : [];
+    const flashes = isPoll ? calDetectActualUpdates(items) : (items.forEach(ev => calPrevActualMap.set(ev.id, ev.data?.actual ?? null)), []);
+    calEvents = items;
+    const src = $('cal-sourceLine');
+    const err = $('cal-statusErr');
+    if(err){ err.hidden = true; err.textContent = ''; }
+    if(src){
+      src.textContent = `${t('cal-source')} · ${new Date().toLocaleTimeString(curLang === 'zh' ? 'zh-HK' : 'en-US',{hour:'2-digit',minute:'2-digit'})}`;
+    }
+    if(!calSelectedDate || !calWeekDates(calWeekStart).some(d => calIso(d) === calSelectedDate)){
+      calSelectedDate = calTodayIso();
+    }
+    calRender(flashes);
+  }catch(err){
+    console.warn('Calendar fetch failed:', err);
+    if(token !== calFetchToken) return;
+    const errEl = $('cal-statusErr');
+    if(errEl){ errEl.hidden = false; errEl.textContent = t('cal-load-failed'); }
+    if(!calEvents.length && listEl){
+      listEl.innerHTML = `<div class="cal-empty err">${fundFlowEsc(t('cal-error'))}<br><span style="font-size:11px;color:var(--muted)">${fundFlowEsc(err.message || '')}</span></div>`;
+    }
+  }
+}
+function initCalendarBindings(){
+  if(calReady) return;
+  calReady = true;
+  calWeekStart = calMondayOf(new Date());
+  calSelectedDate = calTodayIso();
+  $('cal-weekStrip')?.addEventListener('click', e => {
+    const btn = e.target.closest('[data-date]');
+    if(!btn) return;
+    calSelectedDate = btn.dataset.date;
+    calRender();
+  });
+  $('cal-filters')?.addEventListener('click', e => {
+    const chip = e.target.closest('[data-filter]');
+    if(!chip) return;
+    calActiveFilter = chip.dataset.filter;
+    document.querySelectorAll('.cal-chip').forEach(c => c.classList.toggle('active', c === chip));
+    calRender();
+  });
+}
+function initCalendar(){
+  initCalendarBindings();
+  fetchCalendar(false);
+  calStartPolling();
+}
+
 // ── VIEW SWITCHING ────────────────────────────────────────
 const VIEW_KEYS = {
   monthly:      {title:'title-monthly',      sub:'sub-monthly'},
@@ -3270,6 +3628,7 @@ const VIEW_KEYS = {
   news:         {title:'title-news',         sub:'sub-news'},
   fundflow:     {title:'title-fundflow',     sub:'sub-fundflow'},
   stockresearch:{title:'title-stockresearch',sub:'sub-stockresearch'},
+  calendar:     {title:'title-calendar',     sub:'sub-calendar'},
 };
 // Keep VIEW_META as fallback for code that references it
 const VIEW_META = {
@@ -3278,10 +3637,12 @@ const VIEW_META = {
   categories:{title:'Categories',sub:'Manage spending categories'},investments:{title:'Investments',sub:'Live portfolio tracker'},
   news:{title:'Investment News',sub:'Company-focused market news'},
   fundflow:{title:'Fund Flow',sub:'ETF historical price trend'},stockresearch:{title:'Stock Research',sub:'Company valuation and AI research'},
+  calendar:{title:'Economic Calendar',sub:'Macro events and earnings'},
 };
 function setView(v){
   if(v==='goals' || v==='blackinvest') v='dashboard';
   if(!$('view-'+v)) v='dashboard';
+  if(curView === 'calendar' && v !== 'calendar') calStopPolling();
   curView=v;
   closeSidebarDrawer();
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
@@ -3301,6 +3662,7 @@ function setView(v){
   if(v==='news') renderNews();
   if(v==='fundflow') renderFundFlow();
   if(v==='stockresearch' && window.initStockResearch) window.initStockResearch();
+  if(v==='calendar') initCalendar();
   document.querySelectorAll('.bottom-nav-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.view===v);
   });
@@ -3712,11 +4074,33 @@ Object.assign(I18N.en, {
 
 Object.assign(I18N.zh, {
   'title-fundflow':'資金流向','sub-fundflow':'ETF 歷史價格趨勢','app-sub-fundflow':'價格變動',
+  'title-calendar':'財經日曆','sub-calendar':'宏觀數據與財報日程',
+  'cal-filter-all':'全部','cal-filter-earnings':'財報','cal-filter-asia':'亞洲','cal-filter-west':'美歐',
+  'cal-stat-items':'項','cal-stat-high':'高','cal-stat-earnings':'財報',
+  'cal-loading':'正在載入財經日曆…','cal-empty':'此日沒有符合篩選的事件','cal-error':'無法連接財經日曆',
+  'cal-load-failed':'載入失敗','cal-live':'即時','cal-pending':'待公佈','cal-pending-update':'待更新',
+  'cal-prev':'前值','cal-forecast':'預期','cal-actual':'實際',
+  'cal-earn-prev':'上季','cal-earn-fc':'預期 EPS','cal-earn-act':'實際 EPS',
+  'cal-type-macro':'宏觀','cal-type-earnings':'財報','cal-type-market':'市場',
+  'cal-imp-high':'高','cal-imp-med':'中','cal-imp-low':'低',
+  'cal-today':'今','cal-count-suffix':'項','cal-source':'TradingView · HKT',
+  'cal-footnote':'僅供參考，不構成投資建議',
   'fund-flow-price-note':'以歷史收市價計算','fund-flow-title':'主題 ETF 價格趨勢',
   'fund-flow-etf':'ETF / 主題','fund-flow-one-day':'1日變動 (%)','fund-flow-five-day':'5日變動 (%)','fund-flow-streak':'連續走勢','fund-flow-loading':'正在載入價格資料…','fund-flow-scroll-left':'向左滑動','fund-flow-scroll-right':'向右滑動','fund-flow-ai-title':'AI 分析','fund-flow-ai-loading':'資料載入後，將由伺服器端 AI 分析價格趨勢.'
 });
 Object.assign(I18N.en, {
   'title-fundflow':'Fund Flow','sub-fundflow':'ETF historical price trend','app-sub-fundflow':'Price changes',
+  'title-calendar':'Economic Calendar','sub-calendar':'Macro events and earnings schedule',
+  'cal-filter-all':'All','cal-filter-earnings':'Earnings','cal-filter-asia':'Asia','cal-filter-west':'US/EU',
+  'cal-stat-items':'items','cal-stat-high':'high','cal-stat-earnings':'earn',
+  'cal-loading':'Loading economic calendar…','cal-empty':'No events match this filter today','cal-error':'Unable to load economic calendar',
+  'cal-load-failed':'Load failed','cal-live':'Live','cal-pending':'Pending','cal-pending-update':'Awaiting',
+  'cal-prev':'Previous','cal-forecast':'Forecast','cal-actual':'Actual',
+  'cal-earn-prev':'Prior EPS','cal-earn-fc':'Est. EPS','cal-earn-act':'Act. EPS',
+  'cal-type-macro':'Macro','cal-type-earnings':'Earnings','cal-type-market':'Market',
+  'cal-imp-high':'High','cal-imp-med':'Med','cal-imp-low':'Low',
+  'cal-today':'Today','cal-count-suffix':'items','cal-source':'TradingView · HKT',
+  'cal-footnote':'For reference only; not investment advice',
   'fund-flow-price-note':'BASED ON HISTORICAL CLOSES','fund-flow-title':'ETF Theme Price Trend',
   'fund-flow-etf':'ETF / Theme','fund-flow-one-day':'1-day change (%)','fund-flow-five-day':'5-day change (%)','fund-flow-streak':'Price streak','fund-flow-loading':'Loading price data…','fund-flow-scroll-left':'Scroll left','fund-flow-scroll-right':'Scroll right','fund-flow-ai-title':'AI Analysis','fund-flow-ai-loading':'The server-side AI will analyze price trends after data loads.'
 });
@@ -3781,6 +4165,8 @@ function applyLang(){
   if(ffNav) ffNav.textContent = t('title-fundflow');
   const srNav = document.querySelector('.nav-btn[data-view="stockresearch"] .nav-btn-label');
   if(srNav) srNav.textContent = t('title-stockresearch');
+  const calNav = document.querySelector('.nav-btn[data-view="calendar"] .nav-btn-label');
+  if(calNav) calNav.textContent = t('title-calendar');
 
   const appsTrigger = $('mini-apps-btn');
   if(appsTrigger) appsTrigger.setAttribute('data-tip', t('nav-apps'));
@@ -3791,6 +4177,7 @@ function applyLang(){
   document.querySelector('.nav-btn[data-view="news"]')?.setAttribute('data-tip', t('nav-news'));
   document.querySelector('.nav-btn[data-view="fundflow"]')?.setAttribute('data-tip', t('title-fundflow'));
   document.querySelector('.nav-btn[data-view="stockresearch"]')?.setAttribute('data-tip', t('title-stockresearch'));
+  document.querySelector('.nav-btn[data-view="calendar"]')?.setAttribute('data-tip', t('title-calendar'));
 
   updateSettingsMenuValues();
   renderProfile();
@@ -3886,6 +4273,7 @@ function applyLang(){
   if(curView==='news') renderNews();
   if(curView==='fundflow') renderFundFlow();
   if(curView==='stockresearch' && window.initStockResearch) window.initStockResearch(true);
+  if(curView==='calendar') calRender();
   if(curView==='categories') renderCategories();
 
   // View title for current view
@@ -3899,6 +4287,7 @@ function applyLang(){
     news:{title:t('title-news')},
     fundflow:{title:t('title-fundflow')},
     stockresearch:{title:t('title-stockresearch')},
+    calendar:{title:t('title-calendar')},
   };
   if(vmeta[curView]){
     $('view-title').textContent = vmeta[curView].title;
