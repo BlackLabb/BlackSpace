@@ -1263,7 +1263,7 @@ table{border-collapse:collapse;width:100%}
 .cal-event-bar{width:3px;border-radius:99px;flex-shrink:0;align-self:stretch;min-height:38px;margin-top:1px}
 .cal-event-bar.high{background:var(--error)}
 .cal-event-bar.med{background:var(--warn)}
-.cal-event-bar.low{background:var(--faint)}
+.cal-event-bar.earnings{background:#047857}
 .cal-event-time{width:44px;flex-shrink:0;font-size:12px;font-weight:600;font-family:var(--num-font);font-variant-numeric:tabular-nums;color:var(--text);padding-top:2px;line-height:1.3}
 .cal-event-body{flex:1;min-width:0}
 .cal-event-title{font-size:14px;font-weight:700;line-height:1.35;letter-spacing:-.01em;margin-bottom:6px}
@@ -3444,7 +3444,7 @@ function calPassesDateFilter(ev){
 }
 function calMatchFilter(ev){
   if(ev.region !== 'US') return false;
-  if(calActiveImportance !== 'all' && ev.importance !== calActiveImportance) return false;
+  if(calActiveImportance !== 'all' && ev.type !== 'earnings' && ev.importance !== calActiveImportance) return false;
   return calPassesTypeFilter(ev);
 }
 function calEventsInScope(opts = {}){
@@ -3453,7 +3453,7 @@ function calEventsInScope(opts = {}){
   const date = opts.date !== false;
   return calEvents.filter(ev => {
     if(ev.region !== 'US') return false;
-    if(importance && calActiveImportance !== 'all' && ev.importance !== calActiveImportance) return false;
+    if(importance && calActiveImportance !== 'all' && ev.type !== 'earnings' && ev.importance !== calActiveImportance) return false;
     if(type && !calPassesTypeFilter(ev)) return false;
     if(date && !calPassesDateFilter(ev)) return false;
     return true;
@@ -3528,14 +3528,16 @@ function calRenderEvent(ev, flash){
   const typeCls = ev.type === 'earnings' ? 'earnings' : ev.type === 'market' ? 'market' : '';
   const isPending = ev.data && ev.data.actual == null && ev.data.forecast != null;
   const livePill = isPending ? `<span class="cal-pill cal-pill-live">${fundFlowEsc(t('cal-pending-update'))}</span>` : '';
+  const barCls = ev.type === 'earnings' ? 'earnings' : ev.importance;
+  const impPill = ev.type === 'earnings' ? '' : `<span class="cal-pill cal-pill-imp ${fundFlowEsc(ev.importance)}">${fundFlowEsc(calImpLabel(ev.importance))}</span>`;
   return `<article class="cal-event" data-event-id="${fundFlowEsc(ev.id)}">
-    <div class="cal-event-bar ${fundFlowEsc(ev.importance)}"></div>
+    <div class="cal-event-bar ${fundFlowEsc(barCls)}"></div>
     <div class="cal-event-time">${fundFlowEsc(ev.time)}</div>
     <div class="cal-event-body">
       <div class="cal-event-title">${fundFlowEsc(ev.title)}</div>
       <div class="cal-event-meta">
         <span class="cal-pill cal-pill-type ${typeCls}">${fundFlowEsc(calTypeLabel(ev.type))}</span>
-        <span class="cal-pill cal-pill-imp ${fundFlowEsc(ev.importance)}">${fundFlowEsc(calImpLabel(ev.importance))}</span>
+        ${impPill}
         ${livePill}
       </div>
       ${calRenderDataRow(ev, flash)}
