@@ -3473,22 +3473,38 @@ function calFormatNum2(n){
   if(!Number.isFinite(n)) return null;
   return n.toFixed(2);
 }
+function calScaleMultiplier(scale){
+  const map = { K: 1e3, M: 1e6, B: 1e9 };
+  return map[(scale || '').toUpperCase()] || 1;
+}
+function calFormatZhCompact(abs, sign){
+  if(abs >= 1e12) return `${sign}${calFormatNum2(abs / 1e12)}萬億`;
+  if(abs >= 1e8) return `${sign}${calFormatNum2(abs / 1e8)}億`;
+  if(abs >= 1e4) return `${sign}${calFormatNum2(abs / 1e4)}萬`;
+  return `${sign}${calFormatNum2(abs)}`;
+}
+function calFormatEnCompact(abs, sign){
+  if(abs >= 1e9) return `${sign}${calFormatNum2(abs / 1e9)}B`;
+  if(abs >= 1e6) return `${sign}${calFormatNum2(abs / 1e6)}M`;
+  if(abs >= 1e3) return `${sign}${calFormatNum2(abs / 1e3)}K`;
+  return `${sign}${calFormatNum2(abs)}`;
+}
 function calDisplayVal(val){
   if(val == null || val === '—') return '—';
-  const s = String(val);
-  const pct = s.endsWith('%');
-  const scale = s.match(/[KMB]$/i)?.[0]?.toUpperCase() || '';
-  const n = calParseNum(s);
-  if(!Number.isFinite(n)) return s;
-  if(pct) return `${calFormatNum2(n)}%`;
-  if(scale){
-    if(curLang === 'zh'){
-      const wan = scale === 'K' ? n / 10 : scale === 'M' ? n * 100 : n * 100000;
-      return `${calFormatNum2(wan)}萬`;
-    }
-    return `${calFormatNum2(n)}${scale}`;
+  const s = String(val).trim();
+  if(s.endsWith('%')){
+    const n = calParseNum(s);
+    return Number.isFinite(n) ? `${calFormatNum2(n)}%` : s;
   }
-  return calFormatNum2(n);
+  const scaleMatch = s.match(/^(-?[0-9.]+)\s*([KMB])$/i);
+  const n = scaleMatch ? calParseNum(scaleMatch[1]) : calParseNum(s);
+  const scale = scaleMatch?.[2]?.toUpperCase() || '';
+  if(!Number.isFinite(n)) return s;
+  const sign = n < 0 ? '-' : '';
+  const abs = Math.abs(n) * calScaleMultiplier(scale);
+  if(curLang === 'zh') return calFormatZhCompact(abs, sign);
+  if(scale) return `${sign}${calFormatNum2(Math.abs(n))}${scale}`;
+  return calFormatEnCompact(abs, sign);
 }
 function calActualTone(ev){
   const d = ev.data;
