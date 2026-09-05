@@ -1215,9 +1215,9 @@ table{border-collapse:collapse;width:100%}
 #view-calendar{padding:0}
 .cal-panel{
   overflow:hidden;margin-bottom:12px;
-  border:1px solid var(--divider)!important;
-  padding:0!important;box-shadow:var(--shadow)!important;
-  background:var(--surface)!important;border-radius:var(--rXl)!important;
+  border:none!important;
+  padding:0!important;box-shadow:none!important;
+  background:transparent!important;border-radius:0!important;
 }
 .cal-hdr{padding:16px 16px 0;border-bottom:none}
 .cal-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:0}
@@ -1290,7 +1290,7 @@ table{border-collapse:collapse;width:100%}
 @keyframes calDataFlash{0%{background:var(--primaryHL)}100%{background:var(--surfaceDyn)}}
 .cal-empty,.cal-loading{padding:32px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6;border:none;border-radius:12px;margin:0;background:var(--surfaceOff)}
 .cal-empty.err{color:var(--error);background:rgba(255,59,48,.06)}
-[data-theme="dark"] .cal-panel,[data-theme="trader"] .cal-panel{border-color:var(--divider)!important;box-shadow:none!important}
+[data-theme="dark"] .cal-panel,[data-theme="trader"] .cal-panel{border:none!important;box-shadow:none!important;background:transparent!important}
 [data-theme="dark"] .cal-imp-chip.active,[data-theme="trader"] .cal-imp-chip.active,[data-theme="dark"] .cal-day-btn.active,[data-theme="trader"] .cal-day-btn.active{box-shadow:0 0 0 1px var(--divider)}
 [data-theme="dark"] .cal-chip.active,[data-theme="trader"] .cal-chip.active{box-shadow:0 0 0 1.5px var(--primary)}
 [data-theme="dark"] .cal-pill-type,[data-theme="trader"] .cal-pill-type{background:rgba(99,102,241,.14);color:#c7d2fe}
