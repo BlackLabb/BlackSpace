@@ -3470,7 +3470,6 @@ function calRenderEvent(ev, flash){
       <div class="cal-event-title">${fundFlowEsc(ev.title)}</div>
       <div class="cal-event-meta">
         <span class="cal-pill cal-pill-type ${typeCls}">${fundFlowEsc(calTypeLabel(ev.type))}</span>
-        <span class="cal-pill cal-pill-region">${fundFlowEsc(calRegionLabel(ev.region))}</span>
         <span class="cal-pill cal-pill-imp ${fundFlowEsc(ev.importance)}">${fundFlowEsc(calImpLabel(ev.importance))}</span>
         ${livePill}
       </div>
@@ -3563,7 +3562,7 @@ function calStartPolling(){
 async function fetchCalendar(isPoll){
   const token = ++calFetchToken;
   const { from, to } = calWeekRange();
-  const url = `${FUND_FLOW_API}/calendar?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&countries=US`;
+  const url = `${FUND_FLOW_API}/calendar?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&countries=US&_=${Date.now()}`;
   const listEl = $('cal-eventList');
   if(!isPoll && listEl) listEl.innerHTML = `<div class="cal-loading">${fundFlowEsc(t('cal-loading'))}</div>`;
   try{
