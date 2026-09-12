@@ -1225,13 +1225,11 @@ table{border-collapse:collapse;width:100%}
 .cal-stats{display:flex;gap:6px;flex-shrink:0}
 .cal-stat-pill{font-size:12px;font-weight:500;color:var(--muted);background:var(--surfaceOff);padding:7px 11px;border-radius:999px;white-space:nowrap;border:none}
 .cal-stat-pill strong{color:var(--text);font-weight:700;font-size:13px;font-family:var(--num-font);font-variant-numeric:tabular-nums}
-.cal-imp-wrap{padding:12px 16px 0;border-bottom:none}
-.cal-imp-filters{display:flex;gap:6px;background:var(--surfaceOff);border-radius:12px;padding:4px}
-.cal-imp-chip{flex:1;border:none;background:transparent;border-radius:9px;padding:8px 4px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;transition:color var(--trans),background var(--trans),box-shadow var(--trans);font:inherit}
-.cal-imp-chip.active{color:var(--text);background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 1px var(--divider)}
-.cal-imp-chip[data-imp="high"].active{color:var(--error);box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(255,59,48,.28);background:rgba(255,59,48,.08)}
-.cal-imp-chip[data-imp="med"].active{color:var(--warn);box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(255,149,0,.28);background:rgba(255,149,0,.08)}
-.cal-imp-chip[data-imp="low"].active{color:var(--faint);box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 1px var(--divider);background:var(--surface)}
+.cal-filter-bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px 8px;border:none;background:transparent}
+.cal-select-field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.cal-select-lbl{font-size:10px;font-weight:700;color:var(--faint);letter-spacing:.04em;text-transform:uppercase}
+.cal-select{height:40px;width:100%;border:1px solid var(--divider);border-radius:12px;background:var(--surfaceOff);color:var(--text);padding:0 34px 0 12px;font:inherit;font-size:13px;font-weight:600;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2386868b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;outline:none}
+.cal-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primaryHL)}
 .cal-week-wrap{padding:8px 16px 0;display:flex;justify-content:center;position:relative;z-index:1}
 .cal-week-strip{display:flex;gap:0;width:100%;justify-content:center;background:var(--surfaceOff);border-radius:12px;padding:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;border:none}
 .cal-week-strip::-webkit-scrollbar{display:none}
@@ -1245,16 +1243,6 @@ table{border-collapse:collapse;width:100%}
 .cal-day-btn.has-events .cal-day-dot{opacity:.4}
 .cal-day-btn.active.has-events .cal-day-dot{opacity:1}
 .cal-day-today{font-size:10px;color:var(--primary);font-weight:700;margin-top:2px;line-height:1;min-height:10px}
-.cal-filters{display:flex;gap:6px;padding:12px 16px 4px;border:none;background:transparent}
-.cal-earn-scope-wrap{padding:0 16px 8px;border:none;background:transparent}
-.cal-earn-scope-wrap[hidden]{display:none!important}
-.cal-earn-scope-filters{display:flex;gap:6px;background:var(--surfaceOff);border-radius:12px;padding:4px}
-.cal-earn-scope-chip{flex:1;border:none;background:transparent;border-radius:9px;padding:8px 4px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;transition:color var(--trans),background var(--trans),box-shadow var(--trans);font:inherit}
-.cal-earn-scope-chip.active{color:var(--primary);background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(4,120,87,.28);background:rgba(4,120,87,.08)}
-.cal-chip{flex:1;border:none;background:var(--surfaceOff);border-radius:999px;padding:10px 4px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:color var(--trans),background var(--trans),box-shadow var(--trans);position:relative;font:inherit}
-.cal-chip+.cal-chip{border-left:none}
-.cal-chip.active{color:var(--primary);background:var(--surface);box-shadow:0 0 0 1.5px var(--primary)}
-.cal-chip.active::after{display:none}
 .cal-list-hdr{display:flex;align-items:center;justify-content:space-between;padding:4px 16px 10px;border:none;background:transparent}
 .cal-list-hdr span{font-size:13px;font-weight:600;color:var(--muted)}
 .cal-list-hdr strong{font-size:13px;font-weight:700;color:var(--text);font-family:var(--num-font);font-variant-numeric:tabular-nums}
@@ -1296,8 +1284,7 @@ table{border-collapse:collapse;width:100%}
 .cal-empty,.cal-loading{padding:32px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6;border:none;border-radius:12px;margin:0;background:var(--surfaceOff)}
 .cal-empty.err{color:var(--error);background:rgba(255,59,48,.06)}
 [data-theme="dark"] .cal-panel,[data-theme="trader"] .cal-panel{border:none!important;box-shadow:none!important;background:transparent!important}
-[data-theme="dark"] .cal-imp-chip.active,[data-theme="trader"] .cal-imp-chip.active,[data-theme="dark"] .cal-day-btn.active,[data-theme="trader"] .cal-day-btn.active{box-shadow:0 0 0 1px var(--divider)}
-[data-theme="dark"] .cal-chip.active,[data-theme="trader"] .cal-chip.active{box-shadow:0 0 0 1.5px var(--primary)}
+[data-theme="dark"] .cal-day-btn.active,[data-theme="trader"] .cal-day-btn.active{box-shadow:0 0 0 1px var(--divider)}
 [data-theme="dark"] .cal-pill-type,[data-theme="trader"] .cal-pill-type{background:rgba(99,102,241,.14);color:#c7d2fe}
 [data-theme="dark"] .cal-pill-type.earnings,[data-theme="trader"] .cal-pill-type.earnings{background:rgba(16,185,129,.12);color:#6ee7b7}
 [data-theme="dark"] .cal-pill-type.market,[data-theme="trader"] .cal-pill-type.market{background:rgba(245,158,11,.12);color:#fcd34d}
@@ -2164,24 +2151,15 @@ table{border-collapse:collapse;width:100%}
               </div>
             </div>
           </div>
-          <div class="cal-imp-wrap">
-            <div class="cal-imp-filters" id="cal-imp-filters">
-              <button class="cal-imp-chip active" type="button" data-imp="all" data-i18n="cal-imp-filter-all">全部</button>
-              <button class="cal-imp-chip" type="button" data-imp="high" data-i18n="cal-imp-high">高</button>
-              <button class="cal-imp-chip" type="button" data-imp="med" data-i18n="cal-imp-med">中</button>
-              <button class="cal-imp-chip" type="button" data-imp="low" data-i18n="cal-imp-low">低</button>
-            </div>
-          </div>
-          <div class="cal-filters" id="cal-filters">
-            <button class="cal-chip active" type="button" data-filter="all" data-i18n="cal-filter-all">全部</button>
-            <button class="cal-chip" type="button" data-filter="macro" data-i18n="cal-filter-macro">宏觀</button>
-            <button class="cal-chip" type="button" data-filter="earnings" data-i18n="cal-filter-earnings">財報</button>
-          </div>
-          <div class="cal-earn-scope-wrap" id="cal-earn-scope-wrap">
-            <div class="cal-earn-scope-filters" id="cal-earn-scope-filters">
-              <button class="cal-earn-scope-chip active" type="button" data-earn-scope="focus" data-i18n="cal-earn-scope-focus">重點</button>
-              <button class="cal-earn-scope-chip" type="button" data-earn-scope="all" data-i18n="cal-earn-scope-all">全部財報</button>
-            </div>
+          <div class="cal-filter-bar">
+            <label class="cal-select-field">
+              <span class="cal-select-lbl" id="cal-typeSelectLbl" data-i18n="cal-select-type">類型</span>
+              <select id="cal-typeSelect" class="cal-select" aria-labelledby="cal-typeSelectLbl"></select>
+            </label>
+            <label class="cal-select-field">
+              <span class="cal-select-lbl" id="cal-subSelectLbl" data-i18n="cal-select-imp">影響力</span>
+              <select id="cal-subSelect" class="cal-select" aria-labelledby="cal-subSelectLbl"></select>
+            </label>
           </div>
           <div class="cal-week-wrap"><div class="cal-week-strip" id="cal-weekStrip"></div></div>
           <div class="cal-list-hdr">
@@ -3678,15 +3656,60 @@ function calEarningsSymbol(ev){
   const m = String(ev.id || '').match(/^fh-earn-([A-Z0-9.-]+)-/);
   return m ? m[1] : null;
 }
-function calUpdateEarnScopeVisibility(){
-  const wrap = $('cal-earn-scope-wrap');
-  if(wrap) wrap.hidden = calActiveFilter === 'macro';
+function calSyncFilterSelects(){
+  const typeSel = $('cal-typeSelect');
+  const subSel = $('cal-subSelect');
+  const subLbl = $('cal-subSelectLbl');
+  if(!typeSel || !subSel) return;
+  typeSel.innerHTML = [
+    ['all', t('cal-filter-all')],
+    ['macro', t('cal-filter-macro')],
+    ['earnings', t('cal-filter-earnings')]
+  ].map(([value, label]) => `<option value="${value}">${fundFlowEsc(label)}</option>`).join('');
+  typeSel.value = calActiveFilter;
+  const isEarn = calActiveFilter === 'earnings';
+  if(subLbl) subLbl.textContent = isEarn ? t('cal-select-earn') : t('cal-select-imp');
+  subSel.innerHTML = isEarn
+    ? [
+      ['focus', t('cal-earn-scope-focus')],
+      ['all', t('cal-earn-scope-all')]
+    ].map(([value, label]) => `<option value="${value}">${fundFlowEsc(label)}</option>`).join('')
+    : [
+      ['all', t('cal-imp-filter-all')],
+      ['high', t('cal-imp-high')],
+      ['med', t('cal-imp-med')],
+      ['low', t('cal-imp-low')]
+    ].map(([value, label]) => `<option value="${value}">${fundFlowEsc(label)}</option>`).join('');
+  subSel.value = isEarn ? calEarningsScope : calActiveImportance;
+}
+function calOnTypeSelectChange(){
+  const typeSel = $('cal-typeSelect');
+  if(!typeSel || typeSel.value === calActiveFilter) return;
+  calActiveFilter = typeSel.value;
+  if(calActiveFilter === 'all') calAllWeekView = true;
+  else calAllWeekView = false;
+  if(calActiveFilter === 'earnings') calActiveImportance = 'all';
+  calSyncFilterSelects();
+  calRender();
+}
+function calOnSubSelectChange(){
+  const subSel = $('cal-subSelect');
+  if(!subSel) return;
+  if(calActiveFilter === 'earnings'){
+    if(subSel.value === calEarningsScope) return;
+    calEarningsScope = subSel.value;
+    fetchCalendar(false);
+    return;
+  }
+  if(subSel.value === calActiveImportance) return;
+  calActiveImportance = subSel.value;
+  calRender();
 }
 function calRender(flashIds){
   calRenderWeekStrip();
   calRenderSummary();
   calRenderEvents(flashIds);
-  calUpdateEarnScopeVisibility();
+  calSyncFilterSelects();
 }
 function calDetectActualUpdates(items){
   const flashes = [];
@@ -3752,34 +3775,9 @@ function initCalendarBindings(){
     calPickDate(btn.dataset.date);
     calRender();
   });
-  $('cal-filters')?.addEventListener('click', e => {
-    const chip = e.target.closest('[data-filter]');
-    if(!chip) return;
-    calActiveFilter = chip.dataset.filter;
-    if(calActiveFilter === 'all') calAllWeekView = true;
-    else calAllWeekView = false;
-    if(calActiveFilter === 'earnings') calActiveImportance = 'all';
-    document.querySelectorAll('.cal-chip').forEach(c => c.classList.toggle('active', c === chip));
-    calRender();
-  });
-  $('cal-imp-filters')?.addEventListener('click', e => {
-    const chip = e.target.closest('[data-imp]');
-    if(!chip) return;
-    calActiveImportance = chip.dataset.imp;
-    if(calActiveImportance !== 'all' && calActiveFilter === 'earnings'){
-      calActiveFilter = 'all';
-      document.querySelectorAll('.cal-chip').forEach(c => c.classList.toggle('active', c.dataset.filter === 'all'));
-    }
-    document.querySelectorAll('.cal-imp-chip').forEach(c => c.classList.toggle('active', c === chip));
-    calRender();
-  });
-  $('cal-earn-scope-filters')?.addEventListener('click', e => {
-    const chip = e.target.closest('[data-earn-scope]');
-    if(!chip || chip.dataset.earnScope === calEarningsScope) return;
-    calEarningsScope = chip.dataset.earnScope;
-    document.querySelectorAll('.cal-earn-scope-chip').forEach(c => c.classList.toggle('active', c === chip));
-    fetchCalendar(false);
-  });
+  $('cal-typeSelect')?.addEventListener('change', calOnTypeSelectChange);
+  $('cal-subSelect')?.addEventListener('change', calOnSubSelectChange);
+  calSyncFilterSelects();
 }
 function initCalendar(){
   initCalendarBindings();
@@ -4245,6 +4243,7 @@ Object.assign(I18N.zh, {
   'title-fundflow':'資金流向','sub-fundflow':'ETF 歷史價格趨勢','app-sub-fundflow':'價格變動',
   'title-calendar':'財經日曆','sub-calendar':'美國宏觀數據與財報日程',
   'cal-filter-all':'全部','cal-filter-macro':'宏觀','cal-filter-earnings':'財報',
+  'cal-select-type':'類型','cal-select-imp':'影響力','cal-select-earn':'財報範圍',
   'cal-earn-scope-focus':'重點','cal-earn-scope-all':'全部財報',
   'cal-stat-items':'項','cal-stat-high':'高','cal-stat-earnings':'財報',
   'cal-imp-filter-all':'全部',
@@ -4262,6 +4261,7 @@ Object.assign(I18N.en, {
   'title-fundflow':'Fund Flow','sub-fundflow':'ETF historical price trend','app-sub-fundflow':'Price changes',
   'title-calendar':'Economic Calendar','sub-calendar':'US macro events and earnings',
   'cal-filter-all':'All','cal-filter-macro':'Macro','cal-filter-earnings':'Earnings',
+  'cal-select-type':'Type','cal-select-imp':'Impact','cal-select-earn':'Earnings scope',
   'cal-earn-scope-focus':'Focus','cal-earn-scope-all':'All earnings',
   'cal-stat-items':'items','cal-stat-high':'high','cal-stat-earnings':'earn',
   'cal-imp-filter-all':'All',
