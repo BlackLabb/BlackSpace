@@ -1246,6 +1246,11 @@ table{border-collapse:collapse;width:100%}
 .cal-day-btn.active.has-events .cal-day-dot{opacity:1}
 .cal-day-today{font-size:10px;color:var(--primary);font-weight:700;margin-top:2px;line-height:1;min-height:10px}
 .cal-filters{display:flex;gap:6px;padding:12px 16px 4px;border:none;background:transparent}
+.cal-earn-scope-wrap{padding:0 16px 8px;border:none;background:transparent}
+.cal-earn-scope-wrap[hidden]{display:none!important}
+.cal-earn-scope-filters{display:flex;gap:6px;background:var(--surfaceOff);border-radius:12px;padding:4px}
+.cal-earn-scope-chip{flex:1;border:none;background:transparent;border-radius:9px;padding:8px 4px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;transition:color var(--trans),background var(--trans),box-shadow var(--trans);font:inherit}
+.cal-earn-scope-chip.active{color:var(--primary);background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(4,120,87,.28);background:rgba(4,120,87,.08)}
 .cal-chip{flex:1;border:none;background:var(--surfaceOff);border-radius:999px;padding:10px 4px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:color var(--trans),background var(--trans),box-shadow var(--trans);position:relative;font:inherit}
 .cal-chip+.cal-chip{border-left:none}
 .cal-chip.active{color:var(--primary);background:var(--surface);box-shadow:0 0 0 1.5px var(--primary)}
@@ -2171,6 +2176,12 @@ table{border-collapse:collapse;width:100%}
             <button class="cal-chip active" type="button" data-filter="all" data-i18n="cal-filter-all">全部</button>
             <button class="cal-chip" type="button" data-filter="macro" data-i18n="cal-filter-macro">宏觀</button>
             <button class="cal-chip" type="button" data-filter="earnings" data-i18n="cal-filter-earnings">財報</button>
+          </div>
+          <div class="cal-earn-scope-wrap" id="cal-earn-scope-wrap">
+            <div class="cal-earn-scope-filters" id="cal-earn-scope-filters">
+              <button class="cal-earn-scope-chip active" type="button" data-earn-scope="focus" data-i18n="cal-earn-scope-focus">重點</button>
+              <button class="cal-earn-scope-chip" type="button" data-earn-scope="all" data-i18n="cal-earn-scope-all">全部財報</button>
+            </div>
           </div>
           <div class="cal-week-wrap"><div class="cal-week-strip" id="cal-weekStrip"></div></div>
           <div class="cal-list-hdr">
@@ -3401,6 +3412,7 @@ let calWeekStart = null;
 let calSelectedDate = null;
 let calActiveFilter = 'all';
 let calActiveImportance = 'all';
+let calEarningsScope = 'focus';
 let calAllWeekView = true;
 let calPollTimer = null;
 let calFetchToken = 0;
@@ -3661,10 +3673,20 @@ function calRenderEvents(flashIds){
   }
   listEl.innerHTML = list.map(ev => calRenderEvent(ev, flashSet.has(ev.id))).join('');
 }
+function calEarningsSymbol(ev){
+  if(ev.data?.symbol) return String(ev.data.symbol).trim().toUpperCase();
+  const m = String(ev.id || '').match(/^fh-earn-([A-Z0-9.-]+)-/);
+  return m ? m[1] : null;
+}
+function calUpdateEarnScopeVisibility(){
+  const wrap = $('cal-earn-scope-wrap');
+  if(wrap) wrap.hidden = calActiveFilter === 'macro';
+}
 function calRender(flashIds){
   calRenderWeekStrip();
   calRenderSummary();
   calRenderEvents(flashIds);
+  calUpdateEarnScopeVisibility();
 }
 function calDetectActualUpdates(items){
   const flashes = [];
@@ -3688,7 +3710,7 @@ function calStartPolling(){
 async function fetchCalendar(isPoll){
   const token = ++calFetchToken;
   const { from, to } = calWeekRange();
-  const url = `${FUND_FLOW_API}/calendar?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&countries=US&_=${Date.now()}`;
+  const url = `${FUND_FLOW_API}/calendar?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&countries=US&earningsScope=${encodeURIComponent(calEarningsScope)}&_=${Date.now()}`;
   const listEl = $('cal-eventList');
   if(!isPoll && listEl) listEl.innerHTML = `<div class="cal-loading">${fundFlowEsc(t('cal-loading'))}</div>`;
   try{
@@ -3750,6 +3772,13 @@ function initCalendarBindings(){
     }
     document.querySelectorAll('.cal-imp-chip').forEach(c => c.classList.toggle('active', c === chip));
     calRender();
+  });
+  $('cal-earn-scope-filters')?.addEventListener('click', e => {
+    const chip = e.target.closest('[data-earn-scope]');
+    if(!chip || chip.dataset.earnScope === calEarningsScope) return;
+    calEarningsScope = chip.dataset.earnScope;
+    document.querySelectorAll('.cal-earn-scope-chip').forEach(c => c.classList.toggle('active', c === chip));
+    fetchCalendar(false);
   });
 }
 function initCalendar(){
@@ -4216,6 +4245,7 @@ Object.assign(I18N.zh, {
   'title-fundflow':'資金流向','sub-fundflow':'ETF 歷史價格趨勢','app-sub-fundflow':'價格變動',
   'title-calendar':'財經日曆','sub-calendar':'美國宏觀數據與財報日程',
   'cal-filter-all':'全部','cal-filter-macro':'宏觀','cal-filter-earnings':'財報',
+  'cal-earn-scope-focus':'重點','cal-earn-scope-all':'全部財報',
   'cal-stat-items':'項','cal-stat-high':'高','cal-stat-earnings':'財報',
   'cal-imp-filter-all':'全部',
   'cal-loading':'正在載入財經日曆…','cal-empty':'此日沒有符合篩選的事件','cal-error':'無法連接財經日曆',
@@ -4232,6 +4262,7 @@ Object.assign(I18N.en, {
   'title-fundflow':'Fund Flow','sub-fundflow':'ETF historical price trend','app-sub-fundflow':'Price changes',
   'title-calendar':'Economic Calendar','sub-calendar':'US macro events and earnings',
   'cal-filter-all':'All','cal-filter-macro':'Macro','cal-filter-earnings':'Earnings',
+  'cal-earn-scope-focus':'Focus','cal-earn-scope-all':'All earnings',
   'cal-stat-items':'items','cal-stat-high':'high','cal-stat-earnings':'earn',
   'cal-imp-filter-all':'All',
   'cal-loading':'Loading economic calendar…','cal-empty':'No events match this filter today','cal-error':'Unable to load economic calendar',
