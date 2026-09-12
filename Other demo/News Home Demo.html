@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f7">
+<title>投資新聞主頁 — BlackSpace Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f5f7;--surface:#fff;--surface2:#fafafa;--surfaceOff:#f2f2f7;
+  --divider:#e5e5ea;--border:#d1d1d6;
+  --text:#1d1d1f;--muted:#6e6e73;--faint:#aeaeb2;
+  --primary:#0071e3;--primaryHL:#e3f0ff;
+  --success:#34c759;--error:#ff3b30;--warn:#ff9500;
+  --mono:'JetBrains Mono',monospace;
+  --shadow:0 2px 8px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.04);
+  --r:14px;--safe-top:env(safe-area-inset-top);--safe-bot:env(safe-area-inset-bottom);
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans TC',-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+a{color:inherit;text-decoration:none}
+
+/* ── Demo picker bar ── */
+.demo-bar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(255,255,255,.82);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid var(--divider);
+  padding:calc(10px + var(--safe-top)) 16px 10px;
+}
+.demo-bar-inner{max-width:1100px;margin:0 auto}
+.demo-bar h1{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px;letter-spacing:-.01em}
+.demo-tabs{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+.demo-tabs::-webkit-scrollbar{display:none}
+.demo-tab{
+  flex:0 0 auto;height:34px;padding:0 14px;border-radius:999px;
+  font-size:12px;font-weight:600;color:var(--muted);background:var(--surfaceOff);
+  border:1px solid transparent;transition:all .18s ease;white-space:nowrap;
+}
+.demo-tab:hover{color:var(--text)}
+.demo-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 14px rgba(0,113,227,.28)}
+.demo-desc{margin-top:8px;font-size:11px;color:var(--faint);line-height:1.5;max-width:640px}
+
+/* ── Shell ── */
+.shell{max-width:1100px;margin:0 auto;padding:16px 16px calc(90px + var(--safe-bot))}
+.layout{display:none;animation:fadeIn .25s ease}
+.layout.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.card{background:var(--surface);border:1px solid var(--divider);border-radius:var(--r);box-shadow:var(--shadow)}
+.badge{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;font-size:10px;font-weight:700;font-family:var(--mono)}
+.badge.pos{background:rgba(52,199,89,.12);color:#248a3d}
+.badge.neg{background:rgba(255,59,48,.12);color:#c41e16}
+.badge.neu{background:rgba(110,110,115,.12);color:var(--muted)}
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:7px;background:var(--surfaceOff);font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted)}
+.pos{color:var(--success)}.neg{color:var(--error)}.neu{color:var(--muted)}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px}
+.sec-head h2{font-size:15px;font-weight:600;letter-spacing:-.02em}
+.sec-head span{font-size:11px;color:var(--muted)}
+
+/* ═══ A: Editorial ═══ */
+.a-ticker{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px;scrollbar-width:none}
+.a-ticker::-webkit-scrollbar{display:none}
+.a-idx{flex:0 0 auto;min-width:108px;padding:10px 12px;border-radius:12px}
+.a-idx-sym{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted)}
+.a-idx-val{font-size:17px;font-weight:700;font-family:var(--mono);margin-top:4px;letter-spacing:-.03em}
+.a-idx-chg{font-size:11px;font-weight:600;font-family:var(--mono);margin-top:3px}
+.a-hero{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-bottom:14px;min-height:220px}
+.a-hero-main{padding:0;overflow:hidden;display:flex;flex-direction:column}
+.a-hero-img{height:140px;background:linear-gradient(135deg,#0a2540 0%,#0071e3 55%,#5ac8fa 100%);position:relative}
+.a-hero-img::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.55))}
+.a-hero-body{padding:16px 18px 18px;flex:1;display:flex;flex-direction:column}
+.a-hero-meta{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:11px;color:var(--muted)}
+.a-hero-body h2{font-size:20px;line-height:1.3;font-weight:700;letter-spacing:-.03em;margin-bottom:8px}
+.a-hero-body p{font-size:13px;color:var(--muted);line-height:1.55;flex:1}
+.a-hero-side{display:flex;flex-direction:column;gap:10px}
+.a-side-card{padding:14px}
+.a-side-card h3{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em}
+.a-watch-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--divider)}
+.a-watch-row:last-child{border-bottom:none;padding-bottom:0}
+.a-watch-sym{font-size:12px;font-weight:700;font-family:var(--mono)}
+.a-watch-sent{font-size:11px;font-weight:600;font-family:var(--mono)}
+.a-grid{display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start}
+.a-feed{display:flex;flex-direction:column;gap:10px}
+.a-item{padding:14px 16px;display:grid;grid-template-columns:4px 1fr;gap:12px;transition:transform .15s,border-color .15s}
+.a-item:hover{transform:translateY(-1px);border-color:#c7c7cc}
+.a-rail{border-radius:2px}
+.a-rail.pos{background:var(--success)}.a-rail.neg{background:var(--error)}.a-rail.neu{background:var(--faint)}
+.a-item-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;font-size:11px;color:var(--muted)}
+.a-item h3{font-size:15px;line-height:1.35;font-weight:600;margin-bottom:5px;letter-spacing:-.02em}
+.a-item p{font-size:12px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* ═══ B: Pulse Feed ═══ */
+.b-tape{background:#0a0a0f;color:#fff;border-radius:12px;padding:10px 0;margin-bottom:14px;overflow:hidden}
+.b-tape-track{display:flex;gap:28px;animation:tapeScroll 28s linear infinite;width:max-content;padding:0 14px}
+@keyframes tapeScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.b-tape-item{display:flex;align-items:center;gap:8px;font-size:12px;white-space:nowrap}
+.b-tape-sym{font-weight:700;font-family:var(--mono);color:#fff}
+.b-tape-val{font-family:var(--mono);color:rgba(255,255,255,.7)}
+.b-tape-chg{font-family:var(--mono);font-weight:600;font-size:11px}
+.b-tape-chg.up{color:var(--success)}.b-tape-chg.dn{color:var(--error)}
+.b-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.b-stat{padding:12px;text-align:center}
+.b-stat strong{display:block;font-size:22px;font-weight:700;font-family:var(--mono);line-height:1}
+.b-stat span{display:block;margin-top:4px;font-size:10px;color:var(--muted);font-weight:500}
+.b-chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;scrollbar-width:none}
+.b-chips::-webkit-scrollbar{display:none}
+.b-chip{flex:0 0 auto;height:30px;padding:0 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--surface);border:1px solid var(--divider);color:var(--muted);transition:all .15s}
+.b-chip.active{background:var(--text);color:#fff;border-color:var(--text)}
+.b-list{display:flex;flex-direction:column;gap:0;border-radius:var(--r);overflow:hidden;border:1px solid var(--divider)}
+.b-row{display:grid;grid-template-columns:52px 1fr auto;gap:10px;padding:12px 14px;background:var(--surface);border-bottom:1px solid var(--divider);align-items:start;transition:background .12s}
+.b-row:last-child{border-bottom:none}
+.b-row:hover{background:var(--surface2)}
+.b-time{font-size:10px;font-family:var(--mono);color:var(--faint);padding-top:2px}
+.b-row h3{font-size:14px;font-weight:600;line-height:1.35;letter-spacing:-.02em;margin-bottom:4px}
+.b-row-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
+.b-sent{font-size:11px;font-weight:700;font-family:var(--mono);padding-top:2px;text-align:right;white-space:nowrap}
+
+/* ═══ C: AI Briefing ═══ */
+.c-brief{padding:20px;margin-bottom:14px;background:linear-gradient(135deg,#f0f6ff 0%,#fff 40%,#fff 100%);border-color:#c7dfff}
+.c-brief-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.c-brief-top h2{font-size:18px;font-weight:700;letter-spacing:-.03em}
+.c-brief-pill{height:26px;padding:0 10px;border-radius:999px;background:var(--primaryHL);color:var(--primary);font-size:11px;font-weight:700;display:inline-flex;align-items:center;white-space:nowrap}
+.c-brief-body{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.c-brief-main p{font-size:14px;line-height:1.65;color:var(--text)}
+.c-brief-points{margin:0;padding-left:18px;font-size:13px;line-height:1.65;color:var(--muted)}
+.c-brief-points li{margin-bottom:6px}
+.c-brief-points li::marker{color:var(--primary)}
+.c-sections{display:flex;flex-direction:column;gap:18px}
+.c-sec-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.c-sec-card{padding:14px;display:flex;flex-direction:column;gap:8px}
+.c-sec-card h4{font-size:14px;font-weight:600;line-height:1.35;letter-spacing:-.02em}
+.c-sec-card p{font-size:12px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.c-sec-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+
+/* ═══ D: Trader Terminal ═══ */
+.layout-d{background:#000;color:#fff;min-height:calc(100vh - 120px);margin:-16px -16px 0;padding:16px;border-radius:0}
+.d-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1f1f1f}
+.d-top h2{font-size:13px;font-weight:700;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#737373}
+.d-live{display:flex;align-items:center;gap:6px;font-size:11px;font-family:var(--mono);color:#45e896}
+.d-live::before{content:'';width:6px;height:6px;border-radius:50%;background:#45e896;box-shadow:0 0 8px #45e896}
+.d-split{display:grid;grid-template-columns:1fr 280px;gap:12px;min-height:480px}
+.d-stream{border:1px solid #1f1f1f;border-radius:6px;overflow:hidden}
+.d-stream-hdr{display:grid;grid-template-columns:64px 1fr 72px 56px;gap:8px;padding:8px 12px;background:#0a0a0a;font-size:10px;font-weight:600;font-family:var(--mono);color:#737373;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #1f1f1f}
+.d-stream-row{display:grid;grid-template-columns:64px 1fr 72px 56px;gap:8px;padding:10px 12px;border-bottom:1px solid #141414;font-size:12px;align-items:start;transition:background .1s}
+.d-stream-row:hover{background:#0f0f0f}
+.d-stream-row:last-child{border-bottom:none}
+.d-time{font-family:var(--mono);color:#737373;font-size:11px}
+.d-headline{font-size:13px;line-height:1.4;color:#fff;font-weight:500}
+.d-src{font-family:var(--mono);color:#737373;font-size:10px;margin-top:3px}
+.d-ticker{font-family:var(--mono);font-weight:600;color:#fb6e4e;font-size:11px}
+.d-sent{font-family:var(--mono);font-weight:700;font-size:11px;text-align:right}
+.d-sent.pos{color:#45e896}.d-sent.neg{color:#ef4444}.d-sent.neu{color:#737373}
+.d-side{display:flex;flex-direction:column;gap:10px}
+.d-panel{border:1px solid #1f1f1f;border-radius:6px;padding:12px;background:#0a0a0a}
+.d-panel h3{font-size:10px;font-weight:700;font-family:var(--mono);color:#737373;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.d-heat{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.d-heat-cell{border-radius:4px;padding:8px 6px;text-align:center;font-family:var(--mono);font-size:10px;font-weight:600;border:1px solid rgba(255,255,255,.04)}
+.d-heat-cell .sym{display:block;font-size:11px;margin-bottom:3px}
+.d-price-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #141414;font-family:var(--mono);font-size:11px}
+.d-price-row:last-child{border-bottom:none}
+
+/* ── Mobile bottom nav mock ── */
+.mock-nav{
+  position:fixed;bottom:calc(12px + var(--safe-bot));left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:2px;height:50px;padding:4px 6px;
+  background:rgba(255,255,255,.72);backdrop-filter:saturate(200%) blur(28px);-webkit-backdrop-filter:saturate(200%) blur(28px);
+  border:1px solid rgba(255,255,255,.55);border-radius:999px;
+  box-shadow:0 12px 34px rgba(0,0,0,.12),0 0 0 .5px rgba(255,255,255,.42) inset;
+  z-index:90;
+}
+.mock-nav-btn{width:42px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:999px;color:var(--muted);transition:all .15s}
+.mock-nav-btn.active{color:var(--primary);background:rgba(255,255,255,.58);box-shadow:0 0 0 1px rgba(255,255,255,.35) inset}
+.mock-nav-btn svg{width:20px;height:20px;stroke-width:2.2}
+
+@media(max-width:820px){
+  .a-hero{grid-template-columns:1fr}
+  .a-hero-img{height:120px}
+  .a-grid{grid-template-columns:1fr}
+  .a-hero-side{flex-direction:row;overflow-x:auto}
+  .a-side-card{flex:0 0 240px}
+  .b-stats{grid-template-columns:repeat(2,1fr)}
+  .c-brief-body{grid-template-columns:1fr}
+  .d-split{grid-template-columns:1fr}
+  .d-stream-hdr,.d-stream-row{grid-template-columns:52px 1fr 60px}
+  .d-stream-hdr span:nth-child(4),.d-stream-row .d-sent{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <div class="demo-bar-inner">
+    <h1>投資新聞主頁 Demo — 選擇版面風格</h1>
+    <div class="demo-tabs" role="tablist">
+      <button class="demo-tab active" data-layout="a" role="tab">A · 編輯精選</button>
+      <button class="demo-tab" data-layout="b" role="tab">B · 快訊流</button>
+      <button class="demo-tab" data-layout="c" role="tab">C · AI 晨報</button>
+      <button class="demo-tab" data-layout="d" role="tab">D · 深色終端</button>
+    </div>
+    <p class="demo-desc" id="demo-desc">大型頭條 + 持倉情緒側欄。適合「打開 App 先看最重要一則新聞」的體驗。</p>
+  </div>
+</div>
+
+<main class="shell">
+
+  <!-- ═══ A: Editorial ═══ -->
+  <div class="layout layout-a active" id="layout-a">
+    <div class="a-ticker" id="a-ticker"></div>
+    <div class="a-hero">
+      <article class="card a-hero-main" id="a-hero"></article>
+      <div class="a-hero-side">
+        <div class="card a-side-card">
+          <h3>持倉情緒</h3>
+          <div id="a-watchlist"></div>
+        </div>
+        <div class="card a-side-card">
+          <h3>今日財經</h3>
+          <div style="font-size:12px;color:var(--muted);line-height:1.55">
+            <div style="padding:5px 0;border-bottom:1px solid var(--divider)"><strong style="color:var(--text)">22:30</strong> · 美國 CPI</div>
+            <div style="padding:5px 0;border-bottom:1px solid var(--divider)"><strong style="color:var(--text)">05:00</strong> · NVDA 財報</div>
+            <div style="padding:5px 0"><strong style="color:var(--text)">21:00</strong> · FOMC 會議紀要</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="a-grid">
+      <div>
+        <div class="sec-head"><h2>最新新聞</h2><span id="a-count">—</span></div>
+        <div class="a-feed" id="a-feed"></div>
+      </div>
+      <div class="card a-side-card" style="position:sticky;top:100px">
+        <h3>熱門標的</h3>
+        <div id="a-hot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ B: Pulse Feed ═══ -->
+  <div class="layout layout-b" id="layout-b">
+    <div class="b-tape"><div class="b-tape-track" id="b-tape"></div></div>
+    <div class="b-stats" id="b-stats"></div>
+    <div class="b-chips" id="b-chips">
+      <button class="b-chip active" data-filter="all">全部</button>
+      <button class="b-chip" data-filter="holdings">持倉</button>
+      <button class="b-chip" data-filter="pos">正面</button>
+      <button class="b-chip" data-filter="neg">負面</button>
+      <button class="b-chip" data-filter="macro">宏觀</button>
+    </div>
+    <div class="b-list" id="b-list"></div>
+  </div>
+
+  <!-- ═══ C: AI Briefing ═══ -->
+  <div class="layout layout-c" id="layout-c">
+    <article class="card c-brief" id="c-brief"></article>
+    <div class="c-sections" id="c-sections"></div>
+  </div>
+
+  <!-- ═══ D: Trader Terminal ═══ -->
+  <div class="layout layout-d" id="layout-d">
+    <div class="d-top">
+      <h2>NEWS TERMINAL</h2>
+      <div class="d-live">LIVE · <span id="d-time">--:--</span></div>
+    </div>
+    <div class="d-split">
+      <div class="d-stream">
+        <div class="d-stream-hdr"><span>Time</span><span>Headline</span><span>Ticker</span><span>Sent</span></div>
+        <div id="d-stream"></div>
+      </div>
+      <div class="d-side">
+        <div class="d-panel">
+          <h3>Sentiment Heat</h3>
+          <div class="d-heat" id="d-heat"></div>
+        </div>
+        <div class="d-panel">
+          <h3>Watchlist</h3>
+          <div id="d-prices"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Mock bottom nav -->
+<nav class="mock-nav" aria-label="Demo navigation">
+  <button class="mock-nav-btn active" aria-label="新聞">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+  </button>
+  <button class="mock-nav-btn" aria-label="每月">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+  </button>
+  <button class="mock-nav-btn" aria-label="投資">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+  </button>
+  <button class="mock-nav-btn" aria-label="類別">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+  </button>
+</nav>
+
+<script>
+const NEWS = [
+  { title:'NVIDIA 上調 AI 晶片出貨指引，Blackwell 需求超出預期', source:'Reuters', time:'09:42', sentiment:.42, tickers:['NVDA'], summary:'NVIDIA 在 GTC 大會上表示 Blackwell 平台訂單能見度延伸至 2027 年，雲端客戶持續加碼 AI 基建投資。', cat:'holdings' },
+  { title:'Fed 官員暗示降息時程可能延後，市場重新定價 2026 利率路徑', source:'Bloomberg', time:'08:15', sentiment:-.28, tickers:['SPY'], summary:'多位 Fed 官員表示通脹仍高於目標，需要更多數據確認趨勢後才會考慮進一步寬鬆。', cat:'macro' },
+  { title:'TSMC 3nm 產能利用率維持滿載，先進封裝訂單能見度良好', source:'Nikkei', time:'07:58', sentiment:.31, tickers:['TSM'], summary:'台積電表示 AI 與 HPC 需求持續強勁，CoWoS 產能擴充按計劃推進，2026 年資本支出維持高位。', cat:'holdings' },
+  { title:'Apple 中國 iPhone 銷售連續第三個月下滑，分析師下調 Q4 指引', source:'CNBC', time:'07:30', sentiment:-.35, tickers:['AAPL'], summary:'Counterpoint 數據顯示 Apple 在中國市場份額被 Huawei 和小米持續蠶食，高端換機週期延長。', cat:'holdings' },
+  { title:'Oil rises as OPEC+ signals extended production cuts through Q1 2026', source:'FT', time:'06:55', sentiment:.18, tickers:['XLE'], summary:'OPEC+ 成員國同意將減產協議延長至明年第一季，WTI 原油突破 $78 关口。', cat:'macro' },
+  { title:'Microsoft Azure AI 收入年增 120%，Copilot 企業採用率加速', source:'WSJ', time:'06:20', sentiment:.38, tickers:['MSFT'], summary:'Microsoft 財報電話會議透露 Azure AI 服務收入快速增長，Copilot 付費席位突破 500 萬。', cat:'holdings' },
+  { title:'Bitcoin ETF 連續五日淨流入，機構配置比例創新高', source:'CoinDesk', time:'05:48', sentiment:.22, tickers:['BTC'], summary:'Spot Bitcoin ETF 本週累計淨流入 $2.1B，BlackRock IBIT 佔比超過 40%。', cat:'macro' },
+  { title:'Broadcom 收購 VMware 後首份財報超預期，軟體訂閱 ARR 增長 25%', source:'Barron\'s', time:'05:10', sentiment:.45, tickers:['AVGO'], summary:'Broadcom 軟體業務整合進展順利，VMware 企業客戶續約率高於預期。', cat:'holdings' },
+  { title:'China property sector stimulus fails to lift developer stocks', source:'SCMP', time:'04:35', sentiment:-.22, tickers:['FXI'], summary:'新一輪房地產刺激政策公布後，內房股普遍低開，市場對政策力度仍存疑慮。', cat:'macro' },
+  { title:'AMD MI350 量產進度提前，伺服器渠道庫存健康', source:'SemiAnalysis', time:'03:50', sentiment:.29, tickers:['AMD'], summary:'AMD 確認 MI350 系列提前進入量產，OEM 合作夥伴已開始接收首批樣品。', cat:'holdings' },
+];
+
+const INDICES = [
+  { sym:'SPY', name:'S&P 500', val:'5,842', chg:'+0.68%', up:true },
+  { sym:'QQQ', name:'Nasdaq', val:'512.4', chg:'+1.12%', up:true },
+  { sym:'NVDA', name:'NVIDIA', val:'892.1', chg:'+2.34%', up:true },
+  { sym:'TSM', name:'台積電 ADR', val:'178.6', chg:'+1.05%', up:true },
+  { sym:'AAPL', name:'Apple', val:'228.3', chg:'-0.82%', up:false },
+  { sym:'BTC', name:'Bitcoin', val:'97,420', chg:'+1.88%', up:true },
+];
+
+const WATCHLIST = [
+  { sym:'NVDA', sent:.42, price:'892.1', chg:'+2.34%' },
+  { sym:'TSM', sent:.31, price:'178.6', chg:'+1.05%' },
+  { sym:'AAPL', sent:-.35, price:'228.3', chg:'-0.82%' },
+  { sym:'MSFT', sent:.38, price:'418.7', chg:'+0.95%' },
+  { sym:'AVGO', sent:.45, price:'186.2', chg:'+1.67%' },
+];
+
+const DESCS = {
+  a:'大型頭條 + 持倉情緒側欄。適合「打開 App 先看最重要一則新聞」的體驗。',
+  b:'Market tape + 緊湊列表。適合快速掃描大量新聞、像 Bloomberg 終端但保持 Apple 風格。',
+  c:'AI 晨報置頂 + 分類區塊。適合「先看 AI 摘要，再深入各主題」的閱讀動線。',
+  d:'純黑終端風格 + mono 字體。適合 trader 主題用戶，資訊密度最高。',
+};
+
+function tone(s){ return s > .12 ? 'pos' : s < -.12 ? 'neg' : 'neu'; }
+function sentLabel(s){ const t = tone(s); return t === 'pos' ? '正面' : t === 'neg' ? '負面' : '中性'; }
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ── Layout A ── */
+function renderA(){
+  $('a-ticker').innerHTML = INDICES.map(i=>`
+    <div class="card a-idx">
+      <div class="a-idx-sym">${i.sym}</div>
+      <div class="a-idx-val">${i.val}</div>
+      <div class="a-idx-chg ${i.up?'pos':'neg'}">${i.chg}</div>
+    </div>`).join('');
+
+  const hero = NEWS[0];
+  $('a-hero').innerHTML = `
+    <div class="a-hero-img"></div>
+    <div class="a-hero-body">
+      <div class="a-hero-meta">
+        <span class="badge ${tone(hero.sentiment)}">${sentLabel(hero.sentiment)}</span>
+        <span>${esc(hero.source)}</span><span>·</span><span>${hero.time}</span>
+      </div>
+      <h2>${esc(hero.title)}</h2>
+      <p>${esc(hero.summary)}</p>
+    </div>`;
+
+  $('a-watchlist').innerHTML = WATCHLIST.map(w=>`
+    <div class="a-watch-row">
+      <span class="a-watch-sym">${w.sym}</span>
+      <span class="a-watch-sent ${tone(w.sent)}">${sentLabel(w.sent)} ${w.sent > 0 ? '+' : ''}${w.sent.toFixed(2)}</span>
+    </div>`).join('');
+
+  $('a-feed').innerHTML = NEWS.slice(1).map(n=>`
+    <article class="card a-item">
+      <div class="a-rail ${tone(n.sentiment)}"></div>
+      <div>
+        <div class="a-item-meta">
+          <span>${esc(n.source)}</span><span>·</span><span>${n.time}</span>
+          <span class="badge ${tone(n.sentiment)}">${sentLabel(n.sentiment)}</span>
+        </div>
+        <h3>${esc(n.title)}</h3>
+        <p>${esc(n.summary)}</p>
+      </div>
+    </article>`).join('');
+  $('a-count').textContent = `${NEWS.length} 則`;
+
+  $('a-hot').innerHTML = WATCHLIST.map(w=>`
+    <div class="a-watch-row">
+      <div><span class="a-watch-sym">${w.sym}</span><span style="font-size:11px;color:var(--muted);margin-left:6px">${w.chg}</span></div>
+      <span class="tag">${w.price}</span>
+    </div>`).join('');
+}
+
+/* ── Layout B ── */
+let bFilter = 'all';
+function renderB(){
+  const tapeItems = [...INDICES, ...INDICES];
+  $('b-tape').innerHTML = tapeItems.map(i=>`
+    <div class="b-tape-item">
+      <span class="b-tape-sym">${i.sym}</span>
+      <span class="b-tape-val">${i.val}</span>
+      <span class="b-tape-chg ${i.up?'up':'dn'}">${i.chg}</span>
+    </div>`).join('');
+
+  const pos = NEWS.filter(n=>n.sentiment>.12).length;
+  const neg = NEWS.filter(n=>n.sentiment<-.12).length;
+  $('b-stats').innerHTML = `
+    <div class="card b-stat"><strong>${NEWS.length}</strong><span>今日新聞</span></div>
+    <div class="card b-stat"><strong class="pos">${pos}</strong><span>正面</span></div>
+    <div class="card b-stat"><strong class="neg">${neg}</strong><span>負面</span></div>
+    <div class="card b-stat"><strong>${Math.round(pos/NEWS.length*100)}%</strong><span>正面比例</span></div>`;
+
+  const filtered = NEWS.filter(n=>{
+    if(bFilter==='all') return true;
+    if(bFilter==='holdings') return n.cat==='holdings';
+    if(bFilter==='pos') return n.sentiment>.12;
+    if(bFilter==='neg') return n.sentiment<-.12;
+    if(bFilter==='macro') return n.cat==='macro';
+    return true;
+  });
+
+  $('b-list').innerHTML = filtered.map(n=>`
+    <div class="b-row">
+      <div class="b-time">${n.time}</div>
+      <div>
+        <h3>${esc(n.title)}</h3>
+        <div class="b-row-meta">
+          <span>${esc(n.source)}</span>
+          ${n.tickers.map(t=>`<span class="tag">${t}</span>`).join('')}
+        </div>
+      </div>
+      <div class="b-sent ${tone(n.sentiment)}">${n.sentiment > 0 ? '+' : ''}${n.sentiment.toFixed(2)}</div>
+    </div>`).join('');
+}
+
+/* ── Layout C ── */
+function renderC(){
+  const pos = NEWS.filter(n=>n.sentiment>.12).length;
+  $('c-brief').innerHTML = `
+    <div class="c-brief-top">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">今日 AI 晨報 · ${new Date().toLocaleDateString('zh-HK',{month:'long',day:'numeric',weekday:'short'})}</div>
+        <h2>AI 基建需求強勁，Fed 鷹派言論压制短線情緒</h2>
+      </div>
+      <span class="c-brief-pill">AI 分析 · ${NEWS.length} 篇</span>
+    </div>
+    <div class="c-brief-body">
+      <div class="c-brief-main">
+        <p>今日持倉相關新聞以<strong> AI 半導體</strong>為主線，NVDA、TSM、AVGO 均錄得正面報導。宏觀面 Fed 官員談話偏鷹，市場對 2026 降息預期降溫。整體情緒偏向<strong> 結構性看多、短線謹慎</strong>。</p>
+      </div>
+      <ul class="c-brief-points">
+        <li>NVDA Blackwell 訂單能見度延伸至 2027，AI capex 週期未見頂</li>
+        <li>Fed 降息時程可能延後，利率敏感板塊承壓</li>
+        <li>持倉 ${pos}/${NEWS.length} 則正面，AAPL 中國銷售為主要負面因子</li>
+        <li>今日財經：22:30 CPI、05:00 NVDA 財報</li>
+      </ul>
+    </div>`;
+
+  const sections = [
+    { title:'你的持倉', sub:'Watchlist news', filter:n=>n.cat==='holdings' },
+    { title:'市場動態', sub:'Market movers', filter:n=>Math.abs(n.sentiment)>.25 },
+    { title:'宏觀事件', sub:'Macro & policy', filter:n=>n.cat==='macro' },
+  ];
+
+  $('c-sections').innerHTML = sections.map(sec=>{
+    const items = NEWS.filter(sec.filter).slice(0,3);
+    return `
+      <div>
+        <div class="sec-head"><h2>${sec.title}</h2><span>${sec.sub}</span></div>
+        <div class="c-sec-cards">${items.map(n=>`
+          <article class="card c-sec-card">
+            <div style="display:flex;gap:6px;align-items:center">
+              <span class="badge ${tone(n.sentiment)}">${sentLabel(n.sentiment)}</span>
+              <span style="font-size:11px;color:var(--muted)">${esc(n.source)} · ${n.time}</span>
+            </div>
+            <h4>${esc(n.title)}</h4>
+            <p>${esc(n.summary)}</p>
+            <div class="c-sec-foot">
+              <div>${n.tickers.map(t=>`<span class="tag">${t}</span>`).join(' ')}</div>
+              <span style="font-size:12px;color:var(--primary);font-weight:600">閱讀 →</span>
+            </div>
+          </article>`).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ── Layout D ── */
+function renderD(){
+  $('d-time').textContent = new Date().toLocaleTimeString('zh-HK',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  $('d-stream').innerHTML = NEWS.map(n=>`
+    <div class="d-stream-row">
+      <div class="d-time">${n.time}</div>
+      <div>
+        <div class="d-headline">${esc(n.title)}</div>
+        <div class="d-src">${esc(n.source)}</div>
+      </div>
+      <div class="d-ticker">${n.tickers[0]||'—'}</div>
+      <div class="d-sent ${tone(n.sentiment)}">${n.sentiment > 0 ? '+' : ''}${n.sentiment.toFixed(2)}</div>
+    </div>`).join('');
+
+  const heatColors = { pos:'#0d3320', neg:'#3b1111', neu:'#1a1a1a' };
+  $('d-heat').innerHTML = WATCHLIST.map(w=>`
+    <div class="d-heat-cell" style="background:${heatColors[tone(w.sent)]};color:${tone(w.sent)==='pos'?'#45e896':tone(w.sent)==='neg'?'#ef4444':'#737373'}">
+      <span class="sym">${w.sym}</span>${sentLabel(w.sent)}
+    </div>`).join('');
+
+  $('d-prices').innerHTML = WATCHLIST.map(w=>`
+    <div class="d-price-row">
+      <span style="color:#fb6e4e">${w.sym}</span>
+      <span>${w.price}</span>
+      <span class="${w.chg.startsWith('+')?'pos':'neg'}">${w.chg}</span>
+    </div>`).join('');
+}
+
+function $(id){ return document.getElementById(id); }
+
+/* ── Tab switching ── */
+document.querySelectorAll('.demo-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.demo-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.layout').forEach(l=>l.classList.remove('active'));
+    tab.classList.add('active');
+    const key = tab.dataset.layout;
+    $('layout-'+key).classList.add('active');
+    $('demo-desc').textContent = DESCS[key];
+    document.body.style.background = key === 'd' ? '#000' : '';
+    document.querySelector('.demo-bar').style.background = key === 'd' ? 'rgba(10,10,10,.92)' : '';
+    document.querySelector('.demo-bar h1').style.color = key === 'd' ? '#737373' : '';
+    document.querySelector('.demo-bar').style.borderColor = key === 'd' ? '#1f1f1f' : '';
+    document.querySelector('.mock-nav').style.background = key === 'd' ? 'rgba(10,10,10,.92)' : '';
+    document.querySelector('.mock-nav').style.borderColor = key === 'd' ? 'rgba(255,255,255,.08)' : '';
+  });
+});
+
+document.querySelectorAll('.b-chip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    document.querySelectorAll('.b-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    bFilter = chip.dataset.filter;
+    renderB();
+  });
+});
+
+renderA(); renderB(); renderC(); renderD();
+setInterval(()=>{ if($('layout-d').classList.contains('active')) renderD(); }, 1000);
+</script>
+</body>
+</html>
