@@ -802,24 +802,14 @@ table{border-collapse:collapse;width:100%}
 }
 
 /* ── HOME (Editorial News) ── */
-.home-ticker{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.home-ticker::-webkit-scrollbar{display:none}
-.home-idx{flex:0 0 auto;min-width:108px;padding:10px 12px}
-.home-idx-sym{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted)}
-.home-idx-val{font-size:17px;font-weight:700;font-family:var(--mono);margin-top:4px;letter-spacing:-.03em}
-.home-idx-chg{font-size:11px;font-weight:600;font-family:var(--mono);margin-top:3px}
-.home-hero{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-bottom:14px;min-height:0}
-.home-hero-main{padding:0;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:transform .15s,border-color .15s}
-.home-hero-main:hover{transform:translateY(-1px);border-color:var(--border)}
-.home-hero-img{height:140px;background:linear-gradient(135deg,#0a2540 0%,var(--primary) 55%,var(--blue,#5ac8fa) 100%);position:relative}
-[data-theme="dark"] .home-hero-img{background:linear-gradient(135deg,#1a1408 0%,var(--primary) 50%,rgba(122,167,217,.55) 100%)}
-[data-theme="trader"] .home-hero-img{background:linear-gradient(135deg,#0a0a0a 0%,var(--primary) 45%,#1a1a1a 100%)}
-.home-hero-body{padding:16px 18px 18px;flex:1;display:flex;flex-direction:column}
-.home-hero-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-size:11px;color:var(--muted)}
-.home-hero-body h2{font-size:20px;line-height:1.3;font-weight:700;letter-spacing:-.03em;margin-bottom:8px}
-.home-hero-body p{font-size:13px;color:var(--muted);line-height:1.55;flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.home-hero-side{display:flex;flex-direction:column;gap:10px}
-.home-side-card{padding:14px}
+.home-ticker{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.home-idx{min-width:0;padding:14px 16px}
+.home-idx-sym{font-size:11px;font-weight:700;font-family:var(--mono);color:var(--muted)}
+.home-idx-val{font-size:22px;font-weight:700;font-family:var(--mono);margin-top:6px;letter-spacing:-.03em}
+.home-idx-chg{font-size:12px;font-weight:600;font-family:var(--mono);margin-top:4px}
+.home-hero-side{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch;margin-bottom:14px}
+.home-side-card{padding:14px;min-width:0;min-height:132px;display:flex;flex-direction:column}
+.home-side-card > :last-child{flex:1}
 .home-side-card h3{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em}
 .home-watch-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--divider)}
 .home-watch-row:last-child{border-bottom:none;padding-bottom:0}
@@ -828,28 +818,21 @@ table{border-collapse:collapse;width:100%}
 .home-cal-row{padding:5px 0;border-bottom:1px solid var(--divider);font-size:12px;color:var(--muted);line-height:1.45}
 .home-cal-row:last-child{border-bottom:none}
 .home-cal-row strong{color:var(--text);font-weight:600;font-family:var(--mono);font-size:11px;margin-right:6px}
-.home-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:14px;align-items:start}
-.home-feed-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px}
+.home-feed-head{margin-bottom:10px}
 .home-feed-head h2{margin:0;font-size:15px;font-weight:600;letter-spacing:-.02em}
 .home-more-btn{font-size:12px;font-weight:600;color:var(--primary);padding:4px 0}
 .home-feed{display:flex;flex-direction:column;gap:10px}
-.home-item{padding:14px 16px;display:grid;grid-template-columns:4px 1fr;gap:12px;transition:transform .15s,border-color .15s;cursor:pointer}
+.home-item{padding:14px 16px;transition:transform .15s,border-color .15s;cursor:pointer}
 .home-item:hover{transform:translateY(-1px);border-color:var(--border)}
-.home-rail{border-radius:2px}
-.home-rail.pos{background:var(--success)}.home-rail.neg{background:var(--error)}.home-rail.neu{background:var(--faint)}
 .home-item-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;font-size:11px;color:var(--muted)}
 .home-item h3{font-size:15px;line-height:1.35;font-weight:600;margin-bottom:5px;letter-spacing:-.02em}
 .home-item p{font-size:12px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.home-hot{position:sticky;top:18px}
 .home-state{padding:20px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.55}
 @media(max-width:860px){
-  .home-hero{grid-template-columns:1fr}
-  .home-hero-img{height:120px}
-  .home-grid{grid-template-columns:1fr}
-  .home-hot{position:static}
-  .home-hero-side{flex-direction:row;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
-  .home-hero-side::-webkit-scrollbar{display:none}
-  .home-hero-side .home-side-card{flex:0 0 min(260px,78vw)}
+  .home-side-card{padding:12px;min-height:120px}
+  .home-side-card h3{font-size:11px;margin-bottom:8px}
+  .home-watch-row{padding:6px 0}
+  .home-watch-sym,.home-watch-sent{font-size:11px}
 }
 
 /* ── INVESTMENTS ─────────────────────────────────────────────────────────────── */
@@ -2116,32 +2099,20 @@ table{border-collapse:collapse;width:100%}
     <!-- HOME (Editorial News) -->
     <div class="view active" id="view-home">
       <div class="home-ticker" id="home-ticker"></div>
-      <div class="home-hero">
-        <article class="card home-hero-main" id="home-hero" role="button" tabindex="0" aria-label="Featured story"></article>
-        <div class="home-hero-side">
-          <div class="card home-side-card">
-            <h3 data-i18n="home-watchlist-sentiment">持倉情緒</h3>
-            <div id="home-watchlist"></div>
-          </div>
-          <div class="card home-side-card">
-            <h3 data-i18n="home-today-calendar">今日財經</h3>
-            <div id="home-calendar"></div>
-          </div>
+      <div class="home-hero-side">
+        <div class="card home-side-card">
+          <h3 data-i18n="home-watchlist-sentiment">持倉情緒</h3>
+          <div id="home-watchlist"></div>
+        </div>
+        <div class="card home-side-card">
+          <h3 data-i18n="home-today-calendar">今日財經</h3>
+          <div id="home-calendar"></div>
         </div>
       </div>
-      <div class="home-grid">
-        <div>
-          <div class="home-feed-head">
-            <h2 data-i18n="home-latest">最新新聞</h2>
-            <button type="button" class="home-more-btn" id="home-goto-news" data-i18n="home-view-all">查看全部</button>
-          </div>
-          <div class="home-feed" id="home-feed"></div>
-        </div>
-        <div class="card home-side-card home-hot">
-          <h3 data-i18n="home-holdings">持倉報價</h3>
-          <div id="home-hot"></div>
-        </div>
+      <div class="home-feed-head">
+        <h2 data-i18n="home-latest">最新新聞</h2>
       </div>
+      <div class="home-feed" id="home-feed"></div>
     </div>
 
     <!-- DASHBOARD -->
@@ -5313,12 +5284,11 @@ async function fetchAllPrices(){
   spin?.classList.remove('spin');
   renderInvestments();
   if(curView === 'dashboard') renderDashboard();
-  if(curView === 'home') renderHomeHot();
   saveUserData();
 }
 
 // ── HOME (Editorial News) ─────────────────────────────────────────────────────
-const HOME_INDEX_SYMBOLS = ['SPY', 'QQQ', 'DIA', 'IWM'];
+const HOME_INDEX_SYMBOLS = ['SPY', 'QQQ'];
 const HOME_NEWS_LIMIT = 10;
 let homeRenderToken = 0;
 let homeCalendarRequested = false;
@@ -5408,33 +5378,12 @@ async function fetchHomeQuote(symbol){
     return { price: last, pct: ((last / prev) - 1) * 100 };
   }
 }
-function renderHomeHero(item){
-  const host = $('home-hero');
-  if(!host) return;
-  if(!item){
-    host.removeAttribute('data-url');
-    host.innerHTML = `<div class="home-hero-img"></div><div class="home-hero-body"><div class="home-state">${t('home-no-news')}</div></div>`;
-    return;
-  }
-  const tone = homeTone(item.sentiment);
-  const time = parseNewsTime(item.time).toLocaleString(curLang === 'zh' ? 'zh-HK' : 'en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
-  host.dataset.url = item.url || '';
-  host.innerHTML = `<div class="home-hero-img"></div><div class="home-hero-body">
-    <div class="home-hero-meta"><span class="news-badge ${tone} tag">${homeSentLabel(item.sentiment)}</span><span>${newsEsc(item.source)}</span><span>·</span><span>${time}</span></div>
-    <h2>${newsEsc(item.title)}</h2>
-    <p>${newsEsc(item.summary)}</p>
-  </div>`;
-}
 function renderHomeFeedItem(item){
-  const tone = homeTone(item.sentiment);
   const time = parseNewsTime(item.time).toLocaleString(curLang === 'zh' ? 'zh-HK' : 'en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
   return `<article class="card home-item" data-url="${newsEsc(item.url || '')}" tabindex="0" role="link">
-    <div class="home-rail ${tone}"></div>
-    <div>
-      <div class="home-item-meta"><span>${newsEsc(item.source)}</span><span>·</span><span>${time}</span><span class="news-badge ${tone} tag">${homeSentLabel(item.sentiment)}</span></div>
-      <h3>${newsEsc(item.title)}</h3>
-      <p>${newsEsc(item.summary)}</p>
-    </div>
+    <div class="home-item-meta"><span>${newsEsc(item.source)}</span><span>·</span><span>${time}</span></div>
+    <h3>${newsEsc(item.title)}</h3>
+    <p>${newsEsc(item.summary)}</p>
   </article>`;
 }
 function renderHomeWatchlist(feed, symbols){
@@ -5452,41 +5401,21 @@ function renderHomeWatchlist(feed, symbols){
     return `<div class="home-watch-row"><span class="home-watch-sym">${newsEsc(sym)}</span><span class="home-watch-sent ${tone}">${items.length ? `${homeSentLabel(avg)} ${score}` : '—'}</span></div>`;
   }).join('');
 }
-function renderHomeHot(){
-  const host = $('home-hot');
-  if(!host) return;
-  if(!investments.length){
-    host.innerHTML = `<div class="home-state" style="padding:8px 0;text-align:left">${curLang === 'zh' ? '尚無持倉' : 'No holdings yet'}</div>`;
-    return;
-  }
-  host.innerHTML = investments.slice(0, 6).map(inv => {
-    const sym = newsEsc(inv.symbol);
-    const price = inv.livePrice != null ? homeFormatPrice(inv.livePrice) : '—';
-    let chgHtml = '';
-    if(inv.livePrice != null && inv.avgCost > 0){
-      const ret = ((inv.livePrice - inv.avgCost) / inv.avgCost) * 100;
-      const cls = ret >= 0 ? 'pos' : 'neg';
-      chgHtml = `<span class="${cls}" style="font-size:11px;font-family:var(--mono);margin-left:6px">${homeFormatPct(ret)}</span>`;
-    }
-    return `<div class="home-watch-row"><div><span class="home-watch-sym">${sym}</span>${chgHtml}</div><span class="news-tag">${price}</span></div>`;
-  }).join('');
-}
 function renderHomeCalendar(){
   const host = $('home-calendar');
   if(!host) return;
   const today = calTodayIso();
   const events = calEvents.filter(ev => ev.date === today).slice(0, 3);
   if(!events.length){
-    host.innerHTML = `<div class="home-cal-row">${t('home-cal-empty')}</div><button type="button" class="home-more-btn" id="home-goto-calendar">${t('home-cal-more')}</button>`;
+    host.innerHTML = `<div class="home-cal-row">${t('home-cal-empty')}</div>`;
     return;
   }
-  host.innerHTML = events.map(ev => `<div class="home-cal-row"><strong>${newsEsc(ev.time)}</strong>${newsEsc(ev.title)}</div>`).join('')
-    + `<button type="button" class="home-more-btn" id="home-goto-calendar">${t('home-cal-more')}</button>`;
+  host.innerHTML = events.map(ev => `<div class="home-cal-row"><strong>${newsEsc(ev.time)}</strong>${newsEsc(ev.title)}</div>`).join('');
 }
-async function renderHomeIndices(extraSymbols){
+async function renderHomeIndices(){
   const host = $('home-ticker');
   if(!host) return;
-  const symbols = [...new Set([...HOME_INDEX_SYMBOLS, ...(extraSymbols || []).slice(0, 2)])].slice(0, 6);
+  const symbols = HOME_INDEX_SYMBOLS;
   host.innerHTML = symbols.map(sym => `<div class="card home-idx home-state">${newsEsc(sym)}</div>`).join('');
   const results = await Promise.all(symbols.map(async sym => {
     try{
@@ -5508,20 +5437,13 @@ async function renderHome(force=false){
   const token = ++homeRenderToken;
   const symbols = homeDefaultTickers();
   $('home-feed').innerHTML = `<div class="card home-state">${t('home-loading')}</div>`;
-  renderHomeHero(null);
   renderHomeWatchlist([], symbols);
-  renderHomeHot();
   renderHomeCalendar();
   if(!homeCalendarRequested){
     homeCalendarRequested = true;
     fetchCalendar(false).then(() => { if(curView === 'home' && token === homeRenderToken) renderHomeCalendar(); });
   }
-  renderHomeIndices(symbols);
-  if(investments.length){
-    Promise.all(investments.slice(0, 6).map(async inv => {
-      if(inv.livePrice == null) inv.livePrice = await fetchPrice(inv.symbol);
-    })).then(() => { if(curView === 'home' && token === homeRenderToken) renderHomeHot(); });
-  }
+  renderHomeIndices();
   let feed = [];
   try{
     const newsData = await fetchCnyesHomeNews(symbols, force);
@@ -5541,31 +5463,12 @@ async function renderHome(force=false){
   }
   if(token !== homeRenderToken) return;
   feed = feed.slice(0, HOME_NEWS_LIMIT);
-  if(feed.length){
-    renderHomeHero(feed[0]);
-    $('home-feed').innerHTML = feed.slice(1).map(renderHomeFeedItem).join('');
-  }else{
-    renderHomeHero(null);
-    $('home-feed').innerHTML = `<div class="card home-state">${newsLastError ? newsErrorText() : t('home-no-news')}</div>`;
-  }
+  $('home-feed').innerHTML = feed.length
+    ? feed.map(renderHomeFeedItem).join('')
+    : `<div class="card home-state">${newsLastError ? newsErrorText() : t('home-no-news')}</div>`;
   renderHomeWatchlist(feed, symbols);
 }
 document.addEventListener('click', e => {
-  if(e.target.id === 'home-goto-news' || e.target.closest('#home-goto-news')){
-    const input = $('news-ticker-input');
-    if(input) input.value = homeDefaultTickers().join(', ');
-    setView('news');
-    return;
-  }
-  if(e.target.id === 'home-goto-calendar' || e.target.closest('#home-goto-calendar')){
-    setView('calendar');
-    return;
-  }
-  const hero = e.target.closest('#home-hero');
-  if(hero && hero.dataset.url){
-    window.open(hero.dataset.url, '_blank', 'noopener');
-    return;
-  }
   const item = e.target.closest('.home-item');
   if(item && item.dataset.url){
     window.open(item.dataset.url, '_blank', 'noopener');
@@ -5573,12 +5476,6 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => {
   if(e.key !== 'Enter' && e.key !== ' ') return;
-  const hero = e.target.closest('#home-hero');
-  if(hero && hero.dataset.url){
-    e.preventDefault();
-    window.open(hero.dataset.url, '_blank', 'noopener');
-    return;
-  }
   const item = e.target.closest('.home-item');
   if(item && item.dataset.url){
     e.preventDefault();
