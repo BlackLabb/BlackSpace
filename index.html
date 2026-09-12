@@ -822,8 +822,7 @@ table{border-collapse:collapse;width:100%}
 .home-cal-row:last-child{border-bottom:none}
 .home-cal-row strong{color:var(--text);font-weight:600;font-family:var(--mono);font-size:11px;margin-right:6px}
 .home-feed-head{margin-bottom:10px}
-.home-feed-head h2{margin:0;font-size:15px;font-weight:600;letter-spacing:-.02em;color:var(--text)}
-[data-theme="dark"] .home-feed-head h2,[data-theme="trader"] .home-feed-head h2{color:#fff}
+.home-feed-head h2.section-head{margin:0}
 .home-more-btn{font-size:12px;font-weight:600;color:var(--primary);padding:4px 0}
 .home-feed{display:flex;flex-direction:column;gap:10px}
 .home-item{padding:14px 16px;transition:transform .15s,border-color .15s;cursor:pointer}
@@ -2114,7 +2113,7 @@ table{border-collapse:collapse;width:100%}
         </div>
       </div>
       <div class="home-feed-head">
-        <h2 data-i18n="home-latest">最新新聞</h2>
+        <h2 class="section-head" data-i18n="home-latest">最新新聞</h2>
       </div>
       <div class="home-feed" id="home-feed"></div>
     </div>
