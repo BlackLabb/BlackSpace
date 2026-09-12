@@ -229,6 +229,7 @@ table{border-collapse:collapse;width:100%}
 /* Tooltip on hover — hidden when sidebar labels are visible */
 .nav-btn::after{display:none}
 .bottom-nav-btn[data-view="news"]{display:none!important}
+#view-home{width:100%;min-width:0;max-width:100%;overflow-x:hidden;touch-action:pan-y}
 .nav-divider{height:1px;background:var(--divider);margin:4px 8px;width:32px}
 .sidebar-user{padding:10px 0 12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
 .sidebar-user-btn{display:none}
@@ -717,7 +718,7 @@ table{border-collapse:collapse;width:100%}
   html.keyboard-open .bottom-nav { opacity: 0; visibility: hidden; pointer-events: none; }
   .pub-auth-card { padding: 24px 20px; }
   :root { --mobile-nav-bottom: max(10px, env(safe-area-inset-bottom)); }
-  .bottom-nav { display: flex !important; position: fixed; bottom: var(--mobile-nav-bottom); left: 50%; transform: translateX(-50%); width: auto; max-width: min(320px, calc(100% - 48px)); height: 50px; margin: 0; padding: 4px 6px; gap: 2px; background: rgba(255,255,255,.65); backdrop-filter: saturate(200%) blur(28px); -webkit-backdrop-filter: saturate(200%) blur(28px); border: 1px solid rgba(255,255,255,.55); border-radius: 999px; z-index: 50; align-items: center; justify-content: center; box-shadow: 0 12px 34px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06), 0 0 0 .5px rgba(255,255,255,.42) inset; }
+  .bottom-nav { display: flex !important; position: fixed; bottom: var(--mobile-nav-bottom); left: 50%; transform: translateX(-50%); width: auto; max-width: min(380px, calc(100% - 32px)); height: 50px; margin: 0; padding: 4px 6px; gap: 2px; background: rgba(255,255,255,.65); backdrop-filter: saturate(200%) blur(28px); -webkit-backdrop-filter: saturate(200%) blur(28px); border: 1px solid rgba(255,255,255,.55); border-radius: 999px; z-index: 50; align-items: center; justify-content: center; box-shadow: 0 12px 34px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06), 0 0 0 .5px rgba(255,255,255,.42) inset; }
   [data-theme="dark"] .bottom-nav { background: rgba(7,7,8,.94) !important; border: 1px solid rgba(212,181,106,.16) !important; box-shadow: 0 8px 28px rgba(0,0,0,.5), 0 0 0 .5px rgba(212,181,106,.08) inset !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
   [data-theme="trader"] .bottom-nav { background: rgba(10,10,10,.92) !important; border: 1px solid rgba(255,255,255,.08) !important; box-shadow: 0 8px 28px rgba(0,0,0,.55) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
   .bottom-nav-btn { flex: 0 0 auto; width: 42px; height: 40px; min-width: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); border: none; background: transparent; cursor: pointer; transition: color var(--trans), background var(--trans), transform .15s; padding: 0; border-radius: 999px; }
@@ -798,6 +799,57 @@ table{border-collapse:collapse;width:100%}
   .news-layout{grid-template-columns:1fr}
   .news-layout > :first-child{grid-column:auto}
   .news-side{grid-column:auto;position:static;margin-top:0}
+}
+
+/* ── HOME (Editorial News) ── */
+.home-ticker{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.home-ticker::-webkit-scrollbar{display:none}
+.home-idx{flex:0 0 auto;min-width:108px;padding:10px 12px}
+.home-idx-sym{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted)}
+.home-idx-val{font-size:17px;font-weight:700;font-family:var(--mono);margin-top:4px;letter-spacing:-.03em}
+.home-idx-chg{font-size:11px;font-weight:600;font-family:var(--mono);margin-top:3px}
+.home-hero{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-bottom:14px;min-height:0}
+.home-hero-main{padding:0;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:transform .15s,border-color .15s}
+.home-hero-main:hover{transform:translateY(-1px);border-color:var(--border)}
+.home-hero-img{height:140px;background:linear-gradient(135deg,#0a2540 0%,var(--primary) 55%,var(--blue,#5ac8fa) 100%);position:relative}
+[data-theme="dark"] .home-hero-img{background:linear-gradient(135deg,#1a1408 0%,var(--primary) 50%,rgba(122,167,217,.55) 100%)}
+[data-theme="trader"] .home-hero-img{background:linear-gradient(135deg,#0a0a0a 0%,var(--primary) 45%,#1a1a1a 100%)}
+.home-hero-body{padding:16px 18px 18px;flex:1;display:flex;flex-direction:column}
+.home-hero-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-size:11px;color:var(--muted)}
+.home-hero-body h2{font-size:20px;line-height:1.3;font-weight:700;letter-spacing:-.03em;margin-bottom:8px}
+.home-hero-body p{font-size:13px;color:var(--muted);line-height:1.55;flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.home-hero-side{display:flex;flex-direction:column;gap:10px}
+.home-side-card{padding:14px}
+.home-side-card h3{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em}
+.home-watch-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--divider)}
+.home-watch-row:last-child{border-bottom:none;padding-bottom:0}
+.home-watch-sym{font-size:12px;font-weight:700;font-family:var(--mono)}
+.home-watch-sent{font-size:11px;font-weight:600;font-family:var(--mono)}
+.home-cal-row{padding:5px 0;border-bottom:1px solid var(--divider);font-size:12px;color:var(--muted);line-height:1.45}
+.home-cal-row:last-child{border-bottom:none}
+.home-cal-row strong{color:var(--text);font-weight:600;font-family:var(--mono);font-size:11px;margin-right:6px}
+.home-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:14px;align-items:start}
+.home-feed-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px}
+.home-feed-head h2{margin:0;font-size:15px;font-weight:600;letter-spacing:-.02em}
+.home-more-btn{font-size:12px;font-weight:600;color:var(--primary);padding:4px 0}
+.home-feed{display:flex;flex-direction:column;gap:10px}
+.home-item{padding:14px 16px;display:grid;grid-template-columns:4px 1fr;gap:12px;transition:transform .15s,border-color .15s;cursor:pointer}
+.home-item:hover{transform:translateY(-1px);border-color:var(--border)}
+.home-rail{border-radius:2px}
+.home-rail.pos{background:var(--success)}.home-rail.neg{background:var(--error)}.home-rail.neu{background:var(--faint)}
+.home-item-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;font-size:11px;color:var(--muted)}
+.home-item h3{font-size:15px;line-height:1.35;font-weight:600;margin-bottom:5px;letter-spacing:-.02em}
+.home-item p{font-size:12px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.home-hot{position:sticky;top:18px}
+.home-state{padding:20px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.55}
+@media(max-width:860px){
+  .home-hero{grid-template-columns:1fr}
+  .home-hero-img{height:120px}
+  .home-grid{grid-template-columns:1fr}
+  .home-hot{position:static}
+  .home-hero-side{flex-direction:row;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .home-hero-side::-webkit-scrollbar{display:none}
+  .home-hero-side .home-side-card{flex:0 0 min(260px,78vw)}
 }
 
 /* ── INVESTMENTS ─────────────────────────────────────────────────────────────── */
@@ -1860,7 +1912,11 @@ table{border-collapse:collapse;width:100%}
   </div>
   <nav class="nav" id="nav">
     <div class="nav-group-label" data-i18n="demo-nav-core">Core</div>
-    <button class="nav-btn active" data-view="dashboard" data-tip="Dashboard">
+    <button class="nav-btn active" data-view="home" data-tip="Home">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"></path><path d="M8 8h7"></path><path d="M8 12h8"></path><path d="M8 16h5"></path></svg>
+      <span class="nav-btn-label" data-i18n="nav-home">主頁</span>
+    </button>
+    <button class="nav-btn" data-view="dashboard" data-tip="Dashboard">
       <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 10v10h5v-6h4v6h5V10"></path></svg>
       <span class="nav-btn-label">Dashboard</span>
     </button>
@@ -1992,7 +2048,7 @@ table{border-collapse:collapse;width:100%}
   <div class="content">
 
     <!-- MONTHLY -->
-    <div class="view active" id="view-monthly">
+    <div class="view" id="view-monthly">
       <div class="page-hdr">
         <div class="page-title" data-i18n="title-monthly">Monthly</div>
         <button class="add-btn" id="add-tx-monthly-btn">
@@ -2054,6 +2110,37 @@ table{border-collapse:collapse;width:100%}
         </div>
         <table class="tx-table"><thead><tr><th>Date</th><th>Merchant</th><th>Category</th><th style="text-align:right">Amount</th><th></th></tr></thead>
         <tbody id="a-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- HOME (Editorial News) -->
+    <div class="view active" id="view-home">
+      <div class="home-ticker" id="home-ticker"></div>
+      <div class="home-hero">
+        <article class="card home-hero-main" id="home-hero" role="button" tabindex="0" aria-label="Featured story"></article>
+        <div class="home-hero-side">
+          <div class="card home-side-card">
+            <h3 data-i18n="home-watchlist-sentiment">持倉情緒</h3>
+            <div id="home-watchlist"></div>
+          </div>
+          <div class="card home-side-card">
+            <h3 data-i18n="home-today-calendar">今日財經</h3>
+            <div id="home-calendar"></div>
+          </div>
+        </div>
+      </div>
+      <div class="home-grid">
+        <div>
+          <div class="home-feed-head">
+            <h2 data-i18n="home-latest">最新新聞</h2>
+            <button type="button" class="home-more-btn" id="home-goto-news" data-i18n="home-view-all">查看全部</button>
+          </div>
+          <div class="home-feed" id="home-feed"></div>
+        </div>
+        <div class="card home-side-card home-hot">
+          <h3 data-i18n="home-holdings">持倉報價</h3>
+          <div id="home-hot"></div>
+        </div>
       </div>
     </div>
 
@@ -3787,6 +3874,7 @@ function initCalendar(){
 
 // ── VIEW SWITCHING ────────────────────────────────────────
 const VIEW_KEYS = {
+  home:         {title:'title-home',         sub:'sub-home'},
   monthly:      {title:'title-monthly',      sub:'sub-monthly'},
   transactions: {title:'title-transactions', sub:'sub-transactions'},
   dashboard:    {title:'title-dashboard',    sub:'sub-dashboard'},
@@ -3799,6 +3887,7 @@ const VIEW_KEYS = {
 };
 // Keep VIEW_META as fallback for code that references it
 const VIEW_META = {
+  home:{title:'Home',sub:'Investment news overview'},
   monthly:{title:'Monthly View',sub:''},transactions:{title:'All Transactions',sub:'Complete transaction history'},
   dashboard:{title:'Dashboard',sub:'Overview summary'},
   categories:{title:'Categories',sub:'Manage spending categories'},investments:{title:'Investments',sub:'Live portfolio tracker'},
@@ -3821,6 +3910,7 @@ function setView(v){
   const vk = VIEW_KEYS[v];
   $('view-title').textContent = vk ? t(vk.title) : v;
   $('month-strip').style.display=v==='monthly'?'':'none';
+  if(v==='home') renderHome();
   if(v==='monthly'){ buildTabs(); renderMonthly(); }
   if(v==='transactions') renderAllTx();
   if(v==='dashboard') renderDashboard();
@@ -4016,13 +4106,14 @@ const I18N = {
   zh: {
     'settings-privacy':'私隱模式','privacy-on':'開','privacy-off':'關',
     // Nav
-    'nav-dashboard':'總覽','nav-monthly':'每月','nav-investments':'投資','nav-news':'新聞','nav-categories':'類別','nav-goals':'預算目標',
+    'nav-home':'主頁','nav-dashboard':'總覽','nav-monthly':'每月','nav-investments':'投資','nav-news':'新聞','nav-categories':'類別','nav-goals':'預算目標',
     'nav-apps':'小程式','app-sub-sim':'模擬投資組合','app-sub-news':'公司新聞',
     // Topbar
     'export-btn-text':'匯出','import-btn-text':'匯入','logout-btn-text':'登出',
     // View titles
-    'title-monthly':'每月明細','title-transactions':'所有交易','title-goals':'儲蓄目標','title-dashboard':'總覽','title-categories':'類別管理','title-investments':'投資組合','title-news':'投資新聞',
-    'sub-monthly':'詳細每月分析','sub-transactions':'完整交易記錄','sub-goals':'你的儲蓄目標','sub-dashboard':'總體概覽','sub-categories':'管理消費類別','sub-investments':'即時投資組合追蹤',
+    'title-home':'主頁','title-monthly':'每月明細','title-transactions':'所有交易','title-goals':'儲蓄目標','title-dashboard':'總覽','title-categories':'類別管理','title-investments':'投資組合','title-news':'投資新聞',
+    'sub-home':'持倉與市場新聞','sub-monthly':'詳細每月分析','sub-transactions':'完整交易記錄','sub-goals':'你的儲蓄目標','sub-dashboard':'總體概覽','sub-categories':'管理消費類別','sub-investments':'即時投資組合追蹤',
+    'home-watchlist-sentiment':'持倉情緒','home-today-calendar':'今日財經','home-latest':'最新新聞','home-view-all':'查看全部','home-holdings':'持倉報價','home-no-news':'暫時沒有相關新聞','home-loading':'正在載入…','home-cal-empty':'今日暫無財經事件','home-cal-more':'前往財經日曆',
     'sub-news':'持倉與關注公司的市場新聞',
     // Monthly KPIs
     'lbl-income':'收入','lbl-spent':'總支出','lbl-savings':'淨儲蓄','lbl-tx-count':'交易筆數',
@@ -4107,7 +4198,7 @@ const I18N = {
     'futu-import-done':'已匯入 {n} 筆持倉',
     'futu-import-done-detail':'新增 {added} · 更新 {updated}',
     // Bottom nav
-    'bnav-dashboard':'總覽','bnav-monthly':'每月','bnav-invest':'投資','bnav-news':'新聞','bnav-categories':'類別','bnav-goals':'目標','nav-blackinvest':'模擬交易','bnav-blackinvest':'模擬交易',
+    'bnav-home':'主頁','bnav-dashboard':'總覽','bnav-monthly':'每月','bnav-invest':'投資','bnav-news':'新聞','bnav-categories':'類別','bnav-goals':'目標','nav-blackinvest':'模擬交易','bnav-blackinvest':'模擬交易',
     // Sign out / auth
     'btn-signout':'登出',
     // Public shell — splash + auth
@@ -4141,11 +4232,12 @@ const I18N = {
     'btn-edit-cat-save':'儲存更改',
   },
   en: {
-    'nav-dashboard':'Dashboard','nav-monthly':'Monthly','nav-investments':'Investments','nav-news':'News','nav-categories':'Categories','nav-goals':'Budget Goals',
+    'nav-home':'Home','nav-dashboard':'Dashboard','nav-monthly':'Monthly','nav-investments':'Investments','nav-news':'News','nav-categories':'Categories','nav-goals':'Budget Goals',
     'nav-apps':'Apps','app-sub-sim':'Practice portfolio','app-sub-news':'Company news',
     'export-btn-text':'Export','import-btn-text':'Import','logout-btn-text':'Sign Out',
-    'title-monthly':'Monthly View','title-transactions':'All Transactions','title-goals':'Budget Goals','title-dashboard':'Dashboard','title-categories':'Categories','title-investments':'Investments','title-news':'Investment News',
-    'sub-monthly':'Detailed monthly breakdown','sub-transactions':'Complete transaction history','sub-goals':'Your savings targets','sub-dashboard':'Overview summary','sub-categories':'Manage spending categories','sub-investments':'Live portfolio tracker','sub-news':'Company-focused market news',
+    'title-home':'Home','title-monthly':'Monthly View','title-transactions':'All Transactions','title-goals':'Budget Goals','title-dashboard':'Dashboard','title-categories':'Categories','title-investments':'Investments','title-news':'Investment News',
+    'sub-home':'Holdings and market news','sub-monthly':'Detailed monthly breakdown','sub-transactions':'Complete transaction history','sub-goals':'Your savings targets','sub-dashboard':'Overview summary','sub-categories':'Manage spending categories','sub-investments':'Live portfolio tracker','sub-news':'Company-focused market news',
+    'home-watchlist-sentiment':'Holdings Sentiment','home-today-calendar':'Today\'s Calendar','home-latest':'Latest News','home-view-all':'View all','home-holdings':'Holdings','home-no-news':'No matching news right now','home-loading':'Loading…','home-cal-empty':'No events today','home-cal-more':'Open calendar',
     'lbl-income':'Income','lbl-spent':'Total Spent','lbl-savings':'Net Savings','lbl-tx-count':'Transactions',
     'sub-income':'Net monthly pay','sub-first-month':'First month',
     'lbl-total-spent':'Total Spent','lbl-avg-monthly':'Avg Monthly Spend','lbl-bank':'Bank','lbl-investments':'Investments','sub-all-time':'All time','sub-excl-income':'Excl. income','sub-manual':'Manual entry','sub-cash-mktval':'Market Value + Cash Remaining',
@@ -4205,7 +4297,7 @@ const I18N = {
     'futu-no-holdings':'No holdings detected in screenshot',
     'futu-import-done':'Imported {n} positions',
     'futu-import-done-detail':'Added {added} · Updated {updated}',
-    'bnav-dashboard':'Dashboard','bnav-monthly':'Monthly','bnav-invest':'Invest','bnav-news':'News','bnav-categories':'Categories','bnav-goals':'Goals','nav-blackinvest':'Sim Trading','bnav-blackinvest':'Sim Trade',
+    'bnav-home':'Home','bnav-dashboard':'Dashboard','bnav-monthly':'Monthly','bnav-invest':'Invest','bnav-news':'News','bnav-categories':'Categories','bnav-goals':'Goals','nav-blackinvest':'Sim Trading','bnav-blackinvest':'Sim Trade',
     'btn-signout':'Sign Out',
     'pub-splash-aria':'Splash','pub-splash-sub':'Personal Finance Terminal',
     'pub-auth-back':'Back','pub-auth-back-aria':'Back to splash',
@@ -4326,6 +4418,8 @@ function applyLang(){
   applyPubShellLang();
 
   // Nav buttons + tooltips
+  const homeNavLbl = document.querySelector('.nav-btn[data-view="home"] .nav-btn-label');
+  if(homeNavLbl) homeNavLbl.textContent = t('nav-home');
   document.querySelector('.nav-btn[data-view="dashboard"] .nav-btn-label').textContent = t('nav-dashboard');
   document.querySelector('.nav-btn[data-view="monthly"] .nav-btn-label').textContent = t('nav-monthly');
   document.querySelector('.nav-btn[data-view="investments"] .nav-btn-label').textContent = t('nav-investments');
@@ -4341,6 +4435,7 @@ function applyLang(){
 
   const appsTrigger = $('mini-apps-btn');
   if(appsTrigger) appsTrigger.setAttribute('data-tip', t('nav-apps'));
+  document.querySelector('.nav-btn[data-view="home"]')?.setAttribute('data-tip', t('nav-home'));
   document.querySelector('.nav-btn[data-view="dashboard"]').setAttribute('data-tip', t('nav-dashboard'));
   document.querySelector('.nav-btn[data-view="monthly"]').setAttribute('data-tip', t('nav-monthly'));
   document.querySelector('.nav-btn[data-view="investments"]').setAttribute('data-tip', t('nav-investments'));
@@ -4375,7 +4470,7 @@ function applyLang(){
     const v = b.dataset.view;
     const span = b.querySelector('.bnav-label');
     if(span){
-      const keys = {dashboard:'bnav-dashboard',monthly:'bnav-monthly',investments:'bnav-invest',news:'bnav-news',categories:'bnav-categories'};
+      const keys = {home:'bnav-home',dashboard:'bnav-dashboard',monthly:'bnav-monthly',investments:'bnav-invest',news:'bnav-news',categories:'bnav-categories'};
       if(keys[v]) span.textContent = t(keys[v]);
     }
   });
@@ -4438,6 +4533,7 @@ function applyLang(){
 
   // Re-render current view to pick up language changes in dynamic content
   buildTabs(); // rebuild month strip labels
+  if(curView==='home') renderHome();
   if(curView==='monthly') renderMonthly();
   if(curView==='dashboard') renderDashboard();
   if(curView==='investments') renderInvestments();
@@ -4449,6 +4545,7 @@ function applyLang(){
 
   // View title for current view
   const vmeta = {
+    home:{title:t('title-home')},
     monthly:{title:t('title-monthly')},
     transactions:{title:t('title-transactions')},
     goals:{title:t('title-goals')},
@@ -4718,7 +4815,7 @@ function onUserReady(){
   document.documentElement.classList.remove('landing-visible');
   syncThemeChrome(curTheme);
   aw.style.display='flex';
-  buildTabs(); applyRecurringTransactions(); setView('dashboard');
+  buildTabs(); applyRecurringTransactions(); setView('home');
   // Attach DD/MM/YYYY auto-format to date inputs
   attachDateAutoFormat('f-date');
   attachDateAutoFormat('et-date');
@@ -4788,7 +4885,7 @@ function showLocalNewsPreview(){
   if(typeof hideLoading === 'function') hideLoading();
   if(typeof buildTabs === 'function') buildTabs();
   if(typeof applyRecurringTransactions === 'function') applyRecurringTransactions();
-  if(typeof setView === 'function') setView('news');
+  if(typeof setView === 'function') setView('home');
   if(typeof applyLang === 'function') applyLang();
   return true;
 }
@@ -5207,16 +5304,227 @@ async function fetchAllPrices(){
   // Clear cache so refresh always fetches fresh prices
   Object.keys(priceCache).forEach(k => delete priceCache[k]);
   const btn = $('refresh-prices-btn');
-  btn.querySelector('svg').classList.add('spin');
+  const spin = btn?.querySelector('svg');
+  spin?.classList.add('spin');
   await Promise.all(investments.map(async inv => {
     const price = await fetchPrice(inv.symbol);
     inv.livePrice = price;
   }));
-  btn.querySelector('svg').classList.remove('spin');
+  spin?.classList.remove('spin');
   renderInvestments();
   if(curView === 'dashboard') renderDashboard();
+  if(curView === 'home') renderHomeHot();
   saveUserData();
 }
+
+// ── HOME (Editorial News) ─────────────────────────────────────────────────────
+const HOME_INDEX_SYMBOLS = ['SPY', 'QQQ', 'DIA', 'IWM'];
+let homeRenderToken = 0;
+let homeCalendarRequested = false;
+function homeDefaultTickers(){
+  const fromInv = investments.map(i => String(i.symbol || '').trim().toUpperCase()).filter(Boolean);
+  if(fromInv.length) return [...new Set(fromInv)].slice(0, 8);
+  return ['NVDA', 'AAPL', 'MSFT'];
+}
+function homeTone(s){ return s > .12 ? 'pos' : s < -.12 ? 'neg' : 'neu'; }
+function homeSentLabel(s){
+  const tone = homeTone(s);
+  return tone === 'pos' ? t('news-sentiment-positive') : tone === 'neg' ? t('news-sentiment-negative') : t('news-sentiment-neutral');
+}
+function homeFormatPrice(value){
+  if(!Number.isFinite(Number(value))) return '--';
+  const n = Number(value);
+  return n >= 1000 ? n.toLocaleString('en-US', { maximumFractionDigits: 0 }) : n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function homeFormatPct(value){
+  if(!Number.isFinite(Number(value))) return '--';
+  const n = Number(value);
+  return `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`;
+}
+async function fetchHomeQuote(symbol){
+  try{
+    const res = await fetch(`${FUND_FLOW_API}/?symbol=${encodeURIComponent(symbol)}`, { signal: AbortSignal.timeout(12000) });
+    const data = await res.json();
+    if(!res.ok || !Number.isFinite(data.c) || data.c <= 0) throw new Error(data.error || symbol);
+    return { price: data.c, pct: data.dp };
+  }catch(_){
+    const res = await fetch(`${FUND_FLOW_API}/chart?symbol=${encodeURIComponent(symbol)}`, { signal: AbortSignal.timeout(15000) });
+    const data = await res.json();
+    if(!res.ok || !Array.isArray(data.closes) || data.closes.length < 2) throw new Error(data.error || symbol);
+    const last = data.closes.at(-1);
+    const prev = data.closes.at(-2);
+    return { price: last, pct: ((last / prev) - 1) * 100 };
+  }
+}
+function renderHomeHero(item){
+  const host = $('home-hero');
+  if(!host) return;
+  if(!item){
+    host.removeAttribute('data-url');
+    host.innerHTML = `<div class="home-hero-img"></div><div class="home-hero-body"><div class="home-state">${t('home-no-news')}</div></div>`;
+    return;
+  }
+  const tone = homeTone(item.sentiment);
+  const time = parseNewsTime(item.time).toLocaleString(curLang === 'zh' ? 'zh-HK' : 'en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  host.dataset.url = item.url || '';
+  host.innerHTML = `<div class="home-hero-img"></div><div class="home-hero-body">
+    <div class="home-hero-meta"><span class="news-badge ${tone} tag">${homeSentLabel(item.sentiment)}</span><span>${newsEsc(item.source)}</span><span>·</span><span>${time}</span></div>
+    <h2>${newsEsc(item.title)}</h2>
+    <p>${newsEsc(item.summary)}</p>
+  </div>`;
+}
+function renderHomeFeedItem(item){
+  const tone = homeTone(item.sentiment);
+  const time = parseNewsTime(item.time).toLocaleString(curLang === 'zh' ? 'zh-HK' : 'en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  return `<article class="card home-item" data-url="${newsEsc(item.url || '')}" tabindex="0" role="link">
+    <div class="home-rail ${tone}"></div>
+    <div>
+      <div class="home-item-meta"><span>${newsEsc(item.source)}</span><span>·</span><span>${time}</span><span class="news-badge ${tone} tag">${homeSentLabel(item.sentiment)}</span></div>
+      <h3>${newsEsc(item.title)}</h3>
+      <p>${newsEsc(item.summary)}</p>
+    </div>
+  </article>`;
+}
+function renderHomeWatchlist(feed, symbols){
+  const host = $('home-watchlist');
+  if(!host) return;
+  if(!symbols.length){
+    host.innerHTML = `<div class="home-state" style="padding:8px 0;text-align:left">${curLang === 'zh' ? '尚無持倉' : 'No holdings yet'}</div>`;
+    return;
+  }
+  host.innerHTML = symbols.slice(0, 6).map(sym => {
+    const items = feed.filter(item => newsFocused(item, sym) || (item.tickers || []).includes(sym));
+    const avg = items.length ? items.reduce((s, i) => s + i.sentiment, 0) / items.length : 0;
+    const tone = homeTone(avg);
+    const score = items.length ? `${avg > 0 ? '+' : ''}${avg.toFixed(2)}` : '—';
+    return `<div class="home-watch-row"><span class="home-watch-sym">${newsEsc(sym)}</span><span class="home-watch-sent ${tone}">${items.length ? `${homeSentLabel(avg)} ${score}` : '—'}</span></div>`;
+  }).join('');
+}
+function renderHomeHot(){
+  const host = $('home-hot');
+  if(!host) return;
+  if(!investments.length){
+    host.innerHTML = `<div class="home-state" style="padding:8px 0;text-align:left">${curLang === 'zh' ? '尚無持倉' : 'No holdings yet'}</div>`;
+    return;
+  }
+  host.innerHTML = investments.slice(0, 6).map(inv => {
+    const sym = newsEsc(inv.symbol);
+    const price = inv.livePrice != null ? homeFormatPrice(inv.livePrice) : '—';
+    let chgHtml = '';
+    if(inv.livePrice != null && inv.avgCost > 0){
+      const ret = ((inv.livePrice - inv.avgCost) / inv.avgCost) * 100;
+      const cls = ret >= 0 ? 'pos' : 'neg';
+      chgHtml = `<span class="${cls}" style="font-size:11px;font-family:var(--mono);margin-left:6px">${homeFormatPct(ret)}</span>`;
+    }
+    return `<div class="home-watch-row"><div><span class="home-watch-sym">${sym}</span>${chgHtml}</div><span class="news-tag">${price}</span></div>`;
+  }).join('');
+}
+function renderHomeCalendar(){
+  const host = $('home-calendar');
+  if(!host) return;
+  const today = calTodayIso();
+  const events = calEvents.filter(ev => ev.date === today).slice(0, 3);
+  if(!events.length){
+    host.innerHTML = `<div class="home-cal-row">${t('home-cal-empty')}</div><button type="button" class="home-more-btn" id="home-goto-calendar">${t('home-cal-more')}</button>`;
+    return;
+  }
+  host.innerHTML = events.map(ev => `<div class="home-cal-row"><strong>${newsEsc(ev.time)}</strong>${newsEsc(ev.title)}</div>`).join('')
+    + `<button type="button" class="home-more-btn" id="home-goto-calendar">${t('home-cal-more')}</button>`;
+}
+async function renderHomeIndices(extraSymbols){
+  const host = $('home-ticker');
+  if(!host) return;
+  const symbols = [...new Set([...HOME_INDEX_SYMBOLS, ...(extraSymbols || []).slice(0, 2)])].slice(0, 6);
+  host.innerHTML = symbols.map(sym => `<div class="card home-idx home-state">${newsEsc(sym)}</div>`).join('');
+  const results = await Promise.all(symbols.map(async sym => {
+    try{
+      const q = await fetchHomeQuote(sym);
+      return { sym, ok:true, ...q };
+    }catch(_){
+      return { sym, ok:false };
+    }
+  }));
+  if(!host.isConnected) return;
+  host.innerHTML = results.map(r => {
+    if(!r.ok) return `<div class="card home-idx"><div class="home-idx-sym">${newsEsc(r.sym)}</div><div class="home-idx-val">--</div><div class="home-idx-chg neu">--</div></div>`;
+    const cls = r.pct > 0 ? 'pos' : r.pct < 0 ? 'neg' : 'neu';
+    return `<div class="card home-idx"><div class="home-idx-sym">${newsEsc(r.sym)}</div><div class="home-idx-val">${homeFormatPrice(r.price)}</div><div class="home-idx-chg ${cls}">${homeFormatPct(r.pct)}</div></div>`;
+  }).join('');
+}
+async function renderHome(force=false){
+  if(!$('home-feed')) return;
+  const token = ++homeRenderToken;
+  const symbols = homeDefaultTickers();
+  $('home-feed').innerHTML = `<div class="card home-state">${t('home-loading')}</div>`;
+  renderHomeHero(null);
+  renderHomeWatchlist([], symbols);
+  renderHomeHot();
+  renderHomeCalendar();
+  if(!homeCalendarRequested){
+    homeCalendarRequested = true;
+    fetchCalendar(false).then(() => { if(curView === 'home' && token === homeRenderToken) renderHomeCalendar(); });
+  }
+  renderHomeIndices(symbols);
+  if(investments.length){
+    Promise.all(investments.slice(0, 6).map(async inv => {
+      if(inv.livePrice == null) inv.livePrice = await fetchPrice(inv.symbol);
+    })).then(() => { if(curView === 'home' && token === homeRenderToken) renderHomeHot(); });
+  }
+  let feed = [];
+  try{
+    const newsData = await fetchNewsFeed(symbols, 'latest', force);
+    feed = sortNewsFeed(newsData.feed.filter(item => symbols.some(symbol => newsFocused(item, symbol) || (item.tickers || []).includes(symbol))), 'latest');
+    newsLastError = '';
+  }catch(e){
+    console.warn('Home news error', e);
+    newsLastError = e.message || 'News API error';
+    feed = [];
+  }
+  if(token !== homeRenderToken) return;
+  if(feed.length){
+    renderHomeHero(feed[0]);
+    $('home-feed').innerHTML = feed.slice(1).map(renderHomeFeedItem).join('');
+  }else{
+    renderHomeHero(null);
+    $('home-feed').innerHTML = `<div class="card home-state">${newsLastError ? newsErrorText() : t('home-no-news')}</div>`;
+  }
+  renderHomeWatchlist(feed, symbols);
+}
+document.addEventListener('click', e => {
+  if(e.target.id === 'home-goto-news' || e.target.closest('#home-goto-news')){
+    const input = $('news-ticker-input');
+    if(input) input.value = homeDefaultTickers().join(', ');
+    setView('news');
+    return;
+  }
+  if(e.target.id === 'home-goto-calendar' || e.target.closest('#home-goto-calendar')){
+    setView('calendar');
+    return;
+  }
+  const hero = e.target.closest('#home-hero');
+  if(hero && hero.dataset.url){
+    window.open(hero.dataset.url, '_blank', 'noopener');
+    return;
+  }
+  const item = e.target.closest('.home-item');
+  if(item && item.dataset.url){
+    window.open(item.dataset.url, '_blank', 'noopener');
+  }
+});
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Enter' && e.key !== ' ') return;
+  const hero = e.target.closest('#home-hero');
+  if(hero && hero.dataset.url){
+    e.preventDefault();
+    window.open(hero.dataset.url, '_blank', 'noopener');
+    return;
+  }
+  const item = e.target.closest('.home-item');
+  if(item && item.dataset.url){
+    e.preventDefault();
+    window.open(item.dataset.url, '_blank', 'noopener');
+  }
+});
 
 // ── RENDER ─────────────────────────────────────────────────────────────────────
 // Investment News
@@ -6399,9 +6707,13 @@ window.addEventListener('resize', () => {
 
   <!-- MOBILE BOTTOM NAV -->
   <nav class="bottom-nav" id="bottom-nav">
-    <button class="bottom-nav-btn active" data-view="dashboard">
+    <button class="bottom-nav-btn active" data-view="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"></path><path d="M8 8h7"></path><path d="M8 12h8"></path><path d="M8 16h5"></path></svg>
+      <span class="bnav-label" data-i18n="bnav-home">主頁</span>
+    </button>
+    <button class="bottom-nav-btn" data-view="dashboard">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 10v10h5v-6h4v6h5V10"></path></svg>
-      <span class="bnav-label">Dashboard</span>
+      <span class="bnav-label" data-i18n="bnav-dashboard">總覽</span>
     </button>
     <button class="bottom-nav-btn" data-view="monthly">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
