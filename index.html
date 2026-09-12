@@ -5296,7 +5296,10 @@ const HOME_NEWS_LIMIT = 10;
 let homeRenderToken = 0;
 let homeCalendarRequested = false;
 function homeHoldingsSymbols(){
-  return [...new Set(investments.map(i => String(i.symbol || '').trim().toUpperCase()).filter(Boolean))];
+  return [...new Set(investments
+    .filter(i => Number(i.qty) > 0)
+    .map(i => String(i.symbol || '').trim().toUpperCase())
+    .filter(Boolean))];
 }
 function homeWatchlistPick(limit=3){
   const all = homeHoldingsSymbols();
@@ -5466,9 +5469,9 @@ async function renderHome(force=false){
   if(!$('home-feed')) return;
   const token = ++homeRenderToken;
   const holdings = homeHoldingsSymbols();
-  const watchSymbols = homeWatchlistPick(3);
+  const watchSymbols = holdings.length ? homeWatchlistPick(3) : [];
   $('home-feed').innerHTML = `<div class="card home-state">${t('home-loading')}</div>`;
-  renderHomeWatchlist(watchSymbols, null);
+  renderHomeWatchlist(watchSymbols, watchSymbols.length ? null : {});
   renderHomeCalendar();
   if(!homeCalendarRequested){
     homeCalendarRequested = true;
@@ -5500,7 +5503,12 @@ async function renderHome(force=false){
   $('home-feed').innerHTML = feed.length
     ? feed.map(renderHomeFeedItem).join('')
     : `<div class="card home-state">${newsLastError ? newsErrorText() : t('home-no-news')}</div>`;
-  renderHomeWatchlist(watchSymbols, await sentimentPromise);
+  const scores = await sentimentPromise;
+  if(token !== homeRenderToken) return;
+  renderHomeWatchlist(watchSymbols, scores);
+}
+function refreshHomeIfVisible(force=false){
+  if(curView === 'home') renderHome(force);
 }
 document.addEventListener('click', e => {
   const item = e.target.closest('.home-item');
@@ -5789,6 +5797,7 @@ function renderInvestments(){
         investments = investments.filter(x => x.id !== +btn.dataset.invId);
         saveUserData();
         renderInvestments();
+        refreshHomeIfVisible(true);
       });
     });
   });
@@ -6017,12 +6026,14 @@ $('inv-submit').addEventListener('click', async () => {
   saveUserData();
   closeInvModal();
   renderInvestments();
+  refreshHomeIfVisible(true);
 
   // Fetch price immediately after adding
   const price = await fetchPrice(symbol);
   inv.livePrice = price;
   saveUserData();
   renderInvestments();
+  refreshHomeIfVisible();
 });
 
 const FUTU_PARSE_API = 'https://blackspace.markchanchun.workers.dev/parse-futu-holdings';
