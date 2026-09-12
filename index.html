@@ -815,6 +815,9 @@ table{border-collapse:collapse;width:100%}
 .home-watch-row:last-child{border-bottom:none;padding-bottom:0}
 .home-watch-sym{font-size:12px;font-weight:700;font-family:var(--mono)}
 .home-watch-sent{font-size:11px;font-weight:600;font-family:var(--mono)}
+.home-watch-sent.pos{color:var(--success)}
+.home-watch-sent.neg{color:var(--error)}
+.home-watch-sent.neu{color:var(--muted)}
 .home-cal-row{padding:5px 0;border-bottom:1px solid var(--divider);font-size:12px;color:var(--muted);line-height:1.45}
 .home-cal-row:last-child{border-bottom:none}
 .home-cal-row strong{color:var(--text);font-weight:600;font-family:var(--mono);font-size:11px;margin-right:6px}
@@ -1896,11 +1899,11 @@ table{border-collapse:collapse;width:100%}
   <nav class="nav" id="nav">
     <div class="nav-group-label" data-i18n="demo-nav-core">Core</div>
     <button class="nav-btn active" data-view="home" data-tip="Home">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"></path><path d="M8 8h7"></path><path d="M8 12h8"></path><path d="M8 16h5"></path></svg>
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 10v10h5v-6h4v6h5V10"></path></svg>
       <span class="nav-btn-label" data-i18n="nav-home">主頁</span>
     </button>
     <button class="nav-btn" data-view="dashboard" data-tip="Dashboard">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 10v10h5v-6h4v6h5V10"></path></svg>
+      <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"></rect><rect x="13" y="3" width="8" height="5" rx="1.5"></rect><rect x="13" y="10" width="8" height="11" rx="1.5"></rect><rect x="3" y="13" width="8" height="8" rx="1.5"></rect></svg>
       <span class="nav-btn-label">Dashboard</span>
     </button>
     <button class="nav-btn" data-view="monthly" data-tip="Monthly">
@@ -5292,10 +5295,19 @@ const HOME_INDEX_SYMBOLS = ['SPY', 'QQQ'];
 const HOME_NEWS_LIMIT = 10;
 let homeRenderToken = 0;
 let homeCalendarRequested = false;
-function homeDefaultTickers(){
-  const fromInv = investments.map(i => String(i.symbol || '').trim().toUpperCase()).filter(Boolean);
-  if(fromInv.length) return [...new Set(fromInv)].slice(0, 8);
-  return ['NVDA', 'AAPL', 'MSFT'];
+function homeHoldingsSymbols(){
+  return [...new Set(investments.map(i => String(i.symbol || '').trim().toUpperCase()).filter(Boolean))];
+}
+function homeWatchlistPick(limit=3){
+  const all = homeHoldingsSymbols();
+  if(!all.length) return [];
+  if(all.length <= limit) return all;
+  const picked = [...all];
+  for(let i = picked.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [picked[i], picked[j]] = [picked[j], picked[i]];
+  }
+  return picked.slice(0, limit);
 }
 function homeNewsMatchesSymbol(item, symbol){
   if((item.tickers || []).includes(symbol)) return true;
@@ -5348,10 +5360,29 @@ function sortHomeNewsFeed(feed, symbols){
     return parseNewsTime(b.time) - parseNewsTime(a.time);
   });
 }
-function homeTone(s){ return s > .12 ? 'pos' : s < -.12 ? 'neg' : 'neu'; }
-function homeSentLabel(s){
-  const tone = homeTone(s);
-  return tone === 'pos' ? t('news-sentiment-positive') : tone === 'neg' ? t('news-sentiment-negative') : t('news-sentiment-neutral');
+function investmentNewsPositivePct(feed){
+  return feed.length ? Math.round(feed.filter(i => i.sentiment > .12).length / feed.length * 100) : 0;
+}
+function homePositiveClass(pct){
+  if(pct > 51) return 'pos';
+  if(pct < 49) return 'neg';
+  return 'neu';
+}
+async function fetchHomeWatchSentiment(symbol, force=false){
+  const newsData = await fetchNewsFeed([symbol], 'latest', force);
+  const feed = sortNewsFeed(newsData.feed.filter(item => newsFocused(item, symbol) || (item.tickers || []).includes(symbol)), 'latest');
+  return investmentNewsPositivePct(feed);
+}
+async function fetchHomeWatchSentiments(symbols, force=false){
+  const rows = await Promise.all(symbols.map(async sym => {
+    try{
+      return { sym, positive: await fetchHomeWatchSentiment(sym, force) };
+    }catch(e){
+      console.warn('Home watch sentiment error', sym, e);
+      return { sym, positive: null };
+    }
+  }));
+  return Object.fromEntries(rows.map(r => [r.sym, r.positive]));
 }
 function homeFormatPrice(value){
   if(!Number.isFinite(Number(value))) return '--';
@@ -5386,19 +5417,18 @@ function renderHomeFeedItem(item){
     <p>${newsEsc(item.summary)}</p>
   </article>`;
 }
-function renderHomeWatchlist(feed, symbols){
+function renderHomeWatchlist(symbols, scores){
   const host = $('home-watchlist');
   if(!host) return;
   if(!symbols.length){
     host.innerHTML = `<div class="home-state" style="padding:8px 0;text-align:left">${curLang === 'zh' ? '尚無持倉' : 'No holdings yet'}</div>`;
     return;
   }
-  host.innerHTML = symbols.slice(0, 6).map(sym => {
-    const items = feed.filter(item => homeNewsMatchesSymbol(item, sym));
-    const avg = items.length ? items.reduce((s, i) => s + i.sentiment, 0) / items.length : 0;
-    const tone = homeTone(avg);
-    const score = items.length ? `${avg > 0 ? '+' : ''}${avg.toFixed(2)}` : '—';
-    return `<div class="home-watch-row"><span class="home-watch-sym">${newsEsc(sym)}</span><span class="home-watch-sent ${tone}">${items.length ? `${homeSentLabel(avg)} ${score}` : '—'}</span></div>`;
+  host.innerHTML = symbols.map(sym => {
+    const positive = scores?.[sym];
+    if(positive == null) return `<div class="home-watch-row"><span class="home-watch-sym">${newsEsc(sym)}</span><span class="home-watch-sent neu">—</span></div>`;
+    const cls = homePositiveClass(positive);
+    return `<div class="home-watch-row"><span class="home-watch-sym">${newsEsc(sym)}</span><span class="home-watch-sent ${cls}">${positive}%</span></div>`;
   }).join('');
 }
 function renderHomeCalendar(){
@@ -5435,25 +5465,29 @@ async function renderHomeIndices(){
 async function renderHome(force=false){
   if(!$('home-feed')) return;
   const token = ++homeRenderToken;
-  const symbols = homeDefaultTickers();
+  const holdings = homeHoldingsSymbols();
+  const watchSymbols = homeWatchlistPick(3);
   $('home-feed').innerHTML = `<div class="card home-state">${t('home-loading')}</div>`;
-  renderHomeWatchlist([], symbols);
+  renderHomeWatchlist(watchSymbols, null);
   renderHomeCalendar();
   if(!homeCalendarRequested){
     homeCalendarRequested = true;
     fetchCalendar(false).then(() => { if(curView === 'home' && token === homeRenderToken) renderHomeCalendar(); });
   }
   renderHomeIndices();
+  const sentimentPromise = watchSymbols.length ? fetchHomeWatchSentiments(watchSymbols, force) : Promise.resolve({});
   let feed = [];
   try{
-    const newsData = await fetchCnyesHomeNews(symbols, force);
-    feed = sortHomeNewsFeed(newsData.feed, symbols);
+    const newsData = await fetchCnyesHomeNews(holdings, force);
+    feed = sortHomeNewsFeed(newsData.feed, holdings);
     newsLastError = '';
   }catch(e){
     console.warn('Home cnyes news error', e);
     try{
-      const newsData = await fetchNewsFeed(symbols, 'latest', force);
-      feed = sortNewsFeed(newsData.feed.filter(item => symbols.some(symbol => homeNewsMatchesSymbol(item, symbol))), 'latest');
+      if(holdings.length){
+        const newsData = await fetchNewsFeed(holdings, 'latest', force);
+        feed = sortNewsFeed(newsData.feed.filter(item => holdings.some(symbol => homeNewsMatchesSymbol(item, symbol))), 'latest');
+      }
       newsLastError = '';
     }catch(fallbackErr){
       console.warn('Home news fallback error', fallbackErr);
@@ -5466,7 +5500,7 @@ async function renderHome(force=false){
   $('home-feed').innerHTML = feed.length
     ? feed.map(renderHomeFeedItem).join('')
     : `<div class="card home-state">${newsLastError ? newsErrorText() : t('home-no-news')}</div>`;
-  renderHomeWatchlist(feed, symbols);
+  renderHomeWatchlist(watchSymbols, await sentimentPromise);
 }
 document.addEventListener('click', e => {
   const item = e.target.closest('.home-item');
@@ -6665,11 +6699,11 @@ window.addEventListener('resize', () => {
   <!-- MOBILE BOTTOM NAV -->
   <nav class="bottom-nav" id="bottom-nav">
     <button class="bottom-nav-btn active" data-view="home">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"></path><path d="M8 8h7"></path><path d="M8 12h8"></path><path d="M8 16h5"></path></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 10v10h5v-6h4v6h5V10"></path></svg>
       <span class="bnav-label" data-i18n="bnav-home">主頁</span>
     </button>
     <button class="bottom-nav-btn" data-view="dashboard">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 10v10h5v-6h4v6h5V10"></path></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"></rect><rect x="13" y="3" width="8" height="5" rx="1.5"></rect><rect x="13" y="10" width="8" height="11" rx="1.5"></rect><rect x="3" y="13" width="8" height="8" rx="1.5"></rect></svg>
       <span class="bnav-label" data-i18n="bnav-dashboard">總覽</span>
     </button>
     <button class="bottom-nav-btn" data-view="monthly">
