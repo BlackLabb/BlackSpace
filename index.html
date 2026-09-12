@@ -5319,6 +5319,7 @@ async function fetchAllPrices(){
 
 // ── HOME (Editorial News) ─────────────────────────────────────────────────────
 const HOME_INDEX_SYMBOLS = ['SPY', 'QQQ', 'DIA', 'IWM'];
+const HOME_NEWS_LIMIT = 10;
 let homeRenderToken = 0;
 let homeCalendarRequested = false;
 function homeDefaultTickers(){
@@ -5355,7 +5356,7 @@ async function fetchCnyesHomeNews(symbols, force=false){
   if(!force && cached && Date.now() - cached.ts < NEWS_CLIENT_CACHE_TTL) return cached.data;
   const url = new URL(`${FUND_FLOW_API}/cnyes-stock-news`);
   url.searchParams.set('category', 'wd_stock');
-  url.searchParams.set('limit', '20');
+  url.searchParams.set('limit', String(HOME_NEWS_LIMIT));
   if(symbols.length) url.searchParams.set('symbols', symbols.join(','));
   if(force) url.searchParams.set('refresh', '1');
   const res = await fetch(url.toString(), { signal: AbortSignal.timeout(45000) });
@@ -5539,6 +5540,7 @@ async function renderHome(force=false){
     }
   }
   if(token !== homeRenderToken) return;
+  feed = feed.slice(0, HOME_NEWS_LIMIT);
   if(feed.length){
     renderHomeHero(feed[0]);
     $('home-feed').innerHTML = feed.slice(1).map(renderHomeFeedItem).join('');
