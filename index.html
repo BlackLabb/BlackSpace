@@ -822,7 +822,7 @@ table{border-collapse:collapse;width:100%}
 .home-cal-row:last-child{border-bottom:none}
 .home-cal-row strong{color:var(--text);font-weight:600;font-family:var(--mono);font-size:11px;margin-right:6px}
 .home-feed-head{margin-bottom:10px}
-.home-feed-head h2{margin:0;font-size:15px;font-weight:600;letter-spacing:-.02em}
+.home-feed-head h2{margin:0;font-size:15px;font-weight:600;letter-spacing:-.02em;color:var(--text)}
 .home-more-btn{font-size:12px;font-weight:600;color:var(--primary);padding:4px 0}
 .home-feed{display:flex;flex-direction:column;gap:10px}
 .home-item{padding:14px 16px;transition:transform .15s,border-color .15s;cursor:pointer}
@@ -1903,7 +1903,7 @@ table{border-collapse:collapse;width:100%}
       <span class="nav-btn-label" data-i18n="nav-home">主頁</span>
     </button>
     <button class="nav-btn" data-view="dashboard" data-tip="Dashboard">
-      <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"></rect><rect x="13" y="3" width="8" height="5" rx="1.5"></rect><rect x="13" y="10" width="8" height="11" rx="1.5"></rect><rect x="3" y="13" width="8" height="8" rx="1.5"></rect></svg>
+      <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="12" x2="21" y2="12"></line><line x1="12" y1="3" x2="12" y2="21"></line></svg>
       <span class="nav-btn-label">Dashboard</span>
     </button>
     <button class="nav-btn" data-view="monthly" data-tip="Monthly">
@@ -6113,6 +6113,7 @@ async function importFutuScreenshot(file){
     saveUserData();
     closeInvModal();
     renderInvestments();
+    refreshHomeIfVisible(true);
     await fetchAllPrices();
 
     loading.remove();
@@ -6299,8 +6300,8 @@ $('edit-inv-submit').addEventListener('click', async ()=>{
   const symbolChanged = inv.symbol!==symbol;
   inv.symbol=symbol; inv.qty=qty; inv.avgCost=avgCost; inv.currency=currency;
   if(symbolChanged) inv.livePrice=null;
-  saveUserData(); closeEditInvModal(); renderInvestments();
-  if(symbolChanged){ inv.livePrice=await fetchPrice(symbol); saveUserData(); renderInvestments(); }
+  saveUserData(); closeEditInvModal(); renderInvestments(); refreshHomeIfVisible(true);
+  if(symbolChanged){ inv.livePrice=await fetchPrice(symbol); saveUserData(); renderInvestments(); refreshHomeIfVisible(); }
 });
 
 // ── EDIT CATEGORY MODAL ───────────────────────────────────────────────────────
@@ -6714,7 +6715,7 @@ window.addEventListener('resize', () => {
       <span class="bnav-label" data-i18n="bnav-home">主頁</span>
     </button>
     <button class="bottom-nav-btn" data-view="dashboard">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"></rect><rect x="13" y="3" width="8" height="5" rx="1.5"></rect><rect x="13" y="10" width="8" height="11" rx="1.5"></rect><rect x="3" y="13" width="8" height="8" rx="1.5"></rect></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="12" x2="21" y2="12"></line><line x1="12" y1="3" x2="12" y2="21"></line></svg>
       <span class="bnav-label" data-i18n="bnav-dashboard">總覽</span>
     </button>
     <button class="bottom-nav-btn" data-view="monthly">
