@@ -5,7 +5,7 @@
 	  var t='dark';
 	  try { var s=localStorage.getItem('bs_theme'); if(s==='light'||s==='dark'||s==='trader') t=s; } catch(_){}
 	  var c=t==='light'?'#ffffff':(t==='trader'?'#000000':'#070708');
-	  var apple=t==='light'?'default':'black-translucent';
+	  var apple='default';
 	  document.documentElement.setAttribute('data-theme',t);
 	  document.documentElement.style.colorScheme=t==='light'?'light':'dark';
 	  document.documentElement.style.backgroundColor=c;
@@ -202,7 +202,9 @@ html.landing-visible,html.landing-visible body{background:#000!important}
 html.landing-visible:has(#landing-page:not([style*="display: none"]):not([style*="display:none"])) body::before,html.landing-visible:has(#landing-page:not([style*="display: none"]):not([style*="display:none"])) body::after{background:#000!important}
 [data-theme="light"]:not(.landing-visible) html{background:#ffffff!important}
 [data-theme="light"]:not(.landing-visible) body::before,[data-theme="light"]:not(.landing-visible) body::after{background:#ffffff!important}
-#chrome-top-fill{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);height:constant(safe-area-inset-top);background:#ffffff;pointer-events:none;z-index:49}
+[data-theme="dark"]:not(.landing-visible) html{background:#070708!important}
+[data-theme="dark"]:not(.landing-visible) body::before,[data-theme="dark"]:not(.landing-visible) body::after{background:#070708!important}
+#chrome-top-fill{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);height:constant(safe-area-inset-top);background:var(--chrome-bg);pointer-events:none;z-index:49}
 #chrome-top-fill[hidden]{display:none!important}
 #landing-page{display:block;min-height:100vh;background:#000!important}
 button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
@@ -635,7 +637,9 @@ table{border-collapse:collapse;width:100%}
   .main { width: 100%; }
   .topbar { padding: calc(10px + env(safe-area-inset-top)) 16px 10px; padding-top: calc(10px + constant(safe-area-inset-top)); background: var(--chrome-bg) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
   [data-theme="light"] .topbar { background: #ffffff !important; }
-  [data-theme="light"] .topbar::before {
+  [data-theme="dark"] .topbar { background: #070708 !important; }
+  [data-theme="light"] .topbar::before,
+  [data-theme="dark"] .topbar::before {
     content: "";
     position: fixed;
     top: 0;
@@ -643,10 +647,11 @@ table{border-collapse:collapse;width:100%}
     right: 0;
     height: env(safe-area-inset-top);
     height: constant(safe-area-inset-top);
-    background: #ffffff;
+    background: var(--chrome-bg);
     pointer-events: none;
     z-index: -1;
   }
+  [data-theme="dark"] .content { background: var(--bg) !important; }
   .mobile-menu-btn { display: none !important; }
   .page-title-wrap h1 { font-size: 15px; line-height: 1.15; }
   .topbar-left { gap: 0; min-width: 0; }
@@ -3981,7 +3986,7 @@ function isSplashVisible(){
 }
 function syncThemeChrome(theme){
   const scheme = theme === 'light' ? 'light' : 'dark';
-  const appleStyle = theme === 'light' ? 'default' : 'black-translucent';
+  const appleStyle = 'default';
   const colors = { light: '#ffffff', dark: '#070708', trader: '#000000' };
   const color = colors[theme] || '#000000';
   const splashVisible = isSplashVisible();
@@ -3995,7 +4000,7 @@ function syncThemeChrome(theme){
   const topFill = document.getElementById('chrome-top-fill');
   if(topFill){
     topFill.style.backgroundColor = color;
-    topFill.hidden = theme !== 'light' || splashVisible;
+    topFill.hidden = splashVisible;
   }
 
   document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.remove());
