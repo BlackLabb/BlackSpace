@@ -6203,10 +6203,7 @@ function showLanding(){
   const lp = document.getElementById('landing-page');
   const auth = document.getElementById('auth-screen');
   if(auth) auth.style.display = 'none';
-  if(lp){
-    lp.style.display = 'grid';
-    lp.focus({ preventScroll: true });
-  }
+  if(lp) lp.style.display = 'grid';
   document.documentElement.classList.add('landing-visible');
   syncThemeChrome(curTheme);
   syncAuthPanel('login');
