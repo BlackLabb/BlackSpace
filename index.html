@@ -206,6 +206,17 @@ html.landing-visible:has(#landing-page:not([style*="display: none"]):not([style*
 [data-theme="dark"]:not(.landing-visible) body::before,[data-theme="dark"]:not(.landing-visible) body::after{background:#070708!important}
 #chrome-top-fill{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);height:constant(safe-area-inset-top);background:var(--chrome-bg);pointer-events:none;z-index:49}
 #chrome-top-fill[hidden]{display:none!important}
+/* iOS 27+ PWA: system status-bar blur/separator workaround (r/PWA background-clip strip + sticky header) */
+#ios-pwa-status-fix{display:none}
+@supports (-webkit-touch-callout:none){
+  @media (display-mode:standalone){
+    #ios-pwa-status-fix{display:block;position:fixed;inset:0 0 auto;left:0;right:0;height:11px;pointer-events:none;z-index:2147483646;background-color:var(--chrome-bg);-webkit-background-clip:text;background-clip:text;color:transparent}
+    html.landing-visible #ios-pwa-status-fix{background-color:#000}
+    .topbar{position:sticky;top:0;z-index:50}
+    #ios-pwa-blur-cover{display:none;position:fixed;inset:0;z-index:2147483644;background:rgba(255,255,255,.01);pointer-events:none}
+    #ios-pwa-blur-panel{position:fixed;top:0;right:0;bottom:0;width:90%;z-index:2147483645;background:rgba(255,255,255,.01);pointer-events:none;transform:translateX(110%);transition:transform .3s}
+  }
+}
 #landing-page{display:block;min-height:100vh;background:#000!important}
 button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
 input,select{font:inherit;color:inherit}
@@ -1804,6 +1815,7 @@ table{border-collapse:collapse;width:100%}
 </head>
 <body data-cc-id="cc-1" style="font-size: 14px; background-color: rgb(255, 255, 255);">
 <div id="chrome-top-fill" aria-hidden="true" hidden></div>
+<div id="ios-pwa-status-fix" aria-hidden="true"></div>
 
 <!-- ══ PUBLIC SHELL — Splash + Auth ══ -->
 <div id="landing-page" tabindex="0" data-i18n-aria="pub-splash-aria">
@@ -4001,6 +4013,8 @@ function syncThemeChrome(theme){
     topFill.style.backgroundColor = color;
     topFill.hidden = splashVisible;
   }
+  const iosStatusFix = document.getElementById('ios-pwa-status-fix');
+  if(iosStatusFix) iosStatusFix.style.backgroundColor = splashVisible ? '#000000' : color;
 
   document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.remove());
   const themeMeta = document.createElement('meta');
@@ -6666,6 +6680,36 @@ renderGoals = function() {
 
 // ── FIXED: Blue theme + Donut chart always on ──────
 // No Tweaks panel needed — settings are locked in.
+
+// iOS 27 PWA: compositor nudge — off-screen fixed panel after load (hamburger-menu workaround).
+(function initIos27PwaStatusBarCompositor(){
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if(!standalone || !isIOS) return;
+
+  function run(){
+    if(document.getElementById('ios-pwa-blur-panel')) return;
+    const cover = document.createElement('div');
+    cover.id = 'ios-pwa-blur-cover';
+    cover.setAttribute('aria-hidden', 'true');
+    const panel = document.createElement('div');
+    panel.id = 'ios-pwa-blur-panel';
+    panel.setAttribute('aria-hidden', 'true');
+    document.body.append(cover, panel);
+    void panel.offsetWidth;
+    requestAnimationFrame(() => {
+      cover.style.display = 'block';
+      panel.style.transform = 'translateX(0%)';
+      setTimeout(() => {
+        cover.style.display = 'none';
+        panel.style.transform = 'translateX(110%)';
+      }, 500);
+    });
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, { once: true });
+  else run();
+})();
 
 // iOS PWA: keep CSS viewport height; only manage keyboard UI state.
 (function syncAppViewport(){
