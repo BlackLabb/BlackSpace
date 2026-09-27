@@ -4,7 +4,7 @@
 	(function(){
 	  var t='dark';
 	  try { var s=localStorage.getItem('bs_theme'); if(s==='light'||s==='dark'||s==='trader') t=s; } catch(_){}
-	  var c=t==='light'?'#ffffff':'#000000';
+	  var c=t==='light'?'#ffffff':(t==='trader'?'#000000':'#070708');
 	  var apple=t==='light'?'default':'black-translucent';
 	  document.documentElement.setAttribute('data-theme',t);
 	  document.documentElement.style.colorScheme=t==='light'?'light':'dark';
@@ -75,7 +75,7 @@
   --trans:200ms cubic-bezier(.25,.46,.45,.94);
 }
 [data-theme="dark"]{
-  --bg:#070708;--chrome-bg:#000000;--surface:#121216;--surface2:#0d0d10;--surfaceOff:#121216;--surfaceDyn:#1a1a1f;
+  --bg:#070708;--chrome-bg:#070708;--surface:#121216;--surface2:#0d0d10;--surfaceOff:#121216;--surfaceDyn:#1a1a1f;
   --divider:rgba(255,255,255,0.08);--border:rgba(255,255,255,0.14);
   --text:#f3f1ec;--muted:#8d8980;--faint:#5c5954;
   --primary:#d4b56a;--primaryHov:#e8cf8d;--primaryHL:rgba(212,181,106,0.12);
@@ -190,7 +190,9 @@
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation;height:100%;min-height:100%;background:var(--chrome-bg);color-scheme:light;overscroll-behavior:none}
 [data-theme="dark"],[data-theme="trader"]{color-scheme:dark}
 body{height:var(--app-height);min-height:var(--app-height);font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:var(--text);background:var(--bg);display:flex;overflow:hidden;letter-spacing:-.01em;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-[data-theme="dark"] body{background:radial-gradient(circle at 12% -10%,rgba(212,181,106,0.12),transparent 34%),radial-gradient(circle at 88% 0%,rgba(122,167,217,0.08),transparent 28%),linear-gradient(180deg,#0d0d10,#070708)}
+[data-theme="dark"] body{background:var(--bg)}
+[data-theme="dark"] #app-wrapper{background:var(--bg)}
+[data-theme="dark"] .content{background:radial-gradient(circle at 12% -10%,rgba(212,181,106,0.10),transparent 34%),radial-gradient(circle at 88% 0%,rgba(122,167,217,0.06),transparent 28%),var(--bg)}
 #app-wrapper{height:var(--app-height);min-height:var(--app-height);background:var(--bg)}
 body::before,body::after{content:'';position:fixed;left:0;right:0;background:var(--chrome-bg);pointer-events:none;z-index:46}
 body::before{top:0;height:env(safe-area-inset-top);height:constant(safe-area-inset-top)}
@@ -3980,7 +3982,7 @@ function isSplashVisible(){
 function syncThemeChrome(theme){
   const scheme = theme === 'light' ? 'light' : 'dark';
   const appleStyle = theme === 'light' ? 'default' : 'black-translucent';
-  const colors = { light: '#ffffff', dark: '#000000', trader: '#000000' };
+  const colors = { light: '#ffffff', dark: '#070708', trader: '#000000' };
   const color = colors[theme] || '#000000';
   const splashVisible = isSplashVisible();
 
